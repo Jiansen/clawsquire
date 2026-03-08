@@ -5,7 +5,7 @@ mod doctor;
 mod openclaw;
 
 use backup::{BackupEntry, DiffEntry};
-use detect::Environment;
+use detect::{Environment, UpdateCheck};
 use doctor::DoctorReport;
 use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
 
@@ -184,6 +184,20 @@ async fn collect_feedback_info() -> Result<FeedbackInfo, String> {
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn check_for_updates() -> UpdateCheck {
+    let version = env!("CARGO_PKG_VERSION").to_string();
+    tauri::async_runtime::spawn_blocking(move || detect::check_for_updates(&version))
+        .await
+        .unwrap_or_else(|_| UpdateCheck {
+            current_version: env!("CARGO_PKG_VERSION").to_string(),
+            latest_version: None,
+            update_available: false,
+            download_url: None,
+            release_notes: None,
+        })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -214,6 +228,7 @@ pub fn run() {
             collect_feedback_info,
             agent_chat,
             apply_safety_preset,
+            check_for_updates,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -97,3 +97,75 @@ fn detect_config_dir() -> String {
     let home = dirs::home_dir().unwrap_or_default();
     home.join(OPENCLAW_STATE_DIR_DEFAULT).to_string_lossy().to_string()
 }
+
+#[derive(Debug, Serialize)]
+pub struct UpdateCheck {
+    pub current_version: String,
+    pub latest_version: Option<String>,
+    pub update_available: bool,
+    pub download_url: Option<String>,
+    pub release_notes: Option<String>,
+}
+
+const GITHUB_REPO: &str = "Jiansen/clawsquire";
+
+pub fn check_for_updates(current_version: &str) -> UpdateCheck {
+    let url = format!(
+        "https://api.github.com/repos/{}/releases/latest",
+        GITHUB_REPO
+    );
+
+    let result = Command::new("curl")
+        .args(["-sL", "-H", "Accept: application/vnd.github.v3+json", &url])
+        .output();
+
+    match result {
+        Ok(output) if output.status.success() => {
+            let body = String::from_utf8_lossy(&output.stdout);
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
+                let tag = json["tag_name"]
+                    .as_str()
+                    .unwrap_or("")
+                    .trim_start_matches('v');
+                let html_url = json["html_url"].as_str().unwrap_or("").to_string();
+                let notes = json["body"].as_str().unwrap_or("").to_string();
+
+                let update_available = !tag.is_empty() && tag != current_version;
+
+                return UpdateCheck {
+                    current_version: current_version.to_string(),
+                    latest_version: if tag.is_empty() {
+                        None
+                    } else {
+                        Some(tag.to_string())
+                    },
+                    update_available,
+                    download_url: if html_url.is_empty() {
+                        None
+                    } else {
+                        Some(html_url)
+                    },
+                    release_notes: if notes.is_empty() {
+                        None
+                    } else {
+                        Some(notes)
+                    },
+                };
+            }
+            UpdateCheck {
+                current_version: current_version.to_string(),
+                latest_version: None,
+                update_available: false,
+                download_url: None,
+                release_notes: None,
+            }
+        }
+        _ => UpdateCheck {
+            current_version: current_version.to_string(),
+            latest_version: None,
+            update_available: false,
+            download_url: None,
+            release_notes: None,
+        },
+    }
+}

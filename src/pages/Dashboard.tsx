@@ -44,6 +44,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [backingUp, setBackingUp] = useState(false);
   const [daemonAction, setDaemonAction] = useState<'idle' | 'starting' | 'stopping'>('idle');
+  const [updateInfo, setUpdateInfo] = useState<{
+    update_available: boolean;
+    latest_version?: string | null;
+    download_url?: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    invoke<{ update_available: boolean; latest_version: string | null; download_url: string | null }>(
+      'check_for_updates'
+    ).then(setUpdateInfo).catch(() => {});
+  }, []);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -140,6 +151,32 @@ export default function Dashboard() {
           {loading ? '...' : '↻'}
         </button>
       </div>
+
+      {updateInfo?.update_available && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🆕</span>
+            <div>
+              <p className="text-sm font-medium text-blue-800">
+                {t('dashboard.updateAvailable', { version: updateInfo.latest_version })}
+              </p>
+              <p className="text-xs text-blue-600">
+                {t('dashboard.currentVersion', { version: env?.openclaw_version || '0.1.0' })}
+              </p>
+            </div>
+          </div>
+          {updateInfo.download_url && (
+            <a
+              href={updateInfo.download_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-all whitespace-nowrap"
+            >
+              {t('dashboard.downloadUpdate')}
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Status Card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
