@@ -1,6 +1,7 @@
 import './i18n';
 import './styles/globals.css';
 
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
@@ -9,8 +10,19 @@ import Onboard from './pages/Onboard';
 import Doctor from './pages/Doctor';
 import Backup from './pages/Backup';
 import Settings from './pages/Settings';
+import Welcome from './pages/Welcome';
+
+const LOCALE_KEY = 'clawsquire.locale';
 
 export default function App() {
+  const [hasChosenLocale, setHasChosenLocale] = useState(
+    () => localStorage.getItem(LOCALE_KEY) !== null,
+  );
+
+  if (!hasChosenLocale) {
+    return <Welcome onLanguageSelected={() => setHasChosenLocale(true)} />;
+  }
+
   return (
     <BrowserRouter>
       <div className="flex h-screen bg-gray-50">
