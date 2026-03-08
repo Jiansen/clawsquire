@@ -22,8 +22,10 @@ pub fn config_get(path: &str) -> Result<String, String> {
 }
 
 pub fn config_set(path: &str, value: &str) -> Result<(), String> {
+    let json_value =
+        serde_json::to_string(value).unwrap_or_else(|_| format!("\"{}\"", value));
     let output = Command::new(OPENCLAW_CLI)
-        .args(["config", "set", path, value, "--json"])
+        .args(["config", "set", path, &json_value, "--json"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
 
