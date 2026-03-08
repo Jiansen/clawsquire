@@ -120,8 +120,12 @@
     "finish": "Finalizar",
     "templates": {
       "telegram": {
-        "name": "Asistente de grupo Telegram",
-        "description": "Configura OpenClaw como asistente de IA en un grupo de Telegram"
+        "name": "Bot de Telegram",
+        "description": "Configura OpenClaw como un bot de chat en Telegram"
+      },
+      "whatsapp": {
+        "name": "WhatsApp",
+        "description": "Conecta OpenClaw a WhatsApp mediante código QR"
       },
       "discord": {
         "name": "Bot de Discord",
@@ -158,6 +162,12 @@
         "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
         "step3Title": "Elegir modelo de IA",
         "step3Desc": "Selecciona qué proveedor de modelo de IA debe usar tu bot de Telegram para las respuestas."
+      },
+      "whatsapp": {
+        "step1Title": "Conectar WhatsApp",
+        "step1Desc": "OpenClaw se conecta a WhatsApp a través de WhatsApp Web. Ejecuta 'openclaw channels login --channel whatsapp' en tu terminal y escanea el código QR con tu teléfono.",
+        "step1LinkText": "Guía de configuración de WhatsApp",
+        "completeDesc": "¡WhatsApp conectado! Ahora puedes chatear con OpenClaw directamente en WhatsApp."
       },
       "discord": {
         "step1Title": "Crear una aplicación de Discord",

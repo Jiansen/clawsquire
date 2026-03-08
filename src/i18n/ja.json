@@ -120,8 +120,12 @@
     "finish": "完了",
     "templates": {
       "telegram": {
-        "name": "Telegram グループアシスタント",
-        "description": "OpenClaw を Telegram グループチャットの AI アシスタントとして設定"
+        "name": "Telegram ボット",
+        "description": "OpenClaw を Telegram チャットボットとして設定"
+      },
+      "whatsapp": {
+        "name": "WhatsApp",
+        "description": "QRコードでOpenClawをWhatsAppに接続"
       },
       "discord": {
         "name": "Discord ボット",
@@ -158,6 +162,12 @@
         "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
         "step3Title": "AI モデルを選択",
         "step3Desc": "Telegram ボットの返信に使用する AI モデルプロバイダーを選択してください。"
+      },
+      "whatsapp": {
+        "step1Title": "WhatsApp を接続",
+        "step1Desc": "OpenClaw は WhatsApp Web 経由で接続します。ターミナルで 'openclaw channels login --channel whatsapp' を実行し、スマホで QR コードをスキャンしてください。",
+        "step1LinkText": "WhatsApp セットアップガイド",
+        "completeDesc": "WhatsApp が接続されました！WhatsApp で直接 OpenClaw とチャットできます。"
       },
       "discord": {
         "step1Title": "Discord アプリケーションを作成",

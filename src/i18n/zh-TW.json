@@ -120,8 +120,12 @@
     "finish": "完成",
     "templates": {
       "telegram": {
-        "name": "Telegram 群組助手",
-        "description": "將 OpenClaw 設定為 Telegram 群組聊天 AI 助手"
+        "name": "Telegram 機器人",
+        "description": "配置 OpenClaw 作為 Telegram 聊天機器人"
+      },
+      "whatsapp": {
+        "name": "WhatsApp",
+        "description": "透過掃碼將 OpenClaw 連接到 WhatsApp"
       },
       "discord": {
         "name": "Discord 機器人",
@@ -158,6 +162,12 @@
         "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
         "step3Title": "選擇 AI 模型",
         "step3Desc": "選擇你的 Telegram 機器人回覆時應使用的 AI 模型提供商。"
+      },
+      "whatsapp": {
+        "step1Title": "連接 WhatsApp",
+        "step1Desc": "OpenClaw 透過 WhatsApp Web 連接。在終端執行 'openclaw channels login --channel whatsapp'，然後用手機掃描 QR Code。",
+        "step1LinkText": "WhatsApp 設定指南",
+        "completeDesc": "WhatsApp 已連接！現在可以直接在 WhatsApp 中和 OpenClaw 對話。"
       },
       "discord": {
         "step1Title": "建立 Discord 應用程式",

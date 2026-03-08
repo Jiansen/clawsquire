@@ -8,6 +8,7 @@ import { OPENCLAW_GETTING_STARTED_URL } from '../constants';
 const TEMPLATES = [
   { id: 'llm-provider', icon: '🧠', est: '~2 min', badge: 'recommended' as const },
   { id: 'telegram', icon: '💬', est: '~3 min', badge: 'optional' as const },
+  { id: 'whatsapp', icon: '📱', est: '~2 min', badge: 'optional' as const },
   { id: 'discord', icon: '🤖', est: '~3 min', badge: 'optional' as const },
   { id: 'vps-headless', icon: '🖥️', est: '~5 min', badge: null },
 ] as const;
@@ -105,6 +106,22 @@ function getSteps(templateId: string): StepDef[] {
           type: 'complete',
           titleKey: 'onboard.wizard.completeTitle',
           descKey: 'onboard.wizard.completeDesc',
+        },
+      ];
+    case 'whatsapp':
+      return [
+        {
+          type: 'info',
+          titleKey: 'onboard.wizard.whatsapp.step1Title',
+          descKey: 'onboard.wizard.whatsapp.step1Desc',
+          link: 'https://docs.openclaw.ai/channels/whatsapp',
+          linkTextKey: 'onboard.wizard.whatsapp.step1LinkText',
+          conceptKey: 'channel',
+        },
+        {
+          type: 'complete',
+          titleKey: 'onboard.wizard.completeTitle',
+          descKey: 'onboard.wizard.whatsapp.completeDesc',
         },
       ];
     case 'discord':

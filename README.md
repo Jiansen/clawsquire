@@ -12,12 +12,18 @@
 
 [English](#features) · [中文](#中文) · [日本語](#日本語) · [Español](#español) · [Deutsch](#deutsch) · [Português](#português)
 
+<p align="center">
+  <img src="assets/demo.gif" alt="ClawSquire Demo" width="800" />
+</p>
+
 ## Features
 
-- **Setup Assistant** — Guided installation with scene templates (Telegram bot, Discord bot, LLM provider, VPS deploy)
+- **Setup Assistant** — Guided installation with scene templates (Telegram, Discord, WhatsApp, Slack, and 20+ more channels)
 - **Health Check** — Visual diagnostics, friendlier than `openclaw doctor`
 - **Config Backups** — Versioned snapshots with diff and one-click rollback
 - **Dashboard** — See your OpenClaw status at a glance
+- **Safety Presets** — Conservative / Standard / Full security levels with one-click apply
+- **LLM Provider Setup** — Connect 22+ AI providers (OpenAI, Anthropic, DeepSeek, Google, etc.) with live connection testing
 
 ## Status
 
@@ -60,7 +66,7 @@ MIT
 
 ### 功能
 
-- **安装向导** — 场景化配置模板（Telegram 群聊助手、Discord 机器人、LLM 接入、VPS 部署）
+- **安装向导** — 场景化配置模板（Telegram、WhatsApp、Discord、Slack 等 20+ 渠道）
 - **健康检查** — 可视化诊断，比 `openclaw doctor` 更友好
 - **配置备份** — 版本化快照 + 差异对比 + 一键回滚
 - **仪表盘** — 一眼看清 OpenClaw 运行状态
