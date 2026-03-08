@@ -4,6 +4,7 @@
 [![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-00e5cc?style=flat)](https://github.com/Jiansen/clawsquire/releases)
 [![Languages](https://img.shields.io/badge/languages-7-8b5cf6?style=flat)](#languages)
 [![License](https://img.shields.io/github/license/Jiansen/clawsquire?color=3b82f6&style=flat)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/Jiansen/clawsquire/total?color=22c55e&style=flat&logo=github)](https://github.com/Jiansen/clawsquire/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/Jiansen/clawsquire/ci.yml?label=CI&logo=github)](https://github.com/Jiansen/clawsquire/actions)
 
 **The companion app for [OpenClaw](https://openclaw.ai)** — your squire handles onboarding, health checks, config backups, and a visual dashboard so you can focus on what your lobster knight does best.
