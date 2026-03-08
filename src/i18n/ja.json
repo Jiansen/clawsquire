@@ -9,7 +9,8 @@
     "onboard": "セットアップ",
     "doctor": "ヘルスチェック",
     "backup": "バックアップ",
-    "settings": "設定"
+    "settings": "設定",
+    "help": "ヘルプ"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -22,7 +23,10 @@
     "newSetup": "新規セットアップ",
     "runDoctor": "診断を実行",
     "backupNow": "今すぐバックアップ",
-    "viewConfig": "設定を表示"
+    "viewConfig": "設定を表示",
+    "safetyLevel": "セキュリティレベル",
+    "safetyConservative": "保守的",
+    "safetyDescription": "基本機能のみ有効です。高度な機能は手動で有効化する必要があります。"
   },
   "doctor": {
     "title": "ヘルスチェック",
@@ -74,6 +78,45 @@
         "name": "VPS ヘッドレスデプロイ",
         "description": "GUI のない VPS サーバーに OpenClaw をデプロイ"
       }
+    },
+    "modelGuide": {
+      "title": "AI モデルプロバイダーを選択",
+      "recommendation": "どれを選べばいいか分からない？DeepSeek をおすすめします——無料で始められ、とても使いやすいです。",
+      "helpMeChoose": "選ぶのを手伝って",
+      "providers": {
+        "deepseek": {
+          "name": "DeepSeek",
+          "tagline": "おすすめ！無料クレジットあり",
+          "features": "中国語に強く、登録が簡単（約2分）",
+          "difficulty": "簡単"
+        },
+        "openai": {
+          "name": "OpenAI",
+          "tagline": "GPT-4o",
+          "features": "世界で最も人気、支払いが必要（約5分）",
+          "difficulty": "中級"
+        },
+        "anthropic": {
+          "name": "Anthropic",
+          "tagline": "Claude",
+          "features": "高品質、支払いが必要（約5分）",
+          "difficulty": "中級"
+        },
+        "ollama": {
+          "name": "Ollama",
+          "tagline": "ローカルで実行",
+          "features": "完全無料！高性能 GPU が必要",
+          "difficulty": "上級"
+        }
+      },
+      "steps": {
+        "openSignup": "登録ページを開く",
+        "createAccount": "アカウントを作成",
+        "getApiKey": "API キーを取得",
+        "pasteKey": "API キーを下に貼り付け",
+        "keyLocalOnly": "キーはローカルのみに保存され、どこにもアップロードされません。",
+        "verifyAndContinue": "検証して続行"
+      }
     }
   },
   "settings": {
@@ -87,15 +130,155 @@
     "version": "バージョン",
     "dangerZone": "危険な操作",
     "uninstallOpenClaw": "OpenClaw をアンインストール",
-    "uninstallDescription": "デーモンの停止、システムサービスの削除、OpenClaw のアンインストールを行います。設定は事前にバックアップされます。"
+    "uninstallDescription": "デーモンの停止、システムサービスの削除、OpenClaw のアンインストールを行います。設定は事前にバックアップされます。",
+    "safety": "セキュリティレベル",
+    "safetyPresets": {
+      "conservative": {
+        "name": "保守的",
+        "description": "チャットと設定管理のみ。初心者におすすめ。"
+      },
+      "standard": {
+        "name": "標準",
+        "description": "ブラウザ制御、ファイルアクセス、スキルを追加。技術的な知識があるユーザー向け。"
+      },
+      "full": {
+        "name": "フルアクセス",
+        "description": "すべての機能を有効。開発者と上級ユーザー向け。"
+      },
+      "custom": {
+        "name": "カスタム",
+        "description": "各権限を個別に設定。"
+      }
+    },
+    "permissions": {
+      "chat": "チャット（Telegram / WhatsApp）",
+      "configManagement": "設定管理",
+      "browserControl": "ブラウザ制御",
+      "fileAccess": "ファイルシステムアクセス（ワークスペース外）",
+      "camera": "カメラ / 画面キャプチャ",
+      "voiceWake": "音声ウェイクワード",
+      "autoExec": "コマンド自動実行（確認をスキップ）",
+      "canvas": "Canvas（AI 表示パネル）",
+      "cronJobs": "スケジュールタスク（Cron）",
+      "skillInstall": "スキルインストール"
+    },
+    "permissionLevels": {
+      "basic": "基本（デフォルトで有効）",
+      "advanced": "高度（手動で有効化）",
+      "expert": "エキスパート（経験を積んでからおすすめ）"
+    }
   },
   "welcome": {
     "title": "ClawSquire へようこそ",
     "subtitle": "あなたの OpenClaw コンパニオンアプリ",
+    "chooseLanguage": "言語を選択",
     "openclawNotFound": "このシステムに OpenClaw がインストールされていません。",
     "installGuide": "まず OpenClaw をインストールしてから、ここに戻ってください。",
     "installCommand": "npm install -g @anthropic/openclaw",
-    "retry": "再確認"
+    "retry": "再確認",
+    "safetyNotice": "ClawSquire はデフォルトで最も安全な設定で始まります。いつでも後から機能を追加できます。"
+  },
+  "concepts": {
+    "gateway": {
+      "title": "Gateway（ゲートウェイ）とは？",
+      "explanation": "Gateway は OpenClaw の「脳」——あなたのコンピュータで動作し、メッセージを受信、AI モデルを呼び出して処理し、結果を返します。",
+      "tip": "ほとんどのユーザーは「このコンピュータで実行」を選んでください。"
+    },
+    "node": {
+      "title": "Node（ノード）とは？",
+      "explanation": "Node は OpenClaw の「手足」として機能できるデバイス（スマホ、PC）——写真撮影、連絡先の読み取り、位置情報の取得など。",
+      "tip": "スマホは公式 iOS/Android アプリで Node になれます。"
+    },
+    "agent": {
+      "title": "Agent（エージェント）とは？",
+      "explanation": "Agent は AI アシスタントそのものです。質問に答えたり、ウェブを閲覧したり、コードを書いたりするタスクを手伝います。",
+      "tip": "エージェントの能力は、付与した権限によって決まります。"
+    },
+    "llmProvider": {
+      "title": "LLM Provider（LLM プロバイダー）とは？",
+      "explanation": "LLM Provider は AI「脳」を提供する会社（DeepSeek、OpenAI、Anthropic など）です。API キーを取得するには登録が必要です。",
+      "tip": "レストランの会員カードのようなもの——注文するにはカードが必要です。"
+    },
+    "apiKey": {
+      "title": "API キーとは？",
+      "explanation": "API キーは OpenClaw が AI サービスを使えるようにする秘密のパスワードです。各プロバイダーは登録時に発行します。",
+      "tip": "秘密にしてください！API キーを誰とも共有しないでください。ClawSquire はローカルのみに保存します。"
+    },
+    "daemon": {
+      "title": "Daemon（デーモン）とは？",
+      "explanation": "Daemon は OpenClaw を常時稼働させるバックグラウンドサービスです。使っていなくても動き続けます。",
+      "tip": "夜警のようなもの——あなたが寝ている間も勤務しています。"
+    },
+    "sandbox": {
+      "title": "サンドボックスモードとは？",
+      "explanation": "サンドボックスモードは AI がコンピュータでできることを制限します。安全な領域外のファイルへのアクセスや危険なコマンドの実行を防ぎます。",
+      "tip": "特に初心者の方は、サンドボックスを ON にしておくことを強くおすすめします。"
+    },
+    "channel": {
+      "title": "Channel（チャネル）とは？",
+      "explanation": "Channel は AI アシスタントと通信する手段——Telegram、WhatsApp、Discord など。",
+      "tip": "複数のチャネルを設定できますが、1つで十分始められます。"
+    },
+    "skill": {
+      "title": "Skill（スキル）とは？",
+      "explanation": "Skill は AI に新しい能力を与えます——ウェブ閲覧、コード記述、ファイル管理など。スキルはインストール・アンインストールできます。",
+      "tip": "最初は追加スキルなしで始めてください。いつでも後から追加できます。"
+    },
+    "workspace": {
+      "title": "Workspace（ワークスペース）とは？",
+      "explanation": "Workspace は AI が主に作業するフォルダです。ここでファイルの読み書きをします。AI の「デスク」と考えてください。",
+      "tip": "専用フォルダを選んでください。ホームディレクトリは使わないでください。"
+    },
+    "config": {
+      "title": "Config（設定）とは？",
+      "explanation": "Config（設定）はすべての設定を保存するファイル——どの AI プロバイダーを使うか、どのチャネルか、権限など。",
+      "tip": "ClawSquire がこのファイルを管理します。手動で編集する必要はありません。"
+    },
+    "token": {
+      "title": "Token（トークン）/ Auth とは？",
+      "explanation": "Token は不正アクセスから AI を守るセキュリティ認証情報です。玄関の鍵のようなものです。",
+      "tip": "必ず gateway トークンを設定してください。ClawSquire はデフォルトで有効にします。"
+    }
+  },
+  "help": {
+    "title": "ヘルプセンター",
+    "searchPlaceholder": "ヘルプを検索...",
+    "commonQuestions": "よくある質問",
+    "gettingStarted": "はじめに",
+    "faq": {
+      "gatewayWontStart": {
+        "question": "Gateway が起動しない？",
+        "answer": "次の手順を試してください：1) OpenClaw が正しくインストールされているか確認（ヘルスチェックを実行）。2) ポート 18789 が他のプロセスで使用されていないか確認。3) ダッシュボードからデーモンを再起動。"
+      },
+      "whereToGetApiKey": {
+        "question": "API キーはどこで取得できますか？",
+        "answer": "セットアップ → LLM プロバイダーへ。アカウント作成と API キー取得をステップバイステップで案内します。"
+      },
+      "whatIsSandbox": {
+        "question": "サンドボックスモードとは？有効にすべき？",
+        "answer": "サンドボックスモードは AI がコンピュータでできることを制限します。特に初心者は ON にしておくことを強くおすすめします。AI が機密ファイルにアクセスしたり危険なコマンドを実行するのを防ぎます。"
+      },
+      "howToCreateBot": {
+        "question": "Telegram ボットの作り方は？",
+        "answer": "セットアップ → Telegram グループアシスタントへ。@BotFather でボットを作成し OpenClaw に接続するウィザードが案内します。"
+      },
+      "doctorCheckFailed": {
+        "question": "ヘルスチェックが失敗しました——どうすれば？",
+        "answer": "失敗したチェックをクリックして詳細を確認。多くの問題には自動で解決する「修正」ボタンがあります。なければ、ヘルプテキストに手動手順が書いてあります。"
+      },
+      "isMyDataSafe": {
+        "question": "データは安全ですか？",
+        "answer": "はい。ClawSquire は完全にあなたのコンピュータで動作します。API キー、設定ファイル、すべてのデータはローカルに保存されます。サーバーには何もアップロードされません。ClawSquire はオープンソース（MIT ライセンス）——自分で確認できます。"
+      },
+      "canIUndo": {
+        "question": "変更を元に戻せますか？",
+        "answer": "はい！バックアップで設定のスナップショットを保存できます。変更を比較し、いつでも以前のバージョンに復元できます。"
+      },
+      "whatIfSomethingBreaks": {
+        "question": "何か壊れたら？",
+        "answer": "心配不要！ClawSquire は変更前に自動でバックアップを作成します。いつでもバックアップから復元できます。OpenClaw 自体に問題があれば、ヘルスチェックで診断してください。"
+      }
+    }
   },
   "common": {
     "loading": "読み込み中...",
@@ -103,6 +286,13 @@
     "success": "成功",
     "cancel": "キャンセル",
     "confirm": "確認",
-    "close": "閉じる"
+    "close": "閉じる",
+    "learnMore": "詳細を見る",
+    "recommended": "おすすめ",
+    "enabled": "有効",
+    "disabled": "無効",
+    "basic": "基本",
+    "advanced": "高度",
+    "expert": "エキスパート"
   }
 }

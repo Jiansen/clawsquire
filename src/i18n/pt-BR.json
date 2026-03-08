@@ -9,7 +9,8 @@
     "onboard": "Configuração",
     "doctor": "Verificação de Saúde",
     "backup": "Backups",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "help": "Ajuda"
   },
   "dashboard": {
     "title": "Painel",
@@ -22,7 +23,10 @@
     "newSetup": "Nova configuração",
     "runDoctor": "Executar verificação",
     "backupNow": "Fazer backup agora",
-    "viewConfig": "Ver configuração"
+    "viewConfig": "Ver configuração",
+    "safetyLevel": "Nível de segurança",
+    "safetyConservative": "Conservador",
+    "safetyDescription": "Apenas recursos básicos estão habilitados. Recursos avançados exigem ativação manual."
   },
   "doctor": {
     "title": "Verificação de Saúde",
@@ -74,6 +78,45 @@
         "name": "Implantação VPS Headless",
         "description": "Implantar o OpenClaw em um servidor VPS sem interface gráfica"
       }
+    },
+    "modelGuide": {
+      "title": "Escolha seu provedor de modelo de IA",
+      "recommendation": "Não sabe qual escolher? Recomendamos o DeepSeek — é grátis para começar e funciona muito bem.",
+      "helpMeChoose": "Me ajude a escolher",
+      "providers": {
+        "deepseek": {
+          "name": "DeepSeek",
+          "tagline": "Recomendado! Créditos gratuitos disponíveis",
+          "features": "Ótimo para chinês, cadastro simples (~2 min)",
+          "difficulty": "Fácil"
+        },
+        "openai": {
+          "name": "OpenAI",
+          "tagline": "GPT-4o",
+          "features": "Mais popular globalmente, requer pagamento (~5 min)",
+          "difficulty": "Médio"
+        },
+        "anthropic": {
+          "name": "Anthropic",
+          "tagline": "Claude",
+          "features": "Alta qualidade, requer pagamento (~5 min)",
+          "difficulty": "Médio"
+        },
+        "ollama": {
+          "name": "Ollama",
+          "tagline": "Executar localmente",
+          "features": "Completamente grátis! Requer uma boa GPU",
+          "difficulty": "Avançado"
+        }
+      },
+      "steps": {
+        "openSignup": "Abrir página de cadastro",
+        "createAccount": "Criar sua conta",
+        "getApiKey": "Obter sua API Key",
+        "pasteKey": "Cole sua API Key abaixo",
+        "keyLocalOnly": "Sua chave é armazenada apenas localmente e nunca é enviada a lugar nenhum.",
+        "verifyAndContinue": "Verificar e continuar"
+      }
     }
   },
   "settings": {
@@ -87,15 +130,155 @@
     "version": "Versão",
     "dangerZone": "Zona de perigo",
     "uninstallOpenClaw": "Desinstalar OpenClaw",
-    "uninstallDescription": "Parar o daemon, remover o serviço do sistema e desinstalar o OpenClaw. Sua configuração será salva antes."
+    "uninstallDescription": "Parar o daemon, remover o serviço do sistema e desinstalar o OpenClaw. Sua configuração será salva antes.",
+    "safety": "Nível de segurança",
+    "safetyPresets": {
+      "conservative": {
+        "name": "Conservador",
+        "description": "Apenas chat e gerenciamento de configuração. Recomendado para iniciantes."
+      },
+      "standard": {
+        "name": "Padrão",
+        "description": "Adiciona controle do navegador, acesso a arquivos e skills. Para usuários com alguma experiência técnica."
+      },
+      "full": {
+        "name": "Acesso total",
+        "description": "Todos os recursos habilitados. Para desenvolvedores e usuários avançados."
+      },
+      "custom": {
+        "name": "Personalizado",
+        "description": "Configurar cada permissão individualmente."
+      }
+    },
+    "permissions": {
+      "chat": "Chat (Telegram / WhatsApp)",
+      "configManagement": "Gerenciamento de configuração",
+      "browserControl": "Controle do navegador",
+      "fileAccess": "Acesso ao sistema de arquivos (além do workspace)",
+      "camera": "Câmera / Captura de tela",
+      "voiceWake": "Palavra de ativação por voz",
+      "autoExec": "Execução automática de comandos (pular confirmação)",
+      "canvas": "Canvas (painel de exibição de IA)",
+      "cronJobs": "Tarefas agendadas (Cron)",
+      "skillInstall": "Instalação de skills"
+    },
+    "permissionLevels": {
+      "basic": "Básico (habilitado por padrão)",
+      "advanced": "Avançado (habilitar manualmente)",
+      "expert": "Especialista (recomendado após ganhar experiência)"
+    }
   },
   "welcome": {
     "title": "Bem-vindo ao ClawSquire",
     "subtitle": "Seu aplicativo companheiro do OpenClaw",
+    "chooseLanguage": "Escolha seu idioma",
     "openclawNotFound": "O OpenClaw não está instalado neste sistema.",
     "installGuide": "Instale o OpenClaw primeiro e depois volte aqui.",
     "installCommand": "npm install -g @anthropic/openclaw",
-    "retry": "Verificar novamente"
+    "retry": "Verificar novamente",
+    "safetyNotice": "O ClawSquire começa com as configurações mais seguras por padrão. Você sempre pode habilitar mais recursos depois."
+  },
+  "concepts": {
+    "gateway": {
+      "title": "O que é um Gateway?",
+      "explanation": "O Gateway é o \"cérebro\" do OpenClaw — roda no seu computador, recebe suas mensagens, chama modelos de IA para processá-las e envia os resultados de volta.",
+      "tip": "A maioria dos usuários deve escolher \"Executar neste computador\"."
+    },
+    "node": {
+      "title": "O que é um Node?",
+      "explanation": "Um Node é qualquer dispositivo (celular, computador) que pode atuar como as \"mãos e pés\" do OpenClaw — tirar fotos, ler contatos, obter localização, etc.",
+      "tip": "Seu celular pode ser um Node pelo app oficial iOS/Android."
+    },
+    "agent": {
+      "title": "O que é um Agent?",
+      "explanation": "O Agent é o assistente de IA em si. Ele pode ajudá-lo com tarefas como responder perguntas, navegar na web ou escrever código.",
+      "tip": "As habilidades do agente dependem das permissões que você concede."
+    },
+    "llmProvider": {
+      "title": "O que é um provedor de LLM?",
+      "explanation": "Um provedor de LLM é a empresa que fornece o \"cérebro\" de IA (como DeepSeek, OpenAI, Anthropic). Você precisa se registrar em um para obter uma API Key.",
+      "tip": "Pense como um cartão de restaurante — você precisa de um cartão para pedir comida."
+    },
+    "apiKey": {
+      "title": "O que é uma API Key?",
+      "explanation": "Uma API Key é uma senha secreta que permite ao OpenClaw usar um serviço de IA. Cada provedor fornece uma quando você se registra.",
+      "tip": "Mantenha em segredo! Nunca compartilhe sua API Key com ninguém. O ClawSquire armazena apenas localmente."
+    },
+    "daemon": {
+      "title": "O que é um Daemon?",
+      "explanation": "Um Daemon é um serviço em segundo plano que mantém o OpenClaw rodando o tempo todo, mesmo quando você não está usando ativamente.",
+      "tip": "Como um vigia noturno — sempre de plantão, mesmo enquanto você dorme."
+    },
+    "sandbox": {
+      "title": "O que é o modo Sandbox?",
+      "explanation": "O modo sandbox limita o que a IA pode fazer no seu computador. Impede que acesse arquivos fora de uma área segura ou execute comandos perigosos.",
+      "tip": "Recomendamos fortemente manter o Sandbox ativado, especialmente quando você é novo."
+    },
+    "channel": {
+      "title": "O que é um Channel?",
+      "explanation": "Um Channel é a forma de se comunicar com seu assistente de IA — como Telegram, WhatsApp ou Discord.",
+      "tip": "Você pode configurar vários canais, mas um é suficiente para começar."
+    },
+    "skill": {
+      "title": "O que é um Skill?",
+      "explanation": "Um Skill dá à IA novas habilidades — como navegar na web, escrever código ou gerenciar arquivos. Skills podem ser instalados e removidos.",
+      "tip": "Comece sem skills extras. Você sempre pode adicioná-los depois."
+    },
+    "workspace": {
+      "title": "O que é um Workspace?",
+      "explanation": "O Workspace é a pasta onde a IA trabalha principalmente. Ela lê e escreve arquivos aqui. Pense nisso como a \"mesa\" da IA.",
+      "tip": "Escolha uma pasta dedicada para isso. Não use seu diretório home."
+    },
+    "config": {
+      "title": "O que é um Config?",
+      "explanation": "O Config (configuração) é um arquivo que armazena todas as suas configurações — qual provedor de IA usar, quais canais, permissões, etc.",
+      "tip": "O ClawSquire gerencia esse arquivo para você. Você não precisa editá-lo manualmente."
+    },
+    "token": {
+      "title": "O que é um Token/Auth?",
+      "explanation": "Um Token é uma credencial de segurança que impede que pessoas não autorizadas controlem sua IA. É como uma fechadura na sua porta.",
+      "tip": "Sempre configure um gateway token. O ClawSquire o habilita por padrão."
+    }
+  },
+  "help": {
+    "title": "Central de Ajuda",
+    "searchPlaceholder": "Buscar ajuda...",
+    "commonQuestions": "Perguntas frequentes",
+    "gettingStarted": "Primeiros passos",
+    "faq": {
+      "gatewayWontStart": {
+        "question": "O Gateway não inicia?",
+        "answer": "Tente estes passos: 1) Verifique se o OpenClaw está instalado corretamente (execute Verificação de Saúde). 2) Verifique se outro processo está usando a porta 18789. 3) Reinicie o daemon no Painel."
+      },
+      "whereToGetApiKey": {
+        "question": "Onde consigo uma API Key?",
+        "answer": "Vá em Configuração → Provedor de LLM. Vamos guiá-lo passo a passo para criar uma conta e obter sua API Key."
+      },
+      "whatIsSandbox": {
+        "question": "O que é o modo Sandbox? Devo habilitá-lo?",
+        "answer": "O modo sandbox limita o que a IA pode fazer no seu computador. Recomendamos fortemente mantê-lo ativado, especialmente como iniciante. Impede que a IA acesse arquivos sensíveis ou execute comandos perigosos."
+      },
+      "howToCreateBot": {
+        "question": "Como criar um bot do Telegram?",
+        "answer": "Vá em Configuração → Assistente de Grupo Telegram. O assistente irá guiá-lo para criar um bot com @BotFather e conectá-lo ao OpenClaw."
+      },
+      "doctorCheckFailed": {
+        "question": "A Verificação de Saúde falhou — o que fazer?",
+        "answer": "Clique na verificação que falhou para ver os detalhes. A maioria dos problemas tem um botão 'Corrigir' que resolve automaticamente. Se não, o texto de ajuda explica o que fazer manualmente."
+      },
+      "isMyDataSafe": {
+        "question": "Meus dados estão seguros?",
+        "answer": "Sim. O ClawSquire roda completamente no seu computador. Suas API keys, arquivos de configuração e todos os dados permanecem locais. Nada é enviado a nenhum servidor. O ClawSquire é código aberto (licença MIT) — você pode verificar por conta própria."
+      },
+      "canIUndo": {
+        "question": "Posso desfazer alterações?",
+        "answer": "Sim! Use Backups para salvar instantâneos da sua configuração. Você pode comparar alterações e restaurar qualquer versão anterior a qualquer momento."
+      },
+      "whatIfSomethingBreaks": {
+        "question": "E se algo quebrar?",
+        "answer": "Não se preocupe! O ClawSquire cria automaticamente um backup antes de fazer alterações. Você sempre pode restaurar dos Backups. Se o OpenClaw tiver problemas, execute a Verificação de Saúde para diagnosticar."
+      }
+    }
   },
   "common": {
     "loading": "Carregando...",
@@ -103,6 +286,13 @@
     "success": "Sucesso",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
-    "close": "Fechar"
+    "close": "Fechar",
+    "learnMore": "Saiba mais",
+    "recommended": "Recomendado",
+    "enabled": "Habilitado",
+    "disabled": "Desabilitado",
+    "basic": "Básico",
+    "advanced": "Avançado",
+    "expert": "Especialista"
   }
 }

@@ -1,16 +1,23 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { SUPPORTED_LOCALES, changeLocale } from '../i18n';
+import SafetyPresets, { type SafetyLevel } from '../components/shared/SafetyPresets';
 
 type Theme = 'light' | 'dark' | 'system';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
   const [theme, setTheme] = useState<Theme>('system');
+  const [safetyLevel, setSafetyLevel] = useState<SafetyLevel>('conservative');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-2xl">
       <h2 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h2>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-sm font-medium text-gray-500 mb-4">{t('settings.safety')}</h3>
+        <SafetyPresets value={safetyLevel} onChange={setSafetyLevel} showDetails />
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-sm font-medium text-gray-500 mb-4">{t('settings.language')}</h3>

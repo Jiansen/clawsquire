@@ -10,6 +10,7 @@ import Onboard from './pages/Onboard';
 import Doctor from './pages/Doctor';
 import Backup from './pages/Backup';
 import Settings from './pages/Settings';
+import Help from './pages/Help';
 import Welcome from './pages/Welcome';
 import { useWindowTitle } from './lib/useWindowTitle';
 
@@ -32,6 +33,7 @@ function AppShell() {
               <Route path="/doctor" element={<Doctor />} />
               <Route path="/backup" element={<Backup />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/help" element={<Help />} />
             </Routes>
           </main>
         </div>

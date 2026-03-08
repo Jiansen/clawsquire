@@ -6,10 +6,11 @@
   },
   "nav": {
     "dashboard": "仪表盘",
-    "onboard": "安装向导",
+    "onboard": "配置向导",
     "doctor": "健康检查",
-    "backup": "配置备份",
-    "settings": "设置"
+    "backup": "备份管理",
+    "settings": "设置",
+    "help": "帮助"
   },
   "dashboard": {
     "title": "仪表盘",
@@ -22,7 +23,10 @@
     "newSetup": "新建配置",
     "runDoctor": "运行检查",
     "backupNow": "立即备份",
-    "viewConfig": "查看配置"
+    "viewConfig": "查看配置",
+    "safetyLevel": "安全等级",
+    "safetyConservative": "保守模式",
+    "safetyDescription": "仅启用基础功能。高级功能需要手动开启。"
   },
   "doctor": {
     "title": "健康检查",
@@ -47,12 +51,12 @@
     "label": "标签",
     "timestamp": "创建时间",
     "size": "大小",
-    "confirmRestore": "确定要恢复此备份吗？当前配置会先自动备份。",
+    "confirmRestore": "确认恢复此备份？当前配置会先自动备份。",
     "noBackups": "还没有备份。创建第一个备份来保护你的配置。"
   },
   "onboard": {
-    "title": "安装向导",
-    "chooseTemplate": "选择一个配置模板",
+    "title": "配置向导",
+    "chooseTemplate": "选择配置模板",
     "step": "第 {{current}} 步，共 {{total}} 步",
     "back": "上一步",
     "next": "下一步",
@@ -60,19 +64,58 @@
     "templates": {
       "telegram": {
         "name": "Telegram 群聊助手",
-        "description": "将 OpenClaw 配置为 Telegram 群聊 AI 助手"
+        "description": "配置 OpenClaw 作为 Telegram 群聊 AI 助手"
       },
       "discord": {
         "name": "Discord 机器人",
-        "description": "将 OpenClaw 配置为 Discord 机器人"
+        "description": "配置 OpenClaw 作为 Discord 机器人"
       },
       "llm-provider": {
-        "name": "LLM 接入",
-        "description": "快速接入 LLM 服务（DeepSeek、OpenAI、Anthropic、Ollama）"
+        "name": "AI 模型",
+        "description": "快速接入 AI 模型（DeepSeek、OpenAI、Anthropic、Ollama）"
       },
       "vps-headless": {
-        "name": "VPS 无头部署",
+        "name": "VPS 服务器部署",
         "description": "在无图形界面的 VPS 服务器上部署 OpenClaw"
+      }
+    },
+    "modelGuide": {
+      "title": "选择你的 AI 模型提供商",
+      "recommendation": "不确定选哪个？推荐 DeepSeek——免费开始，效果很好。",
+      "helpMeChoose": "帮我选",
+      "providers": {
+        "deepseek": {
+          "name": "DeepSeek",
+          "tagline": "推荐！有免费额度",
+          "features": "中文能力极强，注册简单（约2分钟）",
+          "difficulty": "简单"
+        },
+        "openai": {
+          "name": "OpenAI",
+          "tagline": "GPT-4o",
+          "features": "全球最流行，需要付费（约5分钟）",
+          "difficulty": "中等"
+        },
+        "anthropic": {
+          "name": "Anthropic",
+          "tagline": "Claude",
+          "features": "质量极高，需要付费（约5分钟）",
+          "difficulty": "中等"
+        },
+        "ollama": {
+          "name": "Ollama",
+          "tagline": "本地运行",
+          "features": "完全免费！需要好显卡",
+          "difficulty": "进阶"
+        }
+      },
+      "steps": {
+        "openSignup": "打开注册页面",
+        "createAccount": "创建你的账号",
+        "getApiKey": "获取 API Key",
+        "pasteKey": "把 API Key 粘贴到下面",
+        "keyLocalOnly": "你的密钥仅保存在本地，不会上传到任何地方。",
+        "verifyAndContinue": "验证并继续"
       }
     }
   },
@@ -85,17 +128,157 @@
     "system": "跟随系统",
     "about": "关于",
     "version": "版本",
-    "dangerZone": "危险操作",
+    "dangerZone": "危险区域",
     "uninstallOpenClaw": "卸载 OpenClaw",
-    "uninstallDescription": "停止守护进程、移除系统服务、卸载 OpenClaw。操作前会自动备份配置。"
+    "uninstallDescription": "停止守护进程、移除系统服务、卸载 OpenClaw。可以先备份配置。",
+    "safety": "安全等级",
+    "safetyPresets": {
+      "conservative": {
+        "name": "保守模式",
+        "description": "仅开启聊天和配置管理。推荐新手使用。"
+      },
+      "standard": {
+        "name": "标准模式",
+        "description": "额外开启浏览器控制、文件访问和技能。适合有一定技术背景的用户。"
+      },
+      "full": {
+        "name": "完全开放",
+        "description": "所有功能均已开启。适合开发者和高级用户。"
+      },
+      "custom": {
+        "name": "自定义",
+        "description": "逐项配置每个权限。"
+      }
+    },
+    "permissions": {
+      "chat": "聊天（Telegram / WhatsApp）",
+      "configManagement": "配置管理",
+      "browserControl": "浏览器控制",
+      "fileAccess": "文件系统访问（工作目录之外）",
+      "camera": "相机 / 屏幕录制",
+      "voiceWake": "语音唤醒",
+      "autoExec": "自动执行命令（跳过确认）",
+      "canvas": "Canvas（AI 显示面板）",
+      "cronJobs": "定时任务",
+      "skillInstall": "技能安装"
+    },
+    "permissionLevels": {
+      "basic": "基础功能（默认开启）",
+      "advanced": "进阶功能（需手动开启）",
+      "expert": "高级功能（建议有经验后再开启）"
+    }
   },
   "welcome": {
     "title": "欢迎使用 ClawSquire",
     "subtitle": "你的 OpenClaw 伴侣应用",
-    "openclawNotFound": "系统中未检测到 OpenClaw。",
+    "chooseLanguage": "选择你的语言",
+    "openclawNotFound": "此系统未安装 OpenClaw。",
     "installGuide": "请先安装 OpenClaw，然后回到这里。",
     "installCommand": "npm install -g @anthropic/openclaw",
-    "retry": "重新检测"
+    "retry": "重新检测",
+    "safetyNotice": "ClawSquire 默认使用最安全的设置。你随时可以开启更多功能。"
+  },
+  "concepts": {
+    "gateway": {
+      "title": "什么是 Gateway（网关）？",
+      "explanation": "Gateway 是 OpenClaw 的「大脑」——运行在你的电脑上，接收你的消息，调用 AI 模型处理，然后把结果发回给你。",
+      "tip": "大多数用户选择「在本机运行」就好。"
+    },
+    "node": {
+      "title": "什么是 Node（节点）？",
+      "explanation": "Node 是你的设备（手机、电脑），可以作为 OpenClaw 的「手脚」——拍照、读联系人、获取位置等。",
+      "tip": "你的手机可以通过官方 iOS/Android 应用作为 Node。"
+    },
+    "agent": {
+      "title": "什么是 Agent（智能体）？",
+      "explanation": "Agent 就是 AI 助手本身。它可以帮你完成各种任务，比如回答问题、浏览网页、写代码。",
+      "tip": "Agent 的能力取决于你授予了哪些权限。"
+    },
+    "llmProvider": {
+      "title": "什么是 LLM Provider（模型提供商）？",
+      "explanation": "LLM Provider 是提供 AI「大脑」的公司（如 DeepSeek、OpenAI、Anthropic）。你需要注册一个来获取 API Key。",
+      "tip": "就像餐厅会员卡——你需要一张卡才能点餐。"
+    },
+    "apiKey": {
+      "title": "什么是 API Key？",
+      "explanation": "API Key 是一串密钥，让 OpenClaw 能使用 AI 服务。每个提供商在你注册后会给你一个。",
+      "tip": "请保密！不要把 API Key 分享给任何人。ClawSquire 只在本地保存它。"
+    },
+    "daemon": {
+      "title": "什么是 Daemon（守护进程）？",
+      "explanation": "Daemon 是后台服务，让 OpenClaw 一直保持运行，即使你没有在用它。",
+      "tip": "就像值夜班的保安——你睡着了，它还在值班。"
+    },
+    "sandbox": {
+      "title": "什么是 Sandbox（沙盒）模式？",
+      "explanation": "沙盒模式限制 AI 在你电脑上能做什么。它防止 AI 访问安全区域外的文件或运行危险命令。",
+      "tip": "我们强烈建议保持沙盒开启，特别是新手。"
+    },
+    "channel": {
+      "title": "什么是 Channel（渠道）？",
+      "explanation": "Channel 是你和 AI 助手交流的途径——比如 Telegram、WhatsApp 或 Discord。",
+      "tip": "你可以设置多个渠道，但一个就够用了。"
+    },
+    "skill": {
+      "title": "什么是 Skill（技能）？",
+      "explanation": "Skill 给 AI 增加新能力——比如浏览网页、写代码或管理文件。技能可以安装和卸载。",
+      "tip": "一开始不需要额外技能。以后随时可以添加。"
+    },
+    "workspace": {
+      "title": "什么是 Workspace（工作区）？",
+      "explanation": "Workspace 是 AI 主要工作的文件夹。它在这里读写文件。可以把它想象成 AI 的「办公桌」。",
+      "tip": "为此选一个专用文件夹。不要用你的主目录。"
+    },
+    "config": {
+      "title": "什么是配置文件？",
+      "explanation": "配置文件记录了你的所有设置——用哪个 AI 提供商、哪些渠道、权限等。",
+      "tip": "ClawSquire 帮你管理这个文件。你不需要手动编辑它。"
+    },
+    "token": {
+      "title": "什么是 Token（令牌）？",
+      "explanation": "Token 是安全凭证，防止未授权的人控制你的 AI。就像你家门上的锁。",
+      "tip": "一定要设置 gateway token。ClawSquire 默认会开启它。"
+    }
+  },
+  "help": {
+    "title": "帮助中心",
+    "searchPlaceholder": "搜索帮助...",
+    "commonQuestions": "常见问题",
+    "gettingStarted": "入门指南",
+    "faq": {
+      "gatewayWontStart": {
+        "question": "Gateway 无法启动怎么办？",
+        "answer": "试试这些步骤：1) 检查 OpenClaw 是否正确安装（运行健康检查）。2) 检查是否有其他程序占用了 18789 端口。3) 从仪表盘重启守护进程。"
+      },
+      "whereToGetApiKey": {
+        "question": "在哪里获取 API Key？",
+        "answer": "进入 配置向导 → AI 模型。我们会一步步引导你创建账号并获取 API Key。"
+      },
+      "whatIsSandbox": {
+        "question": "什么是沙盒模式？要开启吗？",
+        "answer": "沙盒模式限制 AI 在你电脑上能做什么。我们强烈建议保持开启，特别是新手。它防止 AI 访问敏感文件或执行危险命令。"
+      },
+      "howToCreateBot": {
+        "question": "怎么创建 Telegram 机器人？",
+        "answer": "进入 配置向导 → Telegram 群聊助手。向导会引导你通过 @BotFather 创建机器人并连接到 OpenClaw。"
+      },
+      "doctorCheckFailed": {
+        "question": "健康检查失败了怎么办？",
+        "answer": "点击失败的检查项查看详情。大多数问题有「修复」按钮可以自动解决。如果没有，帮助文字会说明手动操作方法。"
+      },
+      "isMyDataSafe": {
+        "question": "我的数据安全吗？",
+        "answer": "是的。ClawSquire 完全在你的电脑上运行。你的 API Key、配置文件和所有数据都保存在本地。没有任何数据会上传到任何服务器。ClawSquire 是开源的（MIT 许可证）——你可以自己验证。"
+      },
+      "canIUndo": {
+        "question": "可以撤销修改吗？",
+        "answer": "可以！使用备份功能保存配置快照。你可以对比变化，随时恢复到之前的任何版本。"
+      },
+      "whatIfSomethingBreaks": {
+        "question": "如果出了问题怎么办？",
+        "answer": "别担心！ClawSquire 在做任何修改前会自动创建备份。你随时可以从备份恢复。如果 OpenClaw 本身有问题，运行健康检查进行诊断。"
+      }
+    }
   },
   "common": {
     "loading": "加载中...",
@@ -103,6 +286,13 @@
     "success": "成功",
     "cancel": "取消",
     "confirm": "确认",
-    "close": "关闭"
+    "close": "关闭",
+    "learnMore": "了解更多",
+    "recommended": "推荐",
+    "enabled": "已开启",
+    "disabled": "已关闭",
+    "basic": "基础",
+    "advanced": "进阶",
+    "expert": "高级"
   }
 }

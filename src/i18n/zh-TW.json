@@ -9,7 +9,8 @@
     "onboard": "安裝精靈",
     "doctor": "健康檢查",
     "backup": "配置備份",
-    "settings": "設定"
+    "settings": "設定",
+    "help": "說明"
   },
   "dashboard": {
     "title": "儀表板",
@@ -22,7 +23,10 @@
     "newSetup": "新增設定",
     "runDoctor": "執行檢查",
     "backupNow": "立即備份",
-    "viewConfig": "檢視設定"
+    "viewConfig": "檢視設定",
+    "safetyLevel": "安全等級",
+    "safetyConservative": "保守模式",
+    "safetyDescription": "僅啟用基礎功能。進階功能需手動開啟。"
   },
   "doctor": {
     "title": "健康檢查",
@@ -74,6 +78,45 @@
         "name": "VPS 無頭部署",
         "description": "在無圖形介面的 VPS 伺服器上部署 OpenClaw"
       }
+    },
+    "modelGuide": {
+      "title": "選擇你的 AI 模型提供商",
+      "recommendation": "不確定選哪個？我們推薦 DeepSeek——免費開始，效果很好。",
+      "helpMeChoose": "幫我選",
+      "providers": {
+        "deepseek": {
+          "name": "DeepSeek",
+          "tagline": "推薦！有免費額度",
+          "features": "中文能力極強，註冊簡單（約2分鐘）",
+          "difficulty": "簡單"
+        },
+        "openai": {
+          "name": "OpenAI",
+          "tagline": "GPT-4o",
+          "features": "全球最流行，需要付費（約5分鐘）",
+          "difficulty": "中等"
+        },
+        "anthropic": {
+          "name": "Anthropic",
+          "tagline": "Claude",
+          "features": "品質極高，需要付費（約5分鐘）",
+          "difficulty": "中等"
+        },
+        "ollama": {
+          "name": "Ollama",
+          "tagline": "本機執行",
+          "features": "完全免費！需要好顯卡",
+          "difficulty": "進階"
+        }
+      },
+      "steps": {
+        "openSignup": "開啟註冊頁面",
+        "createAccount": "建立你的帳號",
+        "getApiKey": "取得 API Key",
+        "pasteKey": "將 API Key 貼到下方",
+        "keyLocalOnly": "你的金鑰僅儲存在本機，不會上傳到任何地方。",
+        "verifyAndContinue": "驗證並繼續"
+      }
     }
   },
   "settings": {
@@ -87,15 +130,155 @@
     "version": "版本",
     "dangerZone": "危險操作",
     "uninstallOpenClaw": "解除安裝 OpenClaw",
-    "uninstallDescription": "停止守護程序、移除系統服務、解除安裝 OpenClaw。操作前會自動備份設定。"
+    "uninstallDescription": "停止守護程式、移除系統服務、解除安裝 OpenClaw。操作前會自動備份設定。",
+    "safety": "安全等級",
+    "safetyPresets": {
+      "conservative": {
+        "name": "保守模式",
+        "description": "僅開啟聊天和設定管理。推薦新手使用。"
+      },
+      "standard": {
+        "name": "標準模式",
+        "description": "額外開啟瀏覽器控制、檔案存取和技能。適合有一定技術背景的使用者。"
+      },
+      "full": {
+        "name": "完全開放",
+        "description": "所有功能均已開啟。適合開發者和進階使用者。"
+      },
+      "custom": {
+        "name": "自訂",
+        "description": "逐項設定每個權限。"
+      }
+    },
+    "permissions": {
+      "chat": "聊天（Telegram / WhatsApp）",
+      "configManagement": "設定管理",
+      "browserControl": "瀏覽器控制",
+      "fileAccess": "檔案系統存取（工作目錄之外）",
+      "camera": "相機 / 螢幕錄製",
+      "voiceWake": "語音喚醒",
+      "autoExec": "自動執行指令（略過確認）",
+      "canvas": "Canvas（AI 顯示面板）",
+      "cronJobs": "排程任務",
+      "skillInstall": "技能安裝"
+    },
+    "permissionLevels": {
+      "basic": "基礎功能（預設開啟）",
+      "advanced": "進階功能（需手動開啟）",
+      "expert": "高級功能（建議有經驗後再開啟）"
+    }
   },
   "welcome": {
     "title": "歡迎使用 ClawSquire",
     "subtitle": "你的 OpenClaw 伴侶應用程式",
+    "chooseLanguage": "選擇你的語言",
     "openclawNotFound": "系統中未偵測到 OpenClaw。",
     "installGuide": "請先安裝 OpenClaw，然後回到這裡。",
     "installCommand": "npm install -g @anthropic/openclaw",
-    "retry": "重新偵測"
+    "retry": "重新偵測",
+    "safetyNotice": "ClawSquire 預設使用最安全的設定。你隨時可以開啟更多功能。"
+  },
+  "concepts": {
+    "gateway": {
+      "title": "什麼是 Gateway（閘道）？",
+      "explanation": "Gateway 是 OpenClaw 的「大腦」——執行在你的電腦上，接收你的訊息，呼叫 AI 模型處理，然後把結果發回給你。",
+      "tip": "大多數使用者選擇「在本機執行」就好。"
+    },
+    "node": {
+      "title": "什麼是 Node（節點）？",
+      "explanation": "Node 是你的裝置（手機、電腦），可以作為 OpenClaw 的「手腳」——拍照、讀聯絡人、取得位置等。",
+      "tip": "你的手機可以透過官方 iOS/Android 應用程式作為 Node。"
+    },
+    "agent": {
+      "title": "什麼是 Agent（智慧體）？",
+      "explanation": "Agent 就是 AI 助手本身。它可以幫你完成各種任務，例如回答問題、瀏覽網頁、寫程式碼。",
+      "tip": "Agent 的能力取決於你授予了哪些權限。"
+    },
+    "llmProvider": {
+      "title": "什麼是 LLM Provider（模型提供商）？",
+      "explanation": "LLM Provider 是提供 AI「大腦」的公司（如 DeepSeek、OpenAI、Anthropic）。你需要註冊一個來取得 API Key。",
+      "tip": "就像餐廳會員卡——你需要一張卡才能點餐。"
+    },
+    "apiKey": {
+      "title": "什麼是 API Key？",
+      "explanation": "API Key 是一串金鑰，讓 OpenClaw 能使用 AI 服務。每個提供商在你註冊後會給你一個。",
+      "tip": "請保密！不要把 API Key 分享給任何人。ClawSquire 只在本機儲存它。"
+    },
+    "daemon": {
+      "title": "什麼是 Daemon（守護程式）？",
+      "explanation": "Daemon 是背景服務，讓 OpenClaw 一直保持執行，即使你沒有在使用它。",
+      "tip": "就像值夜班的保全——你睡著了，它還在值班。"
+    },
+    "sandbox": {
+      "title": "什麼是 Sandbox（沙盒）模式？",
+      "explanation": "沙盒模式限制 AI 在你電腦上能做的事。它防止 AI 存取安全區域外的檔案或執行危險指令。",
+      "tip": "我們強烈建議保持沙盒開啟，特別是新手。"
+    },
+    "channel": {
+      "title": "什麼是 Channel（頻道）？",
+      "explanation": "Channel 是你和 AI 助手交流的途徑——例如 Telegram、WhatsApp 或 Discord。",
+      "tip": "你可以設定多個頻道，但一個就夠用了。"
+    },
+    "skill": {
+      "title": "什麼是 Skill（技能）？",
+      "explanation": "Skill 給 AI 增加新能力——例如瀏覽網頁、寫程式碼或管理檔案。技能可以安裝和解除安裝。",
+      "tip": "一開始不需要額外技能。以後隨時可以新增。"
+    },
+    "workspace": {
+      "title": "什麼是 Workspace（工作區）？",
+      "explanation": "Workspace 是 AI 主要工作的資料夾。它在這裡讀寫檔案。可以把它想像成 AI 的「辦公桌」。",
+      "tip": "為此選一個專用資料夾。不要用你的主目錄。"
+    },
+    "config": {
+      "title": "什麼是設定檔？",
+      "explanation": "設定檔記錄了你的所有設定——用哪個 AI 提供商、哪些頻道、權限等。",
+      "tip": "ClawSquire 幫你管理這個檔案。你不需要手動編輯它。"
+    },
+    "token": {
+      "title": "什麼是 Token（權杖）？",
+      "explanation": "Token 是安全憑證，防止未授權的人控制你的 AI。就像你家門上的鎖。",
+      "tip": "一定要設定 gateway token。ClawSquire 預設會開啟它。"
+    }
+  },
+  "help": {
+    "title": "說明中心",
+    "searchPlaceholder": "搜尋說明...",
+    "commonQuestions": "常見問題",
+    "gettingStarted": "入門指南",
+    "faq": {
+      "gatewayWontStart": {
+        "question": "Gateway 無法啟動怎麼辦？",
+        "answer": "試試這些步驟：1) 檢查 OpenClaw 是否正確安裝（執行健康檢查）。2) 檢查是否有其他程式佔用了 18789 連接埠。3) 從儀表板重新啟動守護程式。"
+      },
+      "whereToGetApiKey": {
+        "question": "在哪裡取得 API Key？",
+        "answer": "進入 安裝精靈 → AI 模型。我們會一步步引導你建立帳號並取得 API Key。"
+      },
+      "whatIsSandbox": {
+        "question": "什麼是沙盒模式？要開啟嗎？",
+        "answer": "沙盒模式限制 AI 在你電腦上能做的事。我們強烈建議保持開啟，特別是新手。它防止 AI 存取敏感檔案或執行危險指令。"
+      },
+      "howToCreateBot": {
+        "question": "怎麼建立 Telegram 機器人？",
+        "answer": "進入 安裝精靈 → Telegram 群組助手。精靈會引導你透過 @BotFather 建立機器人並連接到 OpenClaw。"
+      },
+      "doctorCheckFailed": {
+        "question": "健康檢查失敗了怎麼辦？",
+        "answer": "點擊失敗的檢查項目查看詳情。大多數問題有「修復」按鈕可以自動解決。如果沒有，說明文字會說明手動操作方法。"
+      },
+      "isMyDataSafe": {
+        "question": "我的資料安全嗎？",
+        "answer": "是的。ClawSquire 完全在你的電腦上執行。你的 API Key、設定檔和所有資料都儲存在本機。沒有任何資料會上傳到任何伺服器。ClawSquire 是開源的（MIT 授權）——你可以自己驗證。"
+      },
+      "canIUndo": {
+        "question": "可以復原修改嗎？",
+        "answer": "可以！使用備份功能儲存設定快照。你可以比對變更，隨時還原到之前的任何版本。"
+      },
+      "whatIfSomethingBreaks": {
+        "question": "如果出了問題怎麼辦？",
+        "answer": "別擔心！ClawSquire 在做任何修改前會自動建立備份。你隨時可以從備份還原。如果 OpenClaw 本身有問題，執行健康檢查進行診斷。"
+      }
+    }
   },
   "common": {
     "loading": "載入中...",
@@ -103,6 +286,13 @@
     "success": "成功",
     "cancel": "取消",
     "confirm": "確認",
-    "close": "關閉"
+    "close": "關閉",
+    "learnMore": "了解更多",
+    "recommended": "推薦",
+    "enabled": "已開啟",
+    "disabled": "已關閉",
+    "basic": "基礎",
+    "advanced": "進階",
+    "expert": "高級"
   }
 }
