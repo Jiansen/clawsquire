@@ -835,11 +835,42 @@ pub fn collect_feedback_info() -> FeedbackInfo {
     FeedbackInfo {
         platform,
         openclaw_version,
-        clawsquire_version: "0.1.0".to_string(),
+        clawsquire_version: env!("CARGO_PKG_VERSION").to_string(),
         gateway_status,
         llm_configured: llm_status.has_provider,
         recent_log_lines,
         screenshot_path,
+    }
+}
+
+pub fn copy_screenshot_to_clipboard(path: &str) -> Result<(), String> {
+    if !std::path::Path::new(path).exists() {
+        return Err("Screenshot file not found".to_string());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let script = format!(
+            "set the clipboard to (read (POSIX file \"{}\") as \u{00AB}class PNGf\u{00BB})",
+            path
+        );
+        let output = Command::new("osascript")
+            .args(["-e", &script])
+            .output()
+            .map_err(|e| format!("osascript failed: {}", e))?;
+        if output.status.success() {
+            return Ok(());
+        }
+        return Err(format!(
+            "clipboard copy failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = path;
+        Err("Clipboard copy not supported on this platform yet".to_string())
     }
 }
 

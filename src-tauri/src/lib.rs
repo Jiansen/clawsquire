@@ -191,6 +191,13 @@ async fn collect_feedback_info() -> Result<FeedbackInfo, String> {
 }
 
 #[tauri::command]
+async fn copy_screenshot_to_clipboard(path: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::copy_screenshot_to_clipboard(&path))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 async fn check_for_updates() -> UpdateCheck {
     let version = env!("CARGO_PKG_VERSION").to_string();
     tauri::async_runtime::spawn_blocking(move || detect::check_for_updates(&version))
@@ -271,6 +278,7 @@ pub fn run() {
             get_full_config,
             list_channels,
             collect_feedback_info,
+            copy_screenshot_to_clipboard,
             agent_chat,
             apply_safety_preset,
             check_for_updates,
