@@ -941,6 +941,13 @@ pub fn agent_chat(message: &str) -> AgentChatResult {
             error: Some("Gateway not reachable. Start the daemon first.".to_string()),
         };
     }
+    if stdout.contains("NotFound") || stdout.contains("Not Found") || stdout.contains("404") {
+        return AgentChatResult {
+            success: false,
+            reply: None,
+            error: Some("Chat endpoint not available. Make sure OpenClaw gateway is running and a model is configured.".to_string()),
+        };
+    }
 
     if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
         if let Some(err) = json.get("error") {

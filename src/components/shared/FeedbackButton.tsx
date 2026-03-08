@@ -17,74 +17,60 @@ type IssueType = 'bug' | 'feature' | 'question';
 
 const REPO_ISSUES = 'https://github.com/Jiansen/clawsquire/issues/new';
 
+const LABEL_MAP: Record<IssueType, string> = {
+  bug: 'bug',
+  feature: 'enhancement',
+  question: 'question',
+};
+
 function mapPlatformToOs(platform: string): string {
   const m: Record<string, string> = { macos: 'macOS', windows: 'Windows', linux: 'Linux' };
   return m[platform] || platform;
 }
 
-function buildBugUrl(title: string, description: string, info: FeedbackInfo | null, opts: { includeLogs: boolean; includeGateway: boolean }) {
-  const params = new URLSearchParams();
-  params.set('template', 'bug_report.yml');
-  params.set('title', title);
-
-  const descParts: string[] = [];
-  if (description.trim()) descParts.push(description);
-  descParts.push('_Auto-reported from ClawSquire app_');
-  params.set('description', descParts.join('\n\n'));
-
-  if (info) {
-    params.set('clawsquire-version', info.clawsquire_version);
-    params.set('openclaw-version', info.openclaw_version);
-    params.set('os', mapPlatformToOs(info.platform));
-
-    const logParts: string[] = [];
-    if (opts.includeGateway && info.gateway_status && info.gateway_status !== 'unknown') {
-      logParts.push(`**Gateway Status:**\n\`\`\`\n${info.gateway_status}\n\`\`\``);
-    }
-    if (opts.includeLogs && info.recent_log_lines.length > 0) {
-      const lines = info.recent_log_lines.slice(-15).join('\n');
-      logParts.push(`**Recent Logs:**\n\`\`\`\n${lines}\n\`\`\``);
-    }
-    if (info.screenshot_path) {
-      logParts.push('_Screenshot copied to clipboard — paste it here with Cmd/Ctrl+V_');
-    }
-    if (logParts.length > 0) {
-      params.set('screenshots', logParts.join('\n\n'));
-    }
-  }
-
-  return `${REPO_ISSUES}?${params.toString()}`;
-}
-
-function buildFeatureUrl(title: string, description: string, info: FeedbackInfo | null) {
-  const params = new URLSearchParams();
-  params.set('template', 'feature_request.yml');
-  params.set('title', title);
-  if (description.trim()) {
-    params.set('problem', description);
-  }
-  if (info) {
-    const env = `\n\n---\n_ClawSquire ${info.clawsquire_version} / OpenClaw ${info.openclaw_version} / ${mapPlatformToOs(info.platform)}_`;
-    params.set('problem', (description || '') + env);
-  }
-  return `${REPO_ISSUES}?${params.toString()}`;
-}
-
-function buildQuestionUrl(title: string, description: string, info: FeedbackInfo | null) {
-  const params = new URLSearchParams();
-  params.set('title', title);
+function buildIssueUrl(
+  type: IssueType,
+  title: string,
+  description: string,
+  info: FeedbackInfo | null,
+  opts: { includeLogs: boolean; includeGateway: boolean },
+) {
   const sections: string[] = [];
-  if (description.trim()) sections.push(description);
+
+  if (description.trim()) {
+    sections.push(`## Description\n${description}`);
+  }
+
   if (info) {
     sections.push([
       '## Environment',
-      `- **Platform**: ${mapPlatformToOs(info.platform)}`,
-      `- **ClawSquire**: ${info.clawsquire_version}`,
-      `- **OpenClaw**: ${info.openclaw_version}`,
-      `- **LLM Configured**: ${info.llm_configured ? 'Yes' : 'No'}`,
+      `| Field | Value |`,
+      `|-------|-------|`,
+      `| **Platform** | ${mapPlatformToOs(info.platform)} |`,
+      `| **ClawSquire** | ${info.clawsquire_version} |`,
+      `| **OpenClaw** | ${info.openclaw_version} |`,
+      `| **LLM Configured** | ${info.llm_configured ? 'Yes' : 'No'} |`,
     ].join('\n'));
+
+    if (opts.includeGateway && info.gateway_status && info.gateway_status !== 'unknown') {
+      sections.push(`## Gateway Status\n\`\`\`\n${info.gateway_status.slice(0, 300)}\n\`\`\``);
+    }
+    if (opts.includeLogs && info.recent_log_lines.length > 0) {
+      const lines = info.recent_log_lines.slice(-15).join('\n');
+      sections.push(`## Recent Logs\n\`\`\`\n${lines}\n\`\`\``);
+    }
+    if (info.screenshot_path) {
+      sections.push('## Screenshot\n_Screenshot copied to clipboard — paste it here with **Cmd/Ctrl+V**_');
+    }
   }
+
+  sections.push('---\n_Auto-reported from ClawSquire app_');
+
+  const params = new URLSearchParams();
+  params.set('title', title);
   params.set('body', sections.join('\n\n'));
+  params.set('labels', LABEL_MAP[type] || '');
+
   return `${REPO_ISSUES}?${params.toString()}`;
 }
 
@@ -139,25 +125,16 @@ export default function FeedbackButton() {
   };
 
   const handleSubmit = async () => {
-    const title = issueType === 'bug'
-      ? `[Bug] ${description.slice(0, 60) || 'Bug report from ClawSquire'}`
-      : issueType === 'feature'
-        ? `[Feature] ${description.slice(0, 60) || 'Feature request from ClawSquire'}`
-        : `[Question] ${description.slice(0, 60) || 'Question from ClawSquire'}`;
+    const prefix = issueType === 'bug' ? '[Bug]' : issueType === 'feature' ? '[Feature]' : '[Question]';
+    const title = `${prefix} ${description.slice(0, 60) || `${issueType} report from ClawSquire`}`;
 
-    let url: string;
-    if (issueType === 'bug') {
-      if (info?.screenshot_path) {
-        try {
-          await invoke('copy_screenshot_to_clipboard', { path: info.screenshot_path });
-        } catch { /* best effort */ }
-      }
-      url = buildBugUrl(title, description, info, { includeLogs, includeGateway });
-    } else if (issueType === 'feature') {
-      url = buildFeatureUrl(title, description, info);
-    } else {
-      url = buildQuestionUrl(title, description, info);
+    if (info?.screenshot_path) {
+      try {
+        await invoke('copy_screenshot_to_clipboard', { path: info.screenshot_path });
+      } catch { /* best effort */ }
     }
+
+    const url = buildIssueUrl(issueType, title, description, info, { includeLogs, includeGateway });
 
     try {
       await openUrl(url);
