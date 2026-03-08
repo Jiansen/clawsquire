@@ -2,13 +2,14 @@
   "app": {
     "name": "ClawSquire",
     "localizedName": "ClawSquire · 龙虾侍卫",
-    "tagline": "OpenClaw 的伴侣应用"
+    "tagline": "OpenClaw 图形化伴侣应用"
   },
   "nav": {
     "dashboard": "仪表盘",
     "onboard": "配置向导",
     "doctor": "健康检查",
     "backup": "备份管理",
+    "config": "配置",
     "settings": "设置",
     "help": "帮助"
   },
@@ -27,6 +28,8 @@
     "safetyLevel": "安全等级",
     "safetyConservative": "保守模式",
     "safetyDescription": "仅启用基础功能。高级功能需要手动开启。",
+    "platform": "平台",
+    "configDir": "配置目录",
     "install": {
       "desc": "安装 OpenClaw 以解锁所有功能 — 配置向导、健康检查、配置管理。",
       "whatWillHappen": "即将执行：",
@@ -61,12 +64,25 @@
       "reason2": "你需要从提供商获取一个 API Key 来激活 AI",
       "reason3": "有免费选项可用（如 DeepSeek 提供免费额度）",
       "button": "设置 AI 模型"
+    },
+    "ready": {
+      "title": "OpenClaw 已就绪！",
+      "desc": "你的 AI 服务商（{{provider}}）已配置完成。现在就可以开始与 OpenClaw 对话了！",
+      "startDaemonHint": "启动网关即可开始与 AI 助手对话。",
+      "tryChatTitle": "试试快速对话",
+      "tryChatPlaceholder": "对 OpenClaw 说点什么...",
+      "send": "发送",
+      "thinking": "OpenClaw 正在思考...",
+      "chatAgain": "再发一条消息",
+      "setupBotsHint": "可选：设置 Telegram/Discord 机器人以远程访问 →"
     }
   },
   "doctor": {
     "title": "健康检查",
     "runCheck": "开始检查",
     "rerun": "重新检查",
+    "description": "检查 OpenClaw 的安装、配置和安全状况。",
+    "total": "总计",
     "pass": "通过",
     "warn": "警告",
     "fail": "失败",
@@ -87,7 +103,13 @@
     "timestamp": "创建时间",
     "size": "大小",
     "confirmRestore": "确认恢复此备份？当前配置会先自动备份。",
-    "noBackups": "还没有备份。创建第一个备份来保护你的配置。"
+    "noBackups": "还没有备份。创建第一个备份来保护你的配置。",
+    "noDifferences": "无差异——配置与此备份完全一致。",
+    "diffOp": {
+      "added": "新增",
+      "removed": "移除",
+      "changed": "变更"
+    }
   },
   "onboard": {
     "title": "配置向导",
@@ -181,7 +203,17 @@
       "testFailed": "连接失败",
       "testModel": "测试模型：{{model}}",
       "searchProviders": "搜索提供商...",
-      "noProviderMatch": "未找到匹配的提供商"
+      "noProviderMatch": "未找到匹配的提供商",
+      "llmReadyTitle": "全部搞定！",
+      "llmReadyDesc": "AI 服务商已配置。OpenClaw 现在可以对话、回答问题、执行任务——无需设置机器人！",
+      "optionalBotsHint": "想要远程访问？可以在「设置」页面配置 Telegram 或 Discord 机器人。",
+      "tryChatTitle": "马上试试！",
+      "tryChatDesc": "发送一条消息来测试你的 OpenClaw AI 设置。（需要网关正在运行。）",
+      "tryChatPlaceholder": "你好！你能做什么？",
+      "tryChatSend": "发送",
+      "tryChatSending": "OpenClaw 正在思考...",
+      "tryChatAgain": "再试一条",
+      "tryChatError": "无法连接网关。请确保守护进程正在运行（主页 → 启动）。"
     },
     "modelGuide": {
       "title": "选择你的 AI 模型提供商",
@@ -249,7 +281,12 @@
         "done": "完成！"
       },
       "appResponsive": "正在卸载 OpenClaw... 应用保持响应。",
-      "notes": "备注："
+      "notes": "备注：",
+      "result": {
+        "daemon": "停止守护进程",
+        "npm": "卸载 npm 包",
+        "config": "删除配置文件"
+      }
     },
     "safety": "安全等级",
     "safetyPresets": {
@@ -364,6 +401,7 @@
     "title": "帮助中心",
     "searchPlaceholder": "搜索帮助...",
     "commonQuestions": "常见问题",
+    "noResults": "未找到匹配的问题。",
     "gettingStarted": "入门指南",
     "faq": {
       "gatewayWontStart": {
@@ -400,6 +438,28 @@
       }
     }
   },
+  "config": {
+    "title": "配置查看",
+    "jsonView": "JSON 视图",
+    "treeView": "树形视图",
+    "notFound": "未找到配置文件。OpenClaw 是否已安装？",
+    "secretsMasked": "密钥（API Key、Token）已部分隐藏，确保安全。"
+  },
+  "feedback": {
+    "title": "发送反馈",
+    "collecting": "正在收集诊断信息...",
+    "type": "问题类型",
+    "types": { "bug": "Bug", "feature": "功能建议", "question": "提问" },
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "告诉我们发生了什么，或者您想要什么功能...",
+    "autoCollected": "自动收集的诊断信息",
+    "screenshot": "截图",
+    "screenshotSaved": "已保存",
+    "includeGateway": "包含 Gateway 状态",
+    "includeLogs": "包含最近日志（最后 30 行）",
+    "submit": "打开 GitHub Issue",
+    "opensGithub": "这将在浏览器中打开一个预填好的 GitHub Issue。"
+  },
   "common": {
     "loading": "加载中...",
     "error": "错误",
@@ -413,6 +473,8 @@
     "disabled": "已关闭",
     "basic": "基础",
     "advanced": "进阶",
-    "expert": "高级"
+    "expert": "高级",
+    "comingSoon": "即将推出",
+    "optional": "可选"
   }
 }

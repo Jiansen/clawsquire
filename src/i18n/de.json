@@ -2,7 +2,7 @@
   "app": {
     "name": "ClawSquire",
     "localizedName": "ClawSquire · Knappe",
-    "tagline": "Die Begleit-App für OpenClaw"
+    "tagline": "GUI-Begleit-App für OpenClaw"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -10,7 +10,8 @@
     "doctor": "Systemprüfung",
     "backup": "Backups",
     "settings": "Einstellungen",
-    "help": "Hilfe"
+    "help": "Hilfe",
+    "config": "Konfiguration"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -24,6 +25,8 @@
     "runDoctor": "Prüfung ausführen",
     "backupNow": "Jetzt sichern",
     "viewConfig": "Konfiguration anzeigen",
+    "platform": "Plattform",
+    "configDir": "Config-Verzeichnis",
     "safetyLevel": "Sicherheitsstufe",
     "safetyConservative": "Konservativ",
     "safetyDescription": "Nur grundlegende Funktionen sind aktiviert. Erweiterte Funktionen müssen manuell aktiviert werden.",
@@ -61,15 +64,28 @@
       "reason2": "Du brauchst einen API Key von einem Anbieter, um die KI zu aktivieren",
       "reason3": "Es gibt kostenlose Optionen (z.B. DeepSeek bietet Gratis-Guthaben)",
       "button": "KI-Modell einrichten"
+    },
+    "ready": {
+      "title": "OpenClaw ist bereit!",
+      "desc": "Dein KI-Anbieter ({{provider}}) ist konfiguriert. Du kannst jetzt sofort mit OpenClaw chatten!",
+      "startDaemonHint": "Starte das Gateway, um mit deinem KI-Assistenten zu chatten.",
+      "tryChatTitle": "Schnell-Chat ausprobieren",
+      "tryChatPlaceholder": "Sag OpenClaw etwas...",
+      "send": "Senden",
+      "thinking": "OpenClaw denkt nach...",
+      "chatAgain": "Weitere Nachricht senden",
+      "setupBotsHint": "Optional: Telegram/Discord-Bots für Fernzugriff einrichten →"
     }
   },
   "doctor": {
     "title": "Systemprüfung",
+    "description": "Überprüfe Installation, Konfiguration und Sicherheit von OpenClaw.",
     "runCheck": "Prüfung starten",
     "rerun": "Erneut prüfen",
     "pass": "Bestanden",
     "warn": "Warnung",
     "fail": "Fehlgeschlagen",
+    "total": "Gesamt",
     "categories": {
       "installation": "Installation",
       "config": "Konfiguration",
@@ -87,7 +103,13 @@
     "timestamp": "Erstellt",
     "size": "Größe",
     "confirmRestore": "Dieses Backup wiederherstellen? Die aktuelle Konfiguration wird zuerst gesichert.",
-    "noBackups": "Noch keine Backups. Erstelle dein erstes Backup, um deine Konfiguration zu schützen."
+    "noBackups": "Noch keine Backups. Erstelle dein erstes Backup, um deine Konfiguration zu schützen.",
+    "noDifferences": "Keine Unterschiede — Konfiguration stimmt mit diesem Backup überein.",
+    "diffOp": {
+      "added": "Hinzugefügt",
+      "removed": "Entfernt",
+      "changed": "Geändert"
+    }
   },
   "onboard": {
     "title": "Einrichtungs-Assistent",
@@ -181,7 +203,17 @@
       "testFailed": "Verbindung fehlgeschlagen",
       "testModel": "Getestetes Modell: {{model}}",
       "searchProviders": "Anbieter suchen...",
-      "noProviderMatch": "Keine passenden Anbieter"
+      "noProviderMatch": "Keine passenden Anbieter",
+      "llmReadyTitle": "Alles eingerichtet!",
+      "llmReadyDesc": "KI-Anbieter konfiguriert. OpenClaw kann jetzt chatten, Fragen beantworten und Aufgaben ausführen — kein Bot-Setup nötig!",
+      "optionalBotsHint": "Fernzugriff gewünscht? Richte Telegram- oder Discord-Bots auf der Einstellungsseite ein.",
+      "tryChatTitle": "Jetzt ausprobieren!",
+      "tryChatDesc": "Sende eine Nachricht, um dein OpenClaw-AI-Setup zu testen. (Gateway muss laufen.)",
+      "tryChatPlaceholder": "Hallo! Was kannst du?",
+      "tryChatSend": "Senden",
+      "tryChatSending": "OpenClaw denkt nach...",
+      "tryChatAgain": "Nochmal versuchen",
+      "tryChatError": "Gateway nicht erreichbar. Stelle sicher, dass der Daemon läuft (Dashboard → Starten)."
     },
     "modelGuide": {
       "title": "Wähle deinen KI-Modell-Anbieter",
@@ -249,7 +281,12 @@
         "done": "Fertig!"
       },
       "appResponsive": "OpenClaw wird deinstalliert... Die App bleibt reaktionsfähig.",
-      "notes": "Hinweise:"
+      "notes": "Hinweise:",
+      "result": {
+        "daemon": "Daemon stoppen",
+        "npm": "npm-Paket deinstallieren",
+        "config": "Konfigurationsdateien entfernen"
+      }
     },
     "safety": "Sicherheitsstufe",
     "safetyPresets": {
@@ -363,6 +400,7 @@
   "help": {
     "title": "Hilfezentrum",
     "searchPlaceholder": "Hilfe suchen...",
+    "noResults": "Keine passenden Fragen gefunden.",
     "commonQuestions": "Häufige Fragen",
     "gettingStarted": "Erste Schritte",
     "faq": {
@@ -400,6 +438,28 @@
       }
     }
   },
+  "config": {
+    "title": "Konfiguration",
+    "jsonView": "JSON-Ansicht",
+    "treeView": "Baumansicht",
+    "notFound": "Konfigurationsdatei nicht gefunden. Ist OpenClaw installiert?",
+    "secretsMasked": "Geheimnisse (API-Schlüssel, Tokens) sind aus Sicherheitsgründen teilweise maskiert."
+  },
+  "feedback": {
+    "title": "Feedback senden",
+    "collecting": "Diagnoseinformationen werden gesammelt...",
+    "type": "Problemtyp",
+    "types": { "bug": "Fehler", "feature": "Funktionswunsch", "question": "Frage" },
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "Erzählen Sie uns, was passiert ist oder was Sie sich wünschen...",
+    "autoCollected": "Automatisch gesammelte Diagnosedaten",
+    "screenshot": "Screenshot",
+    "screenshotSaved": "Gespeichert",
+    "includeGateway": "Gateway-Status einschließen",
+    "includeLogs": "Letzte Logs einschließen (letzte 30 Zeilen)",
+    "submit": "GitHub Issue öffnen",
+    "opensGithub": "Dies öffnet ein vorausgefülltes GitHub Issue in Ihrem Browser."
+  },
   "common": {
     "loading": "Laden...",
     "error": "Fehler",
@@ -413,6 +473,8 @@
     "disabled": "Deaktiviert",
     "basic": "Basis",
     "advanced": "Erweitert",
-    "expert": "Experte"
+    "expert": "Experte",
+    "comingSoon": "Demnächst",
+    "optional": "Optional"
   }
 }

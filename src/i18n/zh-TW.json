@@ -2,7 +2,7 @@
   "app": {
     "name": "ClawSquire",
     "localizedName": "ClawSquire · 龍蝦侍衛",
-    "tagline": "OpenClaw 的伴侶應用程式"
+    "tagline": "OpenClaw 圖形化伴侶應用"
   },
   "nav": {
     "dashboard": "儀表板",
@@ -10,7 +10,8 @@
     "doctor": "健康檢查",
     "backup": "配置備份",
     "settings": "設定",
-    "help": "說明"
+    "help": "說明",
+    "config": "設定"
   },
   "dashboard": {
     "title": "儀表板",
@@ -24,6 +25,8 @@
     "runDoctor": "執行檢查",
     "backupNow": "立即備份",
     "viewConfig": "檢視設定",
+    "platform": "平台",
+    "configDir": "設定目錄",
     "safetyLevel": "安全等級",
     "safetyConservative": "保守模式",
     "safetyDescription": "僅啟用基礎功能。進階功能需手動開啟。",
@@ -61,15 +64,28 @@
       "reason2": "你需要從供應商取得一個 API Key 來啟用 AI",
       "reason3": "有免費選項可用（如 DeepSeek 提供免費額度）",
       "button": "設定 AI 模型"
+    },
+    "ready": {
+      "title": "OpenClaw 已就緒！",
+      "desc": "你的 AI 供應商（{{provider}}）已設定完成。現在就可以開始與 OpenClaw 對話了！",
+      "startDaemonHint": "啟動閘道即可開始與 AI 助手對話。",
+      "tryChatTitle": "試試快速對話",
+      "tryChatPlaceholder": "對 OpenClaw 說點什麼...",
+      "send": "傳送",
+      "thinking": "OpenClaw 正在思考...",
+      "chatAgain": "再傳一則訊息",
+      "setupBotsHint": "可選：設定 Telegram/Discord 機器人以遠端存取 →"
     }
   },
   "doctor": {
     "title": "健康檢查",
+    "description": "檢查 OpenClaw 的安裝、設定和安全狀況。",
     "runCheck": "開始檢查",
     "rerun": "重新檢查",
     "pass": "通過",
     "warn": "警告",
     "fail": "失敗",
+    "total": "總計",
     "categories": {
       "installation": "安裝",
       "config": "設定",
@@ -87,7 +103,13 @@
     "timestamp": "建立時間",
     "size": "大小",
     "confirmRestore": "確定要還原此備份嗎？目前設定會先自動備份。",
-    "noBackups": "尚無備份。建立第一個備份以保護你的設定。"
+    "noBackups": "尚無備份。建立第一個備份以保護你的設定。",
+    "noDifferences": "無差異——設定與此備份完全一致。",
+    "diffOp": {
+      "added": "新增",
+      "removed": "移除",
+      "changed": "變更"
+    }
   },
   "onboard": {
     "title": "安裝精靈",
@@ -181,7 +203,17 @@
       "testFailed": "連線失敗",
       "testModel": "測試模型：{{model}}",
       "searchProviders": "搜尋提供商...",
-      "noProviderMatch": "未找到符合的提供商"
+      "noProviderMatch": "未找到符合的提供商",
+      "llmReadyTitle": "全部搞定！",
+      "llmReadyDesc": "AI 供應商已設定。OpenClaw 現在可以對話、回答問題、執行任務——不需要設定機器人！",
+      "optionalBotsHint": "想要遠端存取？可以在設定頁面配置 Telegram 或 Discord 機器人。",
+      "tryChatTitle": "馬上試試！",
+      "tryChatDesc": "傳送一則訊息來測試你的 OpenClaw AI 設定。（需要閘道正在執行。）",
+      "tryChatPlaceholder": "你好！你能做什麼？",
+      "tryChatSend": "傳送",
+      "tryChatSending": "OpenClaw 正在思考...",
+      "tryChatAgain": "再試一則",
+      "tryChatError": "無法連線閘道。請確保守護程序正在執行（主頁 → 啟動）。"
     },
     "modelGuide": {
       "title": "選擇你的 AI 模型提供商",
@@ -249,7 +281,12 @@
         "done": "完成！"
       },
       "appResponsive": "正在解除安裝 OpenClaw... 應用程式保持回應。",
-      "notes": "備註："
+      "notes": "備註：",
+      "result": {
+        "daemon": "停止守護程序",
+        "npm": "解除安裝 npm 套件",
+        "config": "刪除設定檔"
+      }
     },
     "safety": "安全等級",
     "safetyPresets": {
@@ -363,6 +400,7 @@
   "help": {
     "title": "說明中心",
     "searchPlaceholder": "搜尋說明...",
+    "noResults": "未找到匹配的問題。",
     "commonQuestions": "常見問題",
     "gettingStarted": "入門指南",
     "faq": {
@@ -400,6 +438,28 @@
       }
     }
   },
+  "config": {
+    "title": "設定檢視",
+    "jsonView": "JSON 檢視",
+    "treeView": "樹狀檢視",
+    "notFound": "未找到設定檔。OpenClaw 是否已安裝？",
+    "secretsMasked": "金鑰（API Key、Token）已部分隱藏，確保安全。"
+  },
+  "feedback": {
+    "title": "傳送回饋",
+    "collecting": "正在收集診斷資訊...",
+    "type": "問題類型",
+    "types": { "bug": "Bug", "feature": "功能建議", "question": "提問" },
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "告訴我們發生了什麼，或者您想要什麼功能...",
+    "autoCollected": "自動收集的診斷資訊",
+    "screenshot": "截圖",
+    "screenshotSaved": "已儲存",
+    "includeGateway": "包含 Gateway 狀態",
+    "includeLogs": "包含最近日誌（最後 30 行）",
+    "submit": "開啟 GitHub Issue",
+    "opensGithub": "這將在瀏覽器中開啟一個預填好的 GitHub Issue。"
+  },
   "common": {
     "loading": "載入中...",
     "error": "錯誤",
@@ -413,6 +473,8 @@
     "disabled": "已關閉",
     "basic": "基礎",
     "advanced": "進階",
-    "expert": "高級"
+    "expert": "高級",
+    "comingSoon": "即將推出",
+    "optional": "可選"
   }
 }

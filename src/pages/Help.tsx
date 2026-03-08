@@ -82,7 +82,7 @@ export default function Help() {
         ))}
         {filteredFaqs.length === 0 && (
           <div className="px-4 py-8 text-center text-sm text-gray-500">
-            No matching questions found.
+            {t('help.noResults')}
           </div>
         )}
       </div>

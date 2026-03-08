@@ -6,10 +6,10 @@ import InfoTooltip from '../components/shared/InfoTooltip';
 import { OPENCLAW_GETTING_STARTED_URL } from '../constants';
 
 const TEMPLATES = [
-  { id: 'telegram', icon: '💬', est: '~3 min' },
-  { id: 'discord', icon: '🤖', est: '~3 min' },
-  { id: 'llm-provider', icon: '🧠', est: '~2 min' },
-  { id: 'vps-headless', icon: '🖥️', est: '~5 min' },
+  { id: 'llm-provider', icon: '🧠', est: '~2 min', badge: 'recommended' as const },
+  { id: 'telegram', icon: '💬', est: '~3 min', badge: 'optional' as const },
+  { id: 'discord', icon: '🤖', est: '~3 min', badge: 'optional' as const },
+  { id: 'vps-headless', icon: '🖥️', est: '~5 min', badge: null },
 ] as const;
 
 interface StepDef {
@@ -20,6 +20,7 @@ interface StepDef {
   linkTextKey?: string;
   placeholder?: string;
   configPath?: string;
+  channelName?: string;
   isSecret?: boolean;
   options?: { value: string; labelKey: string; icon: string; recommended?: boolean }[];
   isDynamic?: boolean;
@@ -77,8 +78,8 @@ function getSteps(templateId: string): StepDef[] {
         },
         {
           type: 'complete',
-          titleKey: 'onboard.wizard.completeTitle',
-          descKey: 'onboard.wizard.completeDesc',
+          titleKey: 'onboard.wizard.llmReadyTitle',
+          descKey: 'onboard.wizard.llmReadyDesc',
         },
       ];
     case 'telegram':
@@ -96,17 +97,9 @@ function getSteps(templateId: string): StepDef[] {
           titleKey: 'onboard.wizard.telegram.step2Title',
           descKey: 'onboard.wizard.telegram.step2Desc',
           placeholder: 'onboard.wizard.telegram.step2Placeholder',
-          configPath: 'gateways.telegram.botToken',
+          channelName: 'telegram',
           isSecret: true,
           conceptKey: 'token',
-        },
-        {
-          type: 'select',
-          titleKey: 'onboard.wizard.telegram.step3Title',
-          descKey: 'onboard.wizard.telegram.step3Desc',
-          options: STATIC_LLM_PROVIDERS,
-          isDynamic: true,
-          conceptKey: 'llmProvider',
         },
         {
           type: 'complete',
@@ -129,7 +122,7 @@ function getSteps(templateId: string): StepDef[] {
           titleKey: 'onboard.wizard.discord.step2Title',
           descKey: 'onboard.wizard.discord.step2Desc',
           placeholder: 'onboard.wizard.discord.step2Placeholder',
-          configPath: 'gateways.discord.botToken',
+          channelName: 'discord',
           isSecret: true,
           conceptKey: 'token',
         },
@@ -152,7 +145,7 @@ function getSteps(templateId: string): StepDef[] {
           titleKey: 'onboard.wizard.vpsHeadless.step2Title',
           descKey: 'onboard.wizard.vpsHeadless.step2Desc',
           placeholder: 'onboard.wizard.vpsHeadless.step2Placeholder',
-          configPath: 'gateway.token',
+          configPath: 'gateway.auth.token',
           isSecret: true,
           conceptKey: 'gateway',
         },
@@ -215,8 +208,22 @@ function TemplateList() {
           <Link
             key={tpl.id}
             to={`/onboard/${tpl.id}`}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:border-claw-300 hover:shadow-md transition-all group"
+            className={`relative bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-all group ${
+              tpl.badge === 'recommended'
+                ? 'border-claw-300 ring-1 ring-claw-200'
+                : 'border-gray-200 hover:border-claw-300'
+            }`}
           >
+            {tpl.badge === 'recommended' && (
+              <span className="absolute -top-2.5 right-3 bg-claw-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                {t('common.recommended')}
+              </span>
+            )}
+            {tpl.badge === 'optional' && (
+              <span className="absolute -top-2.5 right-3 bg-gray-400 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                {t('common.optional')}
+              </span>
+            )}
             <div className="flex items-start gap-4">
               <span className="text-3xl">{tpl.icon}</span>
               <div className="flex-1 min-w-0">
@@ -319,7 +326,25 @@ function OnboardWizard({ templateId }: { templateId: string }) {
     if (!canProceed) return;
     setError(null);
 
-    if (step.type === 'input' && step.configPath) {
+    if (step.type === 'input' && step.channelName) {
+      setSaving(true);
+      try {
+        const res = await invoke<{ success: boolean; error?: string | null }>('add_channel', {
+          channel: step.channelName,
+          token: inputValue.trim(),
+        });
+        if (!res.success && res.error) {
+          setError(res.error);
+          setSaving(false);
+          return;
+        }
+      } catch (e) {
+        setError(String(e));
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+    } else if (step.type === 'input' && step.configPath) {
       setSaving(true);
       try {
         await invoke('config_set', { path: step.configPath, value: inputValue.trim() });
@@ -331,7 +356,7 @@ function OnboardWizard({ templateId }: { templateId: string }) {
       setSaving(false);
     }
 
-    if (step.type === 'input' && !step.configPath && templateId === 'llm-provider') {
+    if (step.type === 'input' && !step.configPath && !step.channelName && templateId === 'llm-provider') {
       setSaving(true);
       try {
         await invoke('setup_provider', { provider: selectedProvider, apiKey: inputValue.trim() });
@@ -644,6 +669,7 @@ function OnboardWizard({ templateId }: { templateId: string }) {
         {step.type === 'complete' && (
           <div className="text-center py-4">
             <div className="text-5xl mb-4">🎉</div>
+            {templateId === 'llm-provider' && <TryChatMini />}
             <div className="flex justify-center gap-3 mt-6">
               <button
                 onClick={() => navigate('/')}
@@ -658,6 +684,11 @@ function OnboardWizard({ templateId }: { templateId: string }) {
                 {t('onboard.wizard.startAnother')}
               </Link>
             </div>
+            {templateId === 'llm-provider' && (
+              <p className="mt-4 text-xs text-gray-400">
+                {t('onboard.wizard.optionalBotsHint')}
+              </p>
+            )}
           </div>
         )}
 
@@ -683,6 +714,98 @@ function OnboardWizard({ templateId }: { templateId: string }) {
                        hover:bg-claw-700 disabled:opacity-50 transition-all shadow-sm"
           >
             {saving ? t('onboard.wizard.saving') : t('onboard.next')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TryChatMini() {
+  const { t } = useTranslation();
+  const [message, setMessage] = useState('');
+  const [phase, setPhase] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
+  const [reply, setReply] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSend = async () => {
+    const msg = message.trim() || 'Hello! What can you do?';
+    setPhase('sending');
+    setReply('');
+    setError('');
+    try {
+      const res = await invoke<{ success: boolean; reply?: string | null; error?: string | null }>('agent_chat', { message: msg });
+      if (res.success && res.reply) {
+        setReply(res.reply);
+        setPhase('done');
+      } else {
+        setError(res.error || 'No response');
+        setPhase('error');
+      }
+    } catch (e) {
+      setError(String(e));
+      setPhase('error');
+    }
+  };
+
+  return (
+    <div className="mt-4 mb-2 rounded-xl border border-green-200 bg-green-50 p-4 text-left">
+      <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
+        <span>💬</span> {t('onboard.wizard.tryChatTitle')}
+      </h4>
+      <p className="text-xs text-green-700 mb-3">{t('onboard.wizard.tryChatDesc')}</p>
+
+      {phase === 'idle' && (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder={t('onboard.wizard.tryChatPlaceholder')}
+            className="flex-1 rounded-lg border border-green-300 px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-400 outline-none"
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          />
+          <button
+            onClick={handleSend}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-all"
+          >
+            {t('onboard.wizard.tryChatSend')}
+          </button>
+        </div>
+      )}
+
+      {phase === 'sending' && (
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <span className="animate-spin">⏳</span> {t('onboard.wizard.tryChatSending')}
+        </div>
+      )}
+
+      {phase === 'done' && reply && (
+        <div className="space-y-2">
+          <div className="rounded-lg bg-white border border-green-200 p-3">
+            <p className="text-xs text-green-500 font-medium mb-1">🦞 OpenClaw:</p>
+            <p className="text-sm text-gray-800 whitespace-pre-wrap">{reply}</p>
+          </div>
+          <button
+            onClick={() => { setPhase('idle'); setMessage(''); }}
+            className="text-xs text-green-600 underline"
+          >
+            {t('onboard.wizard.tryChatAgain')}
+          </button>
+        </div>
+      )}
+
+      {phase === 'error' && (
+        <div className="space-y-2">
+          <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3">
+            <p className="text-xs text-yellow-700">{t('onboard.wizard.tryChatError')}</p>
+            <pre className="text-xs text-yellow-600 mt-1 overflow-auto max-h-16">{error}</pre>
+          </div>
+          <button
+            onClick={() => setPhase('idle')}
+            className="text-xs text-yellow-600 underline"
+          >
+            {t('dashboard.install.tryAgain')}
           </button>
         </div>
       )}

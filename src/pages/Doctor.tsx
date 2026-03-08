@@ -79,7 +79,7 @@ export default function Doctor() {
           <div className="text-4xl mb-4">🩺</div>
           <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('doctor.title')}</h3>
           <p className="text-sm text-gray-500 mb-4">
-            Check your OpenClaw installation, configuration, and security.
+            {t('doctor.description')}
           </p>
           <button
             onClick={runDoctor}
@@ -94,7 +94,7 @@ export default function Doctor() {
       {report && (
         <>
           <div className="grid grid-cols-4 gap-3">
-            <SummaryCard label="Total" value={report.summary.total} color="bg-gray-100 text-gray-700" />
+            <SummaryCard label={t('doctor.total')} value={report.summary.total} color="bg-gray-100 text-gray-700" />
             <SummaryCard label={t('doctor.pass')} value={report.summary.passed} color="bg-green-100 text-green-700" />
             <SummaryCard label={t('doctor.warn')} value={report.summary.warnings} color="bg-yellow-100 text-yellow-700" />
             <SummaryCard label={t('doctor.fail')} value={report.summary.failures} color="bg-red-100 text-red-700" />

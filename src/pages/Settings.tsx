@@ -18,7 +18,7 @@ interface UninstallResult {
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme] = useState<Theme>('system');
   const [safetyLevel, setSafetyLevel] = useState<SafetyLevel>(() => {
     return (localStorage.getItem(SAFETY_KEY) as SafetyLevel) || 'conservative';
   });
@@ -129,18 +129,21 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Theme */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-500 mb-4">{t('settings.theme')}</h3>
+      {/* Theme — Coming Soon */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 opacity-60">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-500">{t('settings.theme')}</h3>
+          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{t('common.comingSoon')}</span>
+        </div>
         <div className="flex gap-2">
           {(['light', 'dark', 'system'] as const).map((opt) => (
             <button
               key={opt}
-              onClick={() => setTheme(opt)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+              disabled
+              className={`rounded-lg px-4 py-2 text-sm font-medium cursor-not-allowed ${
                 theme === opt
-                  ? 'bg-claw-600 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-300 text-white'
+                  : 'bg-gray-100 text-gray-400'
               }`}
             >
               {t(`settings.${opt}`)}
@@ -243,9 +246,9 @@ export default function Settings() {
         {uninstallStep === 'done' && uninstallResult && (
           <div className="space-y-3">
             <div className="space-y-2">
-              <StatusLine ok={uninstallResult.daemon_stopped} label="Stop daemon" />
-              <StatusLine ok={uninstallResult.npm_uninstalled} label="Uninstall package (npm)" />
-              {removeConfig && <StatusLine ok={uninstallResult.config_removed} label="Remove config files" />}
+              <StatusLine ok={uninstallResult.daemon_stopped} label={t('settings.uninstall.result.daemon')} />
+              <StatusLine ok={uninstallResult.npm_uninstalled} label={t('settings.uninstall.result.npm')} />
+              {removeConfig && <StatusLine ok={uninstallResult.config_removed} label={t('settings.uninstall.result.config')} />}
             </div>
             {uninstallResult.errors.length > 0 && (
               <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3">

@@ -719,6 +719,251 @@ fn truncate_resp(s: &str) -> String {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct ChannelAddResult {
+    pub success: bool,
+    pub message: Option<String>,
+    pub error: Option<String>,
+}
+
+pub fn add_channel(channel: &str, token: &str) -> Result<ChannelAddResult, String> {
+    let output = Command::new(OPENCLAW_CLI)
+        .args(["channels", "add", "--channel", channel, "--token", token])
+        .output()
+        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if output.status.success() {
+        Ok(ChannelAddResult {
+            success: true,
+            message: Some(if stdout.is_empty() { stderr } else { stdout }),
+            error: None,
+        })
+    } else {
+        Ok(ChannelAddResult {
+            success: false,
+            message: None,
+            error: Some(if stderr.is_empty() { stdout } else { stderr }),
+        })
+    }
+}
+
+pub fn get_full_config() -> Result<String, String> {
+    let config_path = if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
+        std::path::PathBuf::from(dir)
+    } else {
+        dirs::home_dir()
+            .unwrap_or_default()
+            .join(OPENCLAW_STATE_DIR_DEFAULT)
+    }
+    .join("openclaw.json");
+
+    if !config_path.exists() {
+        return Err("Config file not found. Is OpenClaw installed?".to_string());
+    }
+
+    std::fs::read_to_string(&config_path)
+        .map_err(|e| format!("Failed to read config: {}", e))
+}
+
+#[derive(Debug, Serialize)]
+pub struct ChannelInfo {
+    pub name: String,
+    pub status: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FeedbackInfo {
+    pub platform: String,
+    pub openclaw_version: String,
+    pub clawsquire_version: String,
+    pub gateway_status: String,
+    pub llm_configured: bool,
+    pub recent_log_lines: Vec<String>,
+    pub screenshot_path: Option<String>,
+}
+
+pub fn collect_feedback_info() -> FeedbackInfo {
+    let platform = std::env::consts::OS.to_string();
+
+    let openclaw_version = Command::new(OPENCLAW_CLI)
+        .arg("--version")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_else(|| "not installed".to_string());
+
+    let gateway_status = Command::new(OPENCLAW_CLI)
+        .args(["gateway", "status"])
+        .output()
+        .ok()
+        .map(|o| {
+            let stdout = String::from_utf8_lossy(&o.stdout).trim().to_string();
+            if stdout.len() > 500 { stdout[..500].to_string() } else { stdout }
+        })
+        .unwrap_or_else(|| "unknown".to_string());
+
+    let llm_status = check_llm_config();
+
+    let log_path = dirs::home_dir()
+        .unwrap_or_default()
+        .join(OPENCLAW_STATE_DIR_DEFAULT)
+        .join("logs");
+    let recent_log_lines = if log_path.exists() {
+        std::fs::read_dir(&log_path)
+            .ok()
+            .and_then(|entries| {
+                let mut files: Vec<_> = entries.filter_map(|e| e.ok()).collect();
+                files.sort_by_key(|f| std::cmp::Reverse(f.path()));
+                files.first().map(|f| f.path())
+            })
+            .and_then(|latest| std::fs::read_to_string(latest).ok())
+            .map(|content| {
+                content.lines().rev().take(30).map(|l| l.to_string()).collect::<Vec<_>>()
+                    .into_iter().rev().collect()
+            })
+            .unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+
+    let screenshot_path = take_screenshot().ok();
+
+    FeedbackInfo {
+        platform,
+        openclaw_version,
+        clawsquire_version: "0.1.0".to_string(),
+        gateway_status,
+        llm_configured: llm_status.has_provider,
+        recent_log_lines,
+        screenshot_path,
+    }
+}
+
+fn take_screenshot() -> Result<String, String> {
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let path = std::env::temp_dir().join(format!("clawsquire-feedback-{}.png", timestamp));
+    let path_str = path.to_string_lossy().to_string();
+
+    #[cfg(target_os = "macos")]
+    {
+        let output = Command::new("screencapture")
+            .args(["-x", &path_str])
+            .output()
+            .map_err(|e| format!("Screenshot failed: {}", e))?;
+        if output.status.success() {
+            return Ok(path_str);
+        }
+        return Err("screencapture failed".to_string());
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        Err("Screenshot not supported on this platform yet".to_string())
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct AgentChatResult {
+    pub success: bool,
+    pub reply: Option<String>,
+    pub error: Option<String>,
+}
+
+pub fn agent_chat(message: &str) -> AgentChatResult {
+    let url = format!(
+        "http://localhost:{}/v1/chat/completions",
+        DEFAULT_GATEWAY_PORT
+    );
+    let body = serde_json::json!({
+        "model": "default",
+        "messages": [{"role": "user", "content": message}],
+        "max_tokens": 500
+    })
+    .to_string();
+
+    let output = match Command::new("curl")
+        .args(["-s", "--max-time", "30", "-X", "POST", &url, "-H", "Content-Type: application/json", "-d", &body])
+        .output()
+    {
+        Ok(o) => o,
+        Err(e) => {
+            return AgentChatResult {
+                success: false,
+                reply: None,
+                error: Some(format!("Request failed: {}", e)),
+            }
+        }
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    if stdout.is_empty() || stdout.contains("Connection refused") {
+        return AgentChatResult {
+            success: false,
+            reply: None,
+            error: Some("Gateway not reachable. Start the daemon first.".to_string()),
+        };
+    }
+
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+        if let Some(err) = json.get("error") {
+            return AgentChatResult {
+                success: false,
+                reply: None,
+                error: Some(err.to_string()),
+            };
+        }
+        if let Some(content) = json
+            .get("choices")
+            .and_then(|c| c.get(0))
+            .and_then(|c| c.get("message"))
+            .and_then(|m| m.get("content"))
+            .and_then(|c| c.as_str())
+        {
+            return AgentChatResult {
+                success: true,
+                reply: Some(content.to_string()),
+                error: None,
+            };
+        }
+    }
+
+    AgentChatResult {
+        success: false,
+        reply: None,
+        error: Some(truncate_resp(&stdout)),
+    }
+}
+
+pub fn list_channels() -> Result<Vec<ChannelInfo>, String> {
+    let output = Command::new(OPENCLAW_CLI)
+        .args(["channels", "list"])
+        .output()
+        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut channels = Vec::new();
+
+    for line in stdout.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("- ") && !trimmed.contains("none") {
+            let name = trimmed.trim_start_matches("- ").trim().to_string();
+            channels.push(ChannelInfo {
+                name: name.clone(),
+                status: "configured".to_string(),
+            });
+        }
+    }
+
+    Ok(channels)
+}
+
 pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
     let mut result = UninstallResult {
         daemon_stopped: false,

@@ -201,18 +201,19 @@ export default function Backup() {
 }
 
 function DiffView({ diffs }: { diffs: DiffEntry[] }) {
+  const { t } = useTranslation();
   if (diffs.length === 0) {
     return (
       <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700 text-center">
-        No differences — config matches this backup.
+        {t('backup.noDifferences')}
       </div>
     );
   }
 
   const OP_STYLES: Record<string, { label: string; color: string }> = {
-    add: { label: 'Added', color: 'bg-green-100 text-green-700' },
-    remove: { label: 'Removed', color: 'bg-red-100 text-red-700' },
-    replace: { label: 'Changed', color: 'bg-yellow-100 text-yellow-700' },
+    add: { label: t('backup.diffOp.added'), color: 'bg-green-100 text-green-700' },
+    remove: { label: t('backup.diffOp.removed'), color: 'bg-red-100 text-red-700' },
+    replace: { label: t('backup.diffOp.changed'), color: 'bg-yellow-100 text-yellow-700' },
   };
 
   return (

@@ -2,7 +2,7 @@
   "app": {
     "name": "ClawSquire",
     "localizedName": "ClawSquire · ロブスター従者",
-    "tagline": "OpenClaw のコンパニオンアプリ"
+    "tagline": "OpenClaw GUI コンパニオンアプリ"
   },
   "nav": {
     "dashboard": "ダッシュボード",
@@ -10,7 +10,8 @@
     "doctor": "ヘルスチェック",
     "backup": "バックアップ",
     "settings": "設定",
-    "help": "ヘルプ"
+    "help": "ヘルプ",
+    "config": "設定"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -24,6 +25,8 @@
     "runDoctor": "診断を実行",
     "backupNow": "今すぐバックアップ",
     "viewConfig": "設定を表示",
+    "platform": "プラットフォーム",
+    "configDir": "設定ディレクトリ",
     "safetyLevel": "セキュリティレベル",
     "safetyConservative": "保守的",
     "safetyDescription": "基本機能のみ有効です。高度な機能は手動で有効化する必要があります。",
@@ -61,15 +64,28 @@
       "reason2": "AI を有効にするにはプロバイダーの API Key が必要です",
       "reason3": "無料オプションもあります（例：DeepSeek は無料クレジット付き）",
       "button": "AI モデルを設定"
+    },
+    "ready": {
+      "title": "OpenClaw 準備完了！",
+      "desc": "AIプロバイダー（{{provider}}）の設定が完了しました。今すぐOpenClawとチャットを始められます！",
+      "startDaemonHint": "ゲートウェイを起動してAIアシスタントとの会話を開始しましょう。",
+      "tryChatTitle": "クイックチャットを試す",
+      "tryChatPlaceholder": "OpenClawに何か話しかけてみましょう...",
+      "send": "送信",
+      "thinking": "OpenClaw が考え中...",
+      "chatAgain": "別のメッセージを送る",
+      "setupBotsHint": "オプション：Telegram/Discordボットを設定してリモートアクセス →"
     }
   },
   "doctor": {
     "title": "ヘルスチェック",
+    "description": "OpenClaw のインストール、設定、セキュリティをチェックします。",
     "runCheck": "チェック開始",
     "rerun": "再チェック",
     "pass": "合格",
     "warn": "警告",
     "fail": "失敗",
+    "total": "合計",
     "categories": {
       "installation": "インストール",
       "config": "設定",
@@ -87,7 +103,13 @@
     "timestamp": "作成日時",
     "size": "サイズ",
     "confirmRestore": "このバックアップを復元しますか？現在の設定は先に自動バックアップされます。",
-    "noBackups": "バックアップがありません。最初のバックアップを作成して設定を保護しましょう。"
+    "noBackups": "バックアップがありません。最初のバックアップを作成して設定を保護しましょう。",
+    "noDifferences": "差分なし — 設定はこのバックアップと一致しています。",
+    "diffOp": {
+      "added": "追加",
+      "removed": "削除",
+      "changed": "変更"
+    }
   },
   "onboard": {
     "title": "セットアップアシスタント",
@@ -181,7 +203,17 @@
       "testFailed": "接続失敗",
       "testModel": "テストモデル：{{model}}",
       "searchProviders": "プロバイダーを検索...",
-      "noProviderMatch": "一致するプロバイダーがありません"
+      "noProviderMatch": "一致するプロバイダーがありません",
+      "llmReadyTitle": "設定完了！",
+      "llmReadyDesc": "AIプロバイダーの設定が完了しました。OpenClawで会話、質問への回答、タスクの実行が可能です。ボットの設定は不要です！",
+      "optionalBotsHint": "リモートアクセスが必要ですか？設定ページからTelegramまたはDiscordボットを設定できます。",
+      "tryChatTitle": "今すぐ試す！",
+      "tryChatDesc": "メッセージを送信してOpenClaw AIのセットアップをテストしましょう。（ゲートウェイが実行中である必要があります。）",
+      "tryChatPlaceholder": "こんにちは！何ができますか？",
+      "tryChatSend": "送信",
+      "tryChatSending": "OpenClaw が考え中...",
+      "tryChatAgain": "もう一度試す",
+      "tryChatError": "ゲートウェイに接続できません。デーモンが実行中か確認してください（ダッシュボード → 起動）。"
     },
     "modelGuide": {
       "title": "AI モデルプロバイダーを選択",
@@ -249,7 +281,12 @@
         "done": "完了！"
       },
       "appResponsive": "OpenClaw をアンインストール中... アプリは応答し続けます。",
-      "notes": "備考："
+      "notes": "備考：",
+      "result": {
+        "daemon": "デーモン停止",
+        "npm": "npm パッケージ削除",
+        "config": "設定ファイル削除"
+      }
     },
     "safety": "セキュリティレベル",
     "safetyPresets": {
@@ -363,6 +400,7 @@
   "help": {
     "title": "ヘルプセンター",
     "searchPlaceholder": "ヘルプを検索...",
+    "noResults": "一致する質問が見つかりません。",
     "commonQuestions": "よくある質問",
     "gettingStarted": "はじめに",
     "faq": {
@@ -400,6 +438,28 @@
       }
     }
   },
+  "config": {
+    "title": "設定ビューア",
+    "jsonView": "JSON ビュー",
+    "treeView": "ツリービュー",
+    "notFound": "設定ファイルが見つかりません。OpenClaw はインストールされていますか？",
+    "secretsMasked": "セキュリティのため、シークレット（APIキー、トークン）は一部マスクされています。"
+  },
+  "feedback": {
+    "title": "フィードバックを送信",
+    "collecting": "診断情報を収集中...",
+    "type": "問題の種類",
+    "types": { "bug": "バグ", "feature": "機能リクエスト", "question": "質問" },
+    "descriptionLabel": "説明",
+    "descriptionPlaceholder": "何が起きたか、またはご要望をお聞かせください...",
+    "autoCollected": "自動収集された診断情報",
+    "screenshot": "スクリーンショット",
+    "screenshotSaved": "保存済み",
+    "includeGateway": "Gateway ステータスを含める",
+    "includeLogs": "最近のログを含める（最後の30行）",
+    "submit": "GitHub Issue を開く",
+    "opensGithub": "ブラウザで事前入力済みの GitHub Issue が開きます。"
+  },
   "common": {
     "loading": "読み込み中...",
     "error": "エラー",
@@ -413,6 +473,8 @@
     "disabled": "無効",
     "basic": "基本",
     "advanced": "高度",
-    "expert": "エキスパート"
+    "expert": "エキスパート",
+    "comingSoon": "近日公開",
+    "optional": "オプション"
   }
 }

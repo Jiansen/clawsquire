@@ -2,6 +2,7 @@ import { NavLink } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
 import { useState } from 'react';
+import FeedbackButton from '../shared/FeedbackButton';
 
 const navItems = [
   {
@@ -37,6 +38,15 @@ const navItems = [
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+      </svg>
+    ),
+  },
+  {
+    to: '/config',
+    labelKey: 'nav.config',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
       </svg>
     ),
   },
@@ -91,7 +101,9 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="relative mt-auto">
+      <div className="flex flex-col items-center gap-1 mt-auto">
+        <FeedbackButton />
+        <div className="relative">
         <button
           onClick={() => setLangOpen(!langOpen)}
           title={t('settings.language')}
@@ -119,6 +131,7 @@ export default function Sidebar() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </aside>
   );

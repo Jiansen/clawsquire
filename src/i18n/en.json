@@ -2,13 +2,14 @@
   "app": {
     "name": "ClawSquire",
     "localizedName": "ClawSquire",
-    "tagline": "The companion app for OpenClaw"
+    "tagline": "GUI Companion App for OpenClaw"
   },
   "nav": {
     "dashboard": "Dashboard",
     "onboard": "Setup",
     "doctor": "Health Check",
     "backup": "Backups",
+    "config": "Config",
     "settings": "Settings",
     "help": "Help"
   },
@@ -27,6 +28,8 @@
     "safetyLevel": "Safety Level",
     "safetyConservative": "Conservative",
     "safetyDescription": "Only basic features are enabled. Advanced features require manual activation.",
+    "platform": "Platform",
+    "configDir": "Config",
     "daemon": {
       "start": "Start",
       "stop": "Stop",
@@ -67,12 +70,25 @@
       "reason2": "You need an API key from a provider to activate the AI",
       "reason3": "Free options are available (e.g. DeepSeek offers free credits)",
       "button": "Set Up AI Model"
+    },
+    "ready": {
+      "title": "OpenClaw is Ready!",
+      "desc": "Your AI provider ({{provider}}) is configured. You can start chatting with OpenClaw right now!",
+      "startDaemonHint": "Start the Gateway to begin chatting with your AI assistant.",
+      "tryChatTitle": "Try a Quick Chat",
+      "tryChatPlaceholder": "Say something to OpenClaw...",
+      "send": "Send",
+      "thinking": "OpenClaw is thinking...",
+      "chatAgain": "Send another message",
+      "setupBotsHint": "Optional: Set up Telegram/Discord bots for remote access →"
     }
   },
   "doctor": {
     "title": "Health Check",
     "runCheck": "Run Check",
     "rerun": "Re-run",
+    "description": "Check your OpenClaw installation, configuration, and security.",
+    "total": "Total",
     "pass": "Pass",
     "warn": "Warning",
     "fail": "Fail",
@@ -93,7 +109,9 @@
     "timestamp": "Created",
     "size": "Size",
     "confirmRestore": "Restore this backup? Current config will be backed up first.",
-    "noBackups": "No backups yet. Create your first backup to protect your config."
+    "noBackups": "No backups yet. Create your first backup to protect your config.",
+    "noDifferences": "No differences — config matches this backup.",
+    "diffOp": {"added": "Added", "removed": "Removed", "changed": "Changed"}
   },
   "onboard": {
     "title": "Setup Assistant",
@@ -187,7 +205,17 @@
       "testFailed": "Connection failed",
       "testModel": "Tested model: {{model}}",
       "searchProviders": "Search providers...",
-      "noProviderMatch": "No matching providers"
+      "noProviderMatch": "No matching providers",
+      "llmReadyTitle": "You're All Set!",
+      "llmReadyDesc": "AI provider configured. OpenClaw can now chat, answer questions, and run tasks for you — no bot setup needed!",
+      "optionalBotsHint": "Want remote access? Set up Telegram or Discord bots from the Setup page.",
+      "tryChatTitle": "Try It Now!",
+      "tryChatDesc": "Send a message to test your OpenClaw AI setup. (Requires the Gateway to be running.)",
+      "tryChatPlaceholder": "Hello! What can you do?",
+      "tryChatSend": "Send",
+      "tryChatSending": "OpenClaw is thinking...",
+      "tryChatAgain": "Try another message",
+      "tryChatError": "Could not reach the Gateway. Make sure the daemon is running (Dashboard → Start)."
     },
     "modelGuide": {
       "title": "Choose your AI Model Provider",
@@ -255,7 +283,8 @@
         "done": "Complete!"
       },
       "appResponsive": "Uninstalling OpenClaw... The app remains responsive.",
-      "notes": "Notes:"
+      "notes": "Notes:",
+      "result": {"daemon": "Stop daemon", "npm": "Uninstall package (npm)", "config": "Remove config files"}
     },
     "safety": "Safety Level",
     "safetyPresets": {
@@ -370,6 +399,7 @@
     "title": "Help Center",
     "searchPlaceholder": "Search for help...",
     "commonQuestions": "Common Questions",
+    "noResults": "No matching questions found.",
     "gettingStarted": "Getting Started",
     "faq": {
       "gatewayWontStart": {
@@ -406,6 +436,32 @@
       }
     }
   },
+  "config": {
+    "title": "Configuration",
+    "jsonView": "JSON View",
+    "treeView": "Tree View",
+    "notFound": "Config file not found. Is OpenClaw installed?",
+    "secretsMasked": "Secrets (API keys, tokens) are partially masked for security."
+  },
+  "feedback": {
+    "title": "Send Feedback",
+    "collecting": "Collecting diagnostic info...",
+    "type": "Issue Type",
+    "types": {
+      "bug": "Bug",
+      "feature": "Feature",
+      "question": "Question"
+    },
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Tell us what happened or what you'd like to see...",
+    "autoCollected": "Auto-collected diagnostics",
+    "screenshot": "Screenshot",
+    "screenshotSaved": "Saved",
+    "includeGateway": "Include Gateway status",
+    "includeLogs": "Include recent logs (last 30 lines)",
+    "submit": "Open GitHub Issue",
+    "opensGithub": "This will open a pre-filled GitHub issue in your browser."
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
@@ -419,6 +475,8 @@
     "disabled": "Disabled",
     "basic": "Basic",
     "advanced": "Advanced",
-    "expert": "Expert"
+    "expert": "Expert",
+    "comingSoon": "Coming Soon",
+    "optional": "Optional"
   }
 }

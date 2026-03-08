@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Onboard from './pages/Onboard';
 import Doctor from './pages/Doctor';
 import Backup from './pages/Backup';
+import Config from './pages/Config';
 import Settings from './pages/Settings';
 import Help from './pages/Help';
 import Welcome from './pages/Welcome';
@@ -32,6 +33,7 @@ function AppShell() {
               <Route path="/onboard/:templateId" element={<Onboard />} />
               <Route path="/doctor" element={<Doctor />} />
               <Route path="/backup" element={<Backup />} />
+              <Route path="/config" element={<Config />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/help" element={<Help />} />
             </Routes>

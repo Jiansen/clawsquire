@@ -190,11 +190,11 @@ export default function Dashboard() {
         {env && (
           <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-500">
             <div>
-              <span className="font-medium text-gray-700">Platform</span>
+              <span className="font-medium text-gray-700">{t('dashboard.platform')}</span>
               <p className="mt-0.5">{env.platform}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-700">Config</span>
+              <span className="font-medium text-gray-700">{t('dashboard.configDir')}</span>
               <p className="mt-0.5 truncate" title={env.config_dir}>{env.config_dir}</p>
             </div>
           </div>
@@ -202,12 +202,13 @@ export default function Dashboard() {
       </div>
 
       {/* Info Cards Row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <InfoCard
           label={t('dashboard.safetyLevel')}
           value={t('dashboard.safetyConservative')}
           icon="🛡️"
           color="bg-green-50 border-green-200"
+          onClick={() => navigate('/settings')}
         />
         <InfoCard
           label={t('backup.title')}
@@ -215,12 +216,6 @@ export default function Dashboard() {
           icon="💾"
           color="bg-blue-50 border-blue-200"
           onClick={() => navigate('/backup')}
-        />
-        <InfoCard
-          label="Daemon"
-          value={running ? 'Active' : installed ? 'Stopped' : '—'}
-          icon={running ? '🟢' : '⚪'}
-          color={running ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}
         />
       </div>
 
@@ -263,7 +258,7 @@ export default function Dashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
               </svg>
             }
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate('/config')}
           />
         </div>
       </div>
@@ -276,6 +271,16 @@ export default function Dashboard() {
       {/* Installed but no LLM → Setup Guidance */}
       {installed && !llmConfigured && !loading && (
         <LlmGuidanceCard onNavigate={() => navigate('/onboard/llm-provider')} />
+      )}
+
+      {/* Installed + LLM configured → Ready to Use! */}
+      {installed && llmConfigured && !loading && (
+        <ReadyToUseCard
+          providerName={llmStatus?.provider_name || ''}
+          gatewayRunning={running}
+          onStartDaemon={handleDaemonToggle}
+          onSetupBots={() => navigate('/onboard')}
+        />
       )}
     </div>
   );
@@ -310,6 +315,139 @@ function LlmGuidanceCard({ onNavigate }: { onNavigate: () => void }) {
                      hover:bg-purple-700 transition-all shadow-sm"
         >
           {t('dashboard.llmGuide.button')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ReadyToUseCard({
+  providerName,
+  gatewayRunning,
+  onStartDaemon,
+  onSetupBots,
+}: {
+  providerName: string;
+  gatewayRunning: boolean;
+  onStartDaemon: () => void;
+  onSetupBots: () => void;
+}) {
+  const { t } = useTranslation();
+  const [message, setMessage] = useState('');
+  const [phase, setPhase] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
+  const [reply, setReply] = useState('');
+  const [chatError, setChatError] = useState('');
+
+  const handleSend = async () => {
+    const msg = message.trim() || 'Hello! What can you do?';
+    setPhase('sending');
+    setReply('');
+    setChatError('');
+    try {
+      const res = await invoke<{ success: boolean; reply?: string | null; error?: string | null }>('agent_chat', { message: msg });
+      if (res.success && res.reply) {
+        setReply(res.reply);
+        setPhase('done');
+      } else {
+        setChatError(res.error || 'No response');
+        setPhase('error');
+      }
+    } catch (e) {
+      setChatError(String(e));
+      setPhase('error');
+    }
+  };
+
+  return (
+    <div className="rounded-xl border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
+      <div className="text-center mb-4">
+        <div className="text-4xl mb-2">🎉</div>
+        <h3 className="text-base font-semibold text-green-800">
+          {t('dashboard.ready.title')}
+        </h3>
+        <p className="text-sm text-green-700 mt-1">
+          {t('dashboard.ready.desc', { provider: providerName })}
+        </p>
+      </div>
+
+      {!gatewayRunning ? (
+        <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 mb-4">
+          <p className="text-sm text-yellow-800 font-medium mb-2">{t('dashboard.ready.startDaemonHint')}</p>
+          <button
+            onClick={onStartDaemon}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-all"
+          >
+            {t('dashboard.daemon.start')}
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg border border-green-200 p-4 mb-4">
+          <h4 className="text-sm font-medium text-green-800 mb-2 flex items-center gap-2">
+            💬 {t('dashboard.ready.tryChatTitle')}
+          </h4>
+
+          {phase === 'idle' && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder={t('dashboard.ready.tryChatPlaceholder')}
+                className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-400 focus:ring-1 focus:ring-green-300 outline-none"
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              />
+              <button
+                onClick={handleSend}
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-all whitespace-nowrap"
+              >
+                {t('dashboard.ready.send')}
+              </button>
+            </div>
+          )}
+
+          {phase === 'sending' && (
+            <div className="flex items-center gap-2 text-sm text-green-600 py-2">
+              <span className="animate-spin">⏳</span> {t('dashboard.ready.thinking')}
+            </div>
+          )}
+
+          {phase === 'done' && (
+            <div className="space-y-2">
+              <div className="rounded-lg bg-green-50 border border-green-100 p-3 mt-2">
+                <p className="text-xs text-green-500 font-medium mb-1">🦞 OpenClaw:</p>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap">{reply}</p>
+              </div>
+              <button
+                onClick={() => { setPhase('idle'); setMessage(''); }}
+                className="text-xs text-green-600 underline"
+              >
+                {t('dashboard.ready.chatAgain')}
+              </button>
+            </div>
+          )}
+
+          {phase === 'error' && (
+            <div className="space-y-2 mt-2">
+              <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3">
+                <p className="text-xs text-yellow-700">{chatError}</p>
+              </div>
+              <button
+                onClick={() => setPhase('idle')}
+                className="text-xs text-yellow-600 underline"
+              >
+                {t('dashboard.install.tryAgain')}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="text-center">
+        <button
+          onClick={onSetupBots}
+          className="text-sm text-green-700 hover:text-green-900 underline transition-colors"
+        >
+          {t('dashboard.ready.setupBotsHint')}
         </button>
       </div>
     </div>

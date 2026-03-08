@@ -7,7 +7,7 @@ mod openclaw;
 use backup::{BackupEntry, DiffEntry};
 use detect::Environment;
 use doctor::DoctorReport;
-use openclaw::{InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, UninstallResult};
+use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, UninstallResult};
 
 #[tauri::command]
 async fn get_environment() -> Environment {
@@ -142,6 +142,41 @@ async fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, Stri
         .map_err(|e| e.to_string())?
 }
 
+#[tauri::command]
+async fn add_channel(channel: String, token: String) -> Result<ChannelAddResult, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::add_channel(&channel, &token))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn get_full_config() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::get_full_config)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn list_channels() -> Result<Vec<ChannelInfo>, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::list_channels)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn agent_chat(message: String) -> Result<AgentChatResult, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::agent_chat(&message))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn collect_feedback_info() -> Result<FeedbackInfo, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::collect_feedback_info)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -166,6 +201,11 @@ pub fn run() {
             test_llm_gateway,
             install_openclaw,
             uninstall_openclaw,
+            add_channel,
+            get_full_config,
+            list_channels,
+            collect_feedback_info,
+            agent_chat,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
