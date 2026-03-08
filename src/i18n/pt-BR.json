@@ -48,7 +48,19 @@
       "success": "OpenClaw {{version}} instalado com sucesso!",
       "refreshing": "Atualizando painel...",
       "failed": "Falha na instalação",
-      "tryAgain": "Tentar novamente"
+      "tryAgain": "Tentar novamente",
+      "npmRequired": "Node.js e npm necessários",
+      "npmRequiredDesc": "O OpenClaw requer Node.js (v18+) e npm para instalação. Instale o Node.js primeiro e reinicie o ClawSquire.",
+      "downloadNodejs": "Baixar Node.js"
+    },
+    "llmGuide": {
+      "title": "Próximo passo: Conectar um modelo de IA",
+      "desc": "O OpenClaw está instalado! Mas precisa de um provedor de modelos de IA para funcionar. Configure agora — leva apenas 2 minutos.",
+      "whyNeeded": "Por que isso é necessário?",
+      "reason1": "O OpenClaw usa modelos de IA (como GPT, Claude, DeepSeek) para entender e responder a você",
+      "reason2": "Você precisa de uma API Key de um provedor para ativar a IA",
+      "reason3": "Existem opções gratuitas (ex: DeepSeek oferece créditos grátis)",
+      "button": "Configurar modelo de IA"
     }
   },
   "doctor": {
@@ -157,7 +169,13 @@
       },
       "apiKeyLabel": "API Key",
       "apiKeyHint": "Armazenada apenas localmente. Nunca enviada a lugar nenhum.",
-      "providerLabel": "Provedor"
+      "providerLabel": "Provedor",
+      "testConnection": "Testar conexão",
+      "testing": "Testando...",
+      "testSuccess": "Conexão bem-sucedida!",
+      "testResponse": "IA diz:",
+      "testFailed": "Conexão falhou",
+      "testModel": "Modelo testado: {{model}}"
     },
     "modelGuide": {
       "title": "Escolha seu provedor de modelo de IA",

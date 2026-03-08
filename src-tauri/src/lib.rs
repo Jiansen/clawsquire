@@ -7,7 +7,7 @@ mod openclaw;
 use backup::{BackupEntry, DiffEntry};
 use detect::Environment;
 use doctor::DoctorReport;
-use openclaw::{InstallResult, ModelInfo, ProviderInfo, UninstallResult};
+use openclaw::{InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, UninstallResult};
 
 #[tauri::command]
 fn get_environment() -> Environment {
@@ -79,6 +79,20 @@ async fn list_models(provider: String) -> Result<Vec<ModelInfo>, String> {
 }
 
 #[tauri::command]
+async fn check_llm_config() -> Result<LlmConfigStatus, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::check_llm_config)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn test_llm(provider: String, api_key: String) -> Result<LlmTestResult, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::test_llm(&provider, &api_key))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn install_openclaw() -> Result<InstallResult, String> {
     tauri::async_runtime::spawn_blocking(|| openclaw::install_openclaw())
         .await
@@ -110,6 +124,8 @@ pub fn run() {
             daemon_start,
             list_providers,
             list_models,
+            check_llm_config,
+            test_llm,
             install_openclaw,
             uninstall_openclaw,
         ])

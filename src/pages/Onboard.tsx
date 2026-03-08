@@ -262,6 +262,12 @@ function OnboardWizard({ templateId }: { templateId: string }) {
   const [selectedProvider, setSelectedProvider] = useState('openai');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [testState, setTestState] = useState<{
+    phase: 'idle' | 'testing' | 'success' | 'error';
+    response?: string;
+    error?: string;
+    model?: string;
+  }>({ phase: 'idle' });
 
   if (steps.length === 0) {
     return (
@@ -422,7 +428,10 @@ function OnboardWizard({ templateId }: { templateId: string }) {
             <input
               type={step.isSecret ? 'password' : 'text'}
               value={inputValue}
-              onChange={(e) => setValues((v) => ({ ...v, [inputKey]: e.target.value }))}
+              onChange={(e) => {
+                setValues((v) => ({ ...v, [inputKey]: e.target.value }));
+                setTestState({ phase: 'idle' });
+              }}
               placeholder={step.placeholder ? t(step.placeholder) : ''}
               className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm
                          focus:border-claw-500 focus:ring-2 focus:ring-claw-200 focus:outline-none
@@ -436,6 +445,78 @@ function OnboardWizard({ templateId }: { templateId: string }) {
                 </svg>
                 {t('onboard.wizard.apiKeyHint')}
               </p>
+            )}
+
+            {templateId === 'llm-provider' && inputValue.trim().length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                {testState.phase === 'idle' && (
+                  <button
+                    onClick={async () => {
+                      setTestState({ phase: 'testing' });
+                      try {
+                        const provider = values[`select-0`] || selectedProvider;
+                        const res = await invoke<{ success: boolean; response: string | null; error: string | null; model: string | null }>('test_llm', {
+                          provider,
+                          apiKey: inputValue.trim(),
+                        });
+                        if (res.success) {
+                          setTestState({ phase: 'success', response: res.response || '', model: res.model || '' });
+                        } else {
+                          setTestState({ phase: 'error', error: res.error || 'Unknown error', model: res.model || '' });
+                        }
+                      } catch (e) {
+                        setTestState({ phase: 'error', error: String(e) });
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-all"
+                  >
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                    </svg>
+                    {t('onboard.wizard.testConnection')}
+                  </button>
+                )}
+                {testState.phase === 'testing' && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span className="animate-spin">⏳</span>
+                    {t('onboard.wizard.testing')}
+                  </div>
+                )}
+                {testState.phase === 'success' && (
+                  <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+                    <p className="text-sm font-medium text-green-800 flex items-center gap-1.5">
+                      <span>✅</span> {t('onboard.wizard.testSuccess')}
+                    </p>
+                    {testState.response && (
+                      <div className="mt-2 rounded bg-green-100 p-2 text-xs text-green-700">
+                        <span className="font-medium">{t('onboard.wizard.testResponse')}</span>
+                        <p className="mt-1 italic">&ldquo;{testState.response}&rdquo;</p>
+                      </div>
+                    )}
+                    {testState.model && (
+                      <p className="mt-1 text-xs text-green-600">{t('onboard.wizard.testModel', { model: testState.model })}</p>
+                    )}
+                  </div>
+                )}
+                {testState.phase === 'error' && (
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+                    <p className="text-sm font-medium text-red-800 flex items-center gap-1.5">
+                      <span>❌</span> {t('onboard.wizard.testFailed')}
+                    </p>
+                    {testState.error && (
+                      <pre className="mt-2 text-xs text-red-600 bg-red-100 rounded p-2 overflow-auto max-h-24">
+                        {testState.error}
+                      </pre>
+                    )}
+                    <button
+                      onClick={() => setTestState({ phase: 'idle' })}
+                      className="mt-2 text-xs text-red-600 underline"
+                    >
+                      {t('dashboard.install.tryAgain')}
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

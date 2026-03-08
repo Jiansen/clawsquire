@@ -48,7 +48,19 @@
       "success": "OpenClaw {{version}} installed successfully!",
       "refreshing": "Refreshing dashboard...",
       "failed": "Installation failed",
-      "tryAgain": "Try Again"
+      "tryAgain": "Try Again",
+      "npmRequired": "Node.js & npm required",
+      "npmRequiredDesc": "OpenClaw requires Node.js (v18+) and npm to install. Please install Node.js first, then restart ClawSquire.",
+      "downloadNodejs": "Download Node.js"
+    },
+    "llmGuide": {
+      "title": "Next Step: Connect an AI Model",
+      "desc": "OpenClaw is installed! But it needs an AI model provider to work. Set one up now — it only takes 2 minutes.",
+      "whyNeeded": "Why is this needed?",
+      "reason1": "OpenClaw uses AI models (like GPT, Claude, DeepSeek) to understand and respond to you",
+      "reason2": "You need an API key from a provider to activate the AI",
+      "reason3": "Free options are available (e.g. DeepSeek offers free credits)",
+      "button": "Set Up AI Model"
     }
   },
   "doctor": {
@@ -157,7 +169,13 @@
       },
       "apiKeyLabel": "API Key",
       "apiKeyHint": "Stored locally only. Never uploaded anywhere.",
-      "providerLabel": "Provider"
+      "providerLabel": "Provider",
+      "testConnection": "Test Connection",
+      "testing": "Testing...",
+      "testSuccess": "Connection successful!",
+      "testResponse": "AI says:",
+      "testFailed": "Connection failed",
+      "testModel": "Tested model: {{model}}"
     },
     "modelGuide": {
       "title": "Choose your AI Model Provider",

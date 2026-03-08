@@ -48,7 +48,19 @@
       "success": "OpenClaw {{version}} erfolgreich installiert!",
       "refreshing": "Dashboard wird aktualisiert...",
       "failed": "Installation fehlgeschlagen",
-      "tryAgain": "Erneut versuchen"
+      "tryAgain": "Erneut versuchen",
+      "npmRequired": "Node.js & npm erforderlich",
+      "npmRequiredDesc": "OpenClaw benötigt Node.js (v18+) und npm zur Installation. Bitte installiere zuerst Node.js und starte ClawSquire neu.",
+      "downloadNodejs": "Node.js herunterladen"
+    },
+    "llmGuide": {
+      "title": "Nächster Schritt: KI-Modell verbinden",
+      "desc": "OpenClaw ist installiert! Es braucht aber einen KI-Modell-Anbieter. Richte jetzt einen ein — dauert nur 2 Minuten.",
+      "whyNeeded": "Warum ist das nötig?",
+      "reason1": "OpenClaw nutzt KI-Modelle (wie GPT, Claude, DeepSeek), um dich zu verstehen und zu antworten",
+      "reason2": "Du brauchst einen API Key von einem Anbieter, um die KI zu aktivieren",
+      "reason3": "Es gibt kostenlose Optionen (z.B. DeepSeek bietet Gratis-Guthaben)",
+      "button": "KI-Modell einrichten"
     }
   },
   "doctor": {
@@ -157,7 +169,13 @@
       },
       "apiKeyLabel": "API-Schlüssel",
       "apiKeyHint": "Nur lokal gespeichert. Wird nirgendwo hochgeladen.",
-      "providerLabel": "Anbieter"
+      "providerLabel": "Anbieter",
+      "testConnection": "Verbindung testen",
+      "testing": "Teste...",
+      "testSuccess": "Verbindung erfolgreich!",
+      "testResponse": "KI sagt:",
+      "testFailed": "Verbindung fehlgeschlagen",
+      "testModel": "Getestetes Modell: {{model}}"
     },
     "modelGuide": {
       "title": "Wähle deinen KI-Modell-Anbieter",

@@ -48,7 +48,19 @@
       "success": "OpenClaw {{version}} のインストールが完了しました！",
       "refreshing": "ダッシュボードを更新中...",
       "failed": "インストール失敗",
-      "tryAgain": "再試行"
+      "tryAgain": "再試行",
+      "npmRequired": "Node.js と npm が必要です",
+      "npmRequiredDesc": "OpenClaw のインストールには Node.js（v18+）と npm が必要です。まず Node.js をインストールしてから ClawSquire を再起動してください。",
+      "downloadNodejs": "Node.js をダウンロード"
+    },
+    "llmGuide": {
+      "title": "次のステップ：AI モデルを接続",
+      "desc": "OpenClaw がインストールされました！AI モデルプロバイダーを設定すれば使えるようになります。約 2 分で完了します。",
+      "whyNeeded": "なぜ必要ですか？",
+      "reason1": "OpenClaw は AI モデル（GPT、Claude、DeepSeek など）を使用してあなたの指示を理解し応答します",
+      "reason2": "AI を有効にするにはプロバイダーの API Key が必要です",
+      "reason3": "無料オプションもあります（例：DeepSeek は無料クレジット付き）",
+      "button": "AI モデルを設定"
     }
   },
   "doctor": {
@@ -157,7 +169,13 @@
       },
       "apiKeyLabel": "API キー",
       "apiKeyHint": "ローカルのみに保存されます。どこにもアップロードされません。",
-      "providerLabel": "プロバイダー"
+      "providerLabel": "プロバイダー",
+      "testConnection": "接続テスト",
+      "testing": "テスト中...",
+      "testSuccess": "接続成功！",
+      "testResponse": "AI の応答：",
+      "testFailed": "接続失敗",
+      "testModel": "テストモデル：{{model}}"
     },
     "modelGuide": {
       "title": "AI モデルプロバイダーを選択",

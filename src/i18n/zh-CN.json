@@ -48,7 +48,19 @@
       "success": "OpenClaw {{version}} 安装成功！",
       "refreshing": "正在刷新仪表盘...",
       "failed": "安装失败",
-      "tryAgain": "重试"
+      "tryAgain": "重试",
+      "npmRequired": "需要 Node.js 和 npm",
+      "npmRequiredDesc": "OpenClaw 需要 Node.js（v18+）和 npm 才能安装。请先安装 Node.js，然后重启 ClawSquire。",
+      "downloadNodejs": "下载 Node.js"
+    },
+    "llmGuide": {
+      "title": "下一步：连接 AI 模型",
+      "desc": "OpenClaw 已安装！但它需要一个 AI 模型提供商才能工作。现在就设置——只需 2 分钟。",
+      "whyNeeded": "为什么需要这一步？",
+      "reason1": "OpenClaw 使用 AI 模型（如 GPT、Claude、DeepSeek）来理解和回复你",
+      "reason2": "你需要从提供商获取一个 API Key 来激活 AI",
+      "reason3": "有免费选项可用（如 DeepSeek 提供免费额度）",
+      "button": "设置 AI 模型"
     }
   },
   "doctor": {
@@ -157,7 +169,13 @@
       },
       "apiKeyLabel": "API Key",
       "apiKeyHint": "仅保存在本地。不会上传到任何地方。",
-      "providerLabel": "提供商"
+      "providerLabel": "提供商",
+      "testConnection": "测试连接",
+      "testing": "测试中...",
+      "testSuccess": "连接成功！",
+      "testResponse": "AI 回复：",
+      "testFailed": "连接失败",
+      "testModel": "测试模型：{{model}}"
     },
     "modelGuide": {
       "title": "选择你的 AI 模型提供商",

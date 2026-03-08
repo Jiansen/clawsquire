@@ -8,6 +8,9 @@ interface Environment {
   openclaw_installed: boolean;
   openclaw_version: string | null;
   openclaw_path: string | null;
+  npm_installed: boolean;
+  npm_version: string | null;
+  node_version: string | null;
   config_dir: string;
   platform: string;
 }
@@ -25,6 +28,11 @@ interface BackupEntry {
   path: string;
 }
 
+interface LlmConfigStatus {
+  has_provider: boolean;
+  provider_name: string | null;
+}
+
 export default function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -32,6 +40,7 @@ export default function Dashboard() {
   const [env, setEnv] = useState<Environment | null>(null);
   const [daemon, setDaemon] = useState<DaemonStatus | null>(null);
   const [backupCount, setBackupCount] = useState<number>(0);
+  const [llmStatus, setLlmStatus] = useState<LlmConfigStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [backingUp, setBackingUp] = useState(false);
 
@@ -44,7 +53,14 @@ export default function Dashboard() {
         invoke<BackupEntry[]>('list_backups'),
       ]);
 
-      if (envResult.status === 'fulfilled') setEnv(envResult.value);
+      if (envResult.status === 'fulfilled') {
+        setEnv(envResult.value);
+        if (envResult.value.openclaw_installed) {
+          invoke<LlmConfigStatus>('check_llm_config')
+            .then(setLlmStatus)
+            .catch(() => setLlmStatus(null));
+        }
+      }
       if (daemonResult.status === 'fulfilled') setDaemon(daemonResult.value);
       if (backups.status === 'fulfilled') setBackupCount(backups.value.length);
     } finally {
@@ -58,8 +74,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     const onFocus = () => refresh();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
     window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [refresh]);
 
   const handleBackupNow = async () => {
@@ -68,7 +91,7 @@ export default function Dashboard() {
       await invoke('create_backup', { label: null });
       setBackupCount((c) => c + 1);
     } catch {
-      // silently handled — user can see error on Backup page
+      // user can see error on Backup page
     } finally {
       setBackingUp(false);
     }
@@ -77,6 +100,7 @@ export default function Dashboard() {
   const installed = env?.openclaw_installed ?? false;
   const version = env?.openclaw_version;
   const running = daemon?.running ?? false;
+  const llmConfigured = llmStatus?.has_provider ?? false;
 
   const statusColor = !installed ? 'bg-gray-400' : running ? 'bg-green-500' : 'bg-red-500';
   const statusText = !installed
@@ -199,10 +223,50 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Not Installed Guidance */}
+      {/* Not Installed → Install Card */}
       {!installed && !loading && (
-        <InstallCard onInstalled={refresh} />
+        <InstallCard onInstalled={refresh} npmInstalled={env?.npm_installed ?? false} />
       )}
+
+      {/* Installed but no LLM → Setup Guidance */}
+      {installed && !llmConfigured && !loading && (
+        <LlmGuidanceCard onNavigate={() => navigate('/onboard/llm-provider')} />
+      )}
+    </div>
+  );
+}
+
+function LlmGuidanceCard({ onNavigate }: { onNavigate: () => void }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 p-6">
+      <div className="text-center mb-4">
+        <div className="text-4xl mb-3">🧠</div>
+        <h3 className="text-base font-semibold text-purple-800 mb-1">
+          {t('dashboard.llmGuide.title')}
+        </h3>
+        <p className="text-sm text-purple-700">
+          {t('dashboard.llmGuide.desc')}
+        </p>
+      </div>
+      <div className="bg-purple-100 rounded-lg p-3 mb-4 text-left">
+        <p className="text-xs font-medium text-purple-800 mb-2">{t('dashboard.llmGuide.whyNeeded')}</p>
+        <ul className="text-xs text-purple-700 space-y-1">
+          <li>• {t('dashboard.llmGuide.reason1')}</li>
+          <li>• {t('dashboard.llmGuide.reason2')}</li>
+          <li>• {t('dashboard.llmGuide.reason3')}</li>
+        </ul>
+      </div>
+      <div className="text-center">
+        <button
+          onClick={onNavigate}
+          className="rounded-lg bg-purple-600 px-6 py-2.5 text-sm font-medium text-white
+                     hover:bg-purple-700 transition-all shadow-sm"
+        >
+          {t('dashboard.llmGuide.button')}
+        </button>
+      </div>
     </div>
   );
 }
@@ -236,7 +300,7 @@ function InfoCard({
 const INSTALL_STEP_KEYS = ['connect', 'download', 'deps', 'extract', 'verify', 'done'] as const;
 const INSTALL_STEP_DELAYS = [0, 3000, 8000, 30000, 0, 0];
 
-function InstallCard({ onInstalled }: { onInstalled: () => void }) {
+function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; npmInstalled: boolean }) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<'idle' | 'installing' | 'done' | 'error'>('idle');
   const [currentStep, setCurrentStep] = useState(0);
@@ -268,7 +332,7 @@ function InstallCard({ onInstalled }: { onInstalled: () => void }) {
         setCurrentStep(INSTALL_STEP_KEYS.length - 1);
         setResult(res);
         setPhase('done');
-        setTimeout(onInstalled, 2000);
+        onInstalled();
       } else {
         setResult(res);
         setPhase('error');
@@ -296,7 +360,28 @@ function InstallCard({ onInstalled }: { onInstalled: () => void }) {
         </p>
       </div>
 
-      {phase === 'idle' && (
+      {phase === 'idle' && !npmInstalled && (
+        <div className="text-center">
+          <div className="bg-red-100 rounded-lg p-4 text-left">
+            <p className="text-sm font-medium text-red-800 mb-2">{t('dashboard.install.npmRequired')}</p>
+            <p className="text-xs text-red-700 mb-3">{t('dashboard.install.npmRequiredDesc')}</p>
+            <a
+              href="https://nodejs.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700 transition-all"
+            >
+              {t('dashboard.install.downloadNodejs')}
+              <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                <path d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z" />
+                <path d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      )}
+
+      {phase === 'idle' && npmInstalled && (
         <div className="text-center">
           <div className="bg-yellow-100 rounded-lg p-3 mb-4 text-left">
             <p className="text-xs font-medium text-yellow-800 mb-2">{t('dashboard.install.whatWillHappen')}</p>
