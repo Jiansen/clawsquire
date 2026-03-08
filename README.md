@@ -1,6 +1,14 @@
 # ClawSquire
 
-**The companion app for OpenClaw** — your squire handles onboarding, health checks, config backups, and a visual dashboard so you can focus on what your lobster knight does best.
+[![GitHub Stars](https://img.shields.io/github/stars/Jiansen/clawsquire?style=flat&logo=github&color=e85d4a)](https://github.com/Jiansen/clawsquire)
+[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-00e5cc?style=flat)](https://github.com/Jiansen/clawsquire/releases)
+[![Languages](https://img.shields.io/badge/languages-7-8b5cf6?style=flat)](#languages)
+[![License](https://img.shields.io/github/license/Jiansen/clawsquire?color=3b82f6&style=flat)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/Jiansen/clawsquire/ci.yml?label=CI&logo=github)](https://github.com/Jiansen/clawsquire/actions)
+
+**The companion app for [OpenClaw](https://openclaw.ai)** — your squire handles onboarding, health checks, config backups, and a visual dashboard so you can focus on what your lobster knight does best.
+
+🌐 [Website](https://clawsquire.com) · 💬 [Discussions](https://github.com/Jiansen/clawsquire/discussions) · 🐛 [Report Bug](https://github.com/Jiansen/clawsquire/issues/new?template=bug_report.yml) · 💡 [Request Feature](https://github.com/Jiansen/clawsquire/issues/new?template=feature_request.yml)
 
 [English](#features) · [中文](#中文) · [日本語](#日本語) · [Español](#español) · [Deutsch](#deutsch) · [Português](#português)
 
@@ -94,3 +102,17 @@ MIT
 ## Português
 
 **ClawSquire** é o app companheiro do OpenClaw — seu escudeiro cuida da configuração, diagnósticos, backups e um painel visual.
+
+---
+
+## Contributing
+
+We welcome contributions of all kinds:
+
+- **Bug reports** — [Open an issue](https://github.com/Jiansen/clawsquire/issues/new?template=bug_report.yml)
+- **Feature ideas** — [Request a feature](https://github.com/Jiansen/clawsquire/issues/new?template=feature_request.yml)
+- **Translations** — Help us improve existing translations or add new languages
+- **Code** — PRs are welcome! See the Quick Start section above to set up your dev environment
+- **Discussions** — [Join the conversation](https://github.com/Jiansen/clawsquire/discussions)
+
+If you find ClawSquire useful, please ⭐ star the repo — it helps others discover us!
