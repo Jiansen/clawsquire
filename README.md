@@ -33,6 +33,15 @@
 
 🚀 **Pre-release (v0.1.0)** — Core features complete. Pre-built binaries for macOS, Windows, and Linux available on [Releases](https://github.com/Jiansen/clawsquire/releases).
 
+### macOS: "Cannot verify" warning
+
+The pre-release build is not code-signed yet. macOS Gatekeeper will show a warning. To open:
+
+1. **Right-click** the app → **Open** (instead of double-click)
+2. Or run: `xattr -cr /Applications/ClawSquire.app`
+
+Code signing will be added in the next release.
+
 ## Quick Start (Development)
 
 ```bash
