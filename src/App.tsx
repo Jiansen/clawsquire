@@ -3,6 +3,7 @@ import './styles/globals.css';
 
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';
+import ErrorBoundary from './components/ErrorBoundary';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 import Dashboard from './pages/Dashboard';
@@ -50,8 +51,16 @@ export default function App() {
   );
 
   if (!hasChosenLocale) {
-    return <Welcome onLanguageSelected={() => setHasChosenLocale(true)} />;
+    return (
+      <ErrorBoundary>
+        <Welcome onLanguageSelected={() => setHasChosenLocale(true)} />
+      </ErrorBoundary>
+    );
   }
 
-  return <AppShell />;
+  return (
+    <ErrorBoundary>
+      <AppShell />
+    </ErrorBoundary>
+  );
 }
