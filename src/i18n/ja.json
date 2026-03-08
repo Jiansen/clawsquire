@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "ClawSquire",
+    "localizedName": "ClawSquire · ロブスター従者",
     "tagline": "OpenClaw のコンパニオンアプリ"
   },
   "nav": {

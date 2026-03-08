@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "ClawSquire",
+    "localizedName": "ClawSquire · Escudeiro",
     "tagline": "O aplicativo companheiro do OpenClaw"
   },
   "nav": {

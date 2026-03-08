@@ -11,17 +11,12 @@ import Doctor from './pages/Doctor';
 import Backup from './pages/Backup';
 import Settings from './pages/Settings';
 import Welcome from './pages/Welcome';
+import { useWindowTitle } from './lib/useWindowTitle';
 
 const LOCALE_KEY = 'clawsquire.locale';
 
-export default function App() {
-  const [hasChosenLocale, setHasChosenLocale] = useState(
-    () => localStorage.getItem(LOCALE_KEY) !== null,
-  );
-
-  if (!hasChosenLocale) {
-    return <Welcome onLanguageSelected={() => setHasChosenLocale(true)} />;
-  }
+function AppShell() {
+  useWindowTitle();
 
   return (
     <BrowserRouter>
@@ -43,4 +38,16 @@ export default function App() {
       </div>
     </BrowserRouter>
   );
+}
+
+export default function App() {
+  const [hasChosenLocale, setHasChosenLocale] = useState(
+    () => localStorage.getItem(LOCALE_KEY) !== null,
+  );
+
+  if (!hasChosenLocale) {
+    return <Welcome onLanguageSelected={() => setHasChosenLocale(true)} />;
+  }
+
+  return <AppShell />;
 }

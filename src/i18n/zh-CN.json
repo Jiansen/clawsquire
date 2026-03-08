@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "ClawSquire",
+    "localizedName": "ClawSquire · 龙虾侍卫",
     "tagline": "OpenClaw 的伴侣应用"
   },
   "nav": {
