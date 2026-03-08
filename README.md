@@ -45,7 +45,11 @@ pnpm tauri dev
 
 EN 🇬🇧 · 简体中文 🇨🇳 · 繁體中文 🇭🇰 · 日本語 🇯🇵 · Español 🇪🇸 · Deutsch 🇩🇪 · Português 🇧🇷
 
-ClawSquire automatically detects your system language. You can also switch languages in Settings.
+ClawSquire automatically detects your system language. You can also switch languages from the header.
+
+<p align="center">
+  <img src="assets/i18n-demo.gif" alt="7-language i18n demo" width="800" />
+</p>
 
 ## Tech Stack
 
