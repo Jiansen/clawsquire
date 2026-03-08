@@ -311,7 +311,7 @@ pub fn test_llm(provider: &str, api_key: &str) -> LlmTestResult {
         ),
         "zai" => (
             "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-            "glm-4-flash",
+            "glm-4.7-flash",
             format!("Bearer {}", api_key),
         ),
         "ollama" => (

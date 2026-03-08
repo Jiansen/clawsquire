@@ -244,16 +244,24 @@ function OnboardWizard({ templateId }: { templateId: string }) {
       .catch(() => setDynamicProviders(null));
   }, []);
 
-  const providerOptions = dynamicProviders
-    ? dynamicProviders.map((p) => ({
-        value: p.id,
-        labelKey: `onboard.modelGuide.providers.${p.id}.name`,
-        label: p.id,
-        icon: PROVIDER_ICONS[p.id] || '🔌',
-        recommended: p.priority === 0,
-        modelCount: p.model_count,
-      }))
-    : STATIC_LLM_PROVIDERS.map((p) => ({ ...p, label: p.value, modelCount: 0 }));
+  const providerOptions = (() => {
+    if (!dynamicProviders) {
+      return STATIC_LLM_PROVIDERS.map((p) => ({ ...p, label: p.value, modelCount: 0 }));
+    }
+    const dynamicIds = new Set(dynamicProviders.map((p) => p.id));
+    const dynamic = dynamicProviders.map((p) => ({
+      value: p.id,
+      labelKey: `onboard.modelGuide.providers.${p.id}.name`,
+      label: p.id,
+      icon: PROVIDER_ICONS[p.id] || '🔌',
+      recommended: p.priority === 0,
+      modelCount: p.model_count,
+    }));
+    const missingStatic = STATIC_LLM_PROVIDERS
+      .filter((p) => !dynamicIds.has(p.value))
+      .map((p) => ({ ...p, label: p.value, modelCount: 0 }));
+    return [...dynamic, ...missingStatic];
+  })();
 
   const steps = getSteps(templateId);
 
