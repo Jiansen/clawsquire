@@ -33,15 +33,6 @@ pub fn config_set(path: &str, value: &str) -> Result<(), String> {
     }
 }
 
-pub fn run_doctor() -> Result<String, String> {
-    let output = Command::new("openclaw")
-        .args(["doctor", "--non-interactive", "--yes"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
-
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
-}
-
 pub fn daemon_status() -> Result<DaemonStatus, String> {
     let output = Command::new("openclaw")
         .args(["daemon", "status"])

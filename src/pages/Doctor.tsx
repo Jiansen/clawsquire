@@ -1,129 +1,175 @@
-import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
+import InfoTooltip from '../components/shared/InfoTooltip';
 
-type Status = 'pass' | 'warn' | 'fail';
-
-interface Check {
+interface DoctorCheck {
   name: string;
-  status: Status;
-  detail: string;
+  status: 'pass' | 'warn' | 'fail';
+  message: string;
+  category: string;
+  fix_hint: string | null;
 }
 
-interface Category {
-  key: string;
-  checks: Check[];
+interface DoctorReport {
+  checks: DoctorCheck[];
+  summary: { total: number; passed: number; warnings: number; failures: number };
 }
 
-const placeholderResults: Category[] = [
-  {
-    key: 'installation',
-    checks: [
-      { name: 'OpenClaw binary', status: 'pass', detail: 'v0.4.2 found at /usr/local/bin/openclaw' },
-      { name: 'Node.js', status: 'pass', detail: 'v20.11.0' },
-    ],
-  },
-  {
-    key: 'config',
-    checks: [
-      { name: 'config.yaml exists', status: 'pass', detail: '~/.openclaw/config.yaml' },
-      { name: 'config.yaml valid', status: 'warn', detail: 'Deprecated key "legacy_mode" found' },
-    ],
-  },
-  {
-    key: 'gateway',
-    checks: [
-      { name: 'LLM provider reachable', status: 'pass', detail: 'DeepSeek API responded in 120ms' },
-      { name: 'Telegram webhook', status: 'fail', detail: 'Webhook URL not configured' },
-    ],
-  },
-  {
-    key: 'security',
-    checks: [
-      { name: 'API key permissions', status: 'pass', detail: 'Scoped to chat.completions' },
-    ],
-  },
-  {
-    key: 'backup',
-    checks: [
-      { name: 'Last backup age', status: 'warn', detail: 'Last backup was 14 days ago' },
-    ],
-  },
-];
+const CATEGORY_ORDER = ['installation', 'config', 'gateway', 'security', 'backup'];
 
-const statusStyles: Record<Status, string> = {
-  pass: 'bg-green-100 text-green-700',
-  warn: 'bg-yellow-100 text-yellow-700',
-  fail: 'bg-red-100 text-red-700',
+const STATUS_STYLES = {
+  pass: { bg: 'bg-green-50', border: 'border-green-200', icon: '✅', badge: 'bg-green-100 text-green-700' },
+  warn: { bg: 'bg-yellow-50', border: 'border-yellow-200', icon: '⚠️', badge: 'bg-yellow-100 text-yellow-700' },
+  fail: { bg: 'bg-red-50', border: 'border-red-200', icon: '❌', badge: 'bg-red-100 text-red-700' },
 };
 
 export default function Doctor() {
   const { t } = useTranslation();
-  const [results, setResults] = useState<Category[] | null>(null);
-  const [running, setRunning] = useState(false);
+  const [report, setReport] = useState<DoctorReport | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedCheck, setExpandedCheck] = useState<string | null>(null);
 
-  function runCheck() {
-    setRunning(true);
-    setTimeout(() => {
-      setResults(placeholderResults);
-      setRunning(false);
-    }, 800);
-  }
+  const runDoctor = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await invoke<DoctorReport>('run_doctor');
+      setReport(result);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const groupedChecks = report
+    ? CATEGORY_ORDER.map((cat) => ({
+        category: cat,
+        checks: report.checks.filter((c) => c.category === cat),
+      })).filter((g) => g.checks.length > 0)
+    : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">{t('doctor.title')}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-gray-900">{t('doctor.title')}</h2>
+          <InfoTooltip conceptKey="gateway" inline />
+        </div>
         <button
-          onClick={runCheck}
-          disabled={running}
-          className="bg-claw-600 hover:bg-claw-700 disabled:opacity-50 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          onClick={runDoctor}
+          disabled={loading}
+          className="rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white
+                     hover:bg-claw-700 disabled:opacity-50 transition-all shadow-sm"
         >
-          {running ? t('common.loading') : results ? t('doctor.rerun') : t('doctor.runCheck')}
+          {loading ? t('common.loading') : report ? t('doctor.rerun') : t('doctor.runCheck')}
         </button>
       </div>
 
-      {!results && !running && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-12 h-12 mx-auto text-gray-300 mb-3">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-          <p className="text-gray-400">{t('doctor.runCheck')}</p>
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error}
         </div>
       )}
 
-      {running && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="w-8 h-8 border-3 border-claw-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-gray-500">{t('common.loading')}</p>
+      {!report && !loading && !error && (
+        <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
+          <div className="text-4xl mb-4">🩺</div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('doctor.title')}</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Check your OpenClaw installation, configuration, and security.
+          </p>
+          <button
+            onClick={runDoctor}
+            className="rounded-lg bg-claw-600 px-6 py-2.5 text-sm font-medium text-white
+                       hover:bg-claw-700 transition-all shadow-sm"
+          >
+            {t('doctor.runCheck')}
+          </button>
         </div>
       )}
 
-      {results && !running && (
-        <div className="space-y-4">
-          {results.map((cat) => (
-            <div key={cat.key} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-700">
-                  {t(`doctor.categories.${cat.key}`)}
-                </h3>
+      {report && (
+        <>
+          <div className="grid grid-cols-4 gap-3">
+            <SummaryCard label="Total" value={report.summary.total} color="bg-gray-100 text-gray-700" />
+            <SummaryCard label={t('doctor.pass')} value={report.summary.passed} color="bg-green-100 text-green-700" />
+            <SummaryCard label={t('doctor.warn')} value={report.summary.warnings} color="bg-yellow-100 text-yellow-700" />
+            <SummaryCard label={t('doctor.fail')} value={report.summary.failures} color="bg-red-100 text-red-700" />
+          </div>
+
+          {groupedChecks.map(({ category, checks }) => {
+            const catPassed = checks.filter((c) => c.status === 'pass').length;
+            const catTotal = checks.length;
+            const catHasIssues = checks.some((c) => c.status !== 'pass');
+            return (
+              <div key={category} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    {t(`doctor.categories.${category}`)}
+                  </h3>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    catHasIssues ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                  }`}>
+                    {catPassed}/{catTotal}
+                  </span>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {checks.map((check, idx) => {
+                    const style = STATUS_STYLES[check.status];
+                    const key = `${category}-${idx}`;
+                    const isExpanded = expandedCheck === key;
+                    return (
+                      <div key={key}>
+                        <button
+                          onClick={() => setExpandedCheck(isExpanded ? null : key)}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left
+                                     hover:bg-gray-50 transition-colors ${style.bg}`}
+                        >
+                          <span className="text-base flex-shrink-0">{style.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900">{check.name}</div>
+                            {check.message && (
+                              <div className="text-xs text-gray-500 truncate">{check.message}</div>
+                            )}
+                          </div>
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${style.badge}`}>
+                            {t(`doctor.${check.status}`)}
+                          </span>
+                        </button>
+                        {isExpanded && (check.fix_hint || check.message) && (
+                          <div className="px-4 pb-3 pt-1 bg-gray-50">
+                            {check.message && (
+                              <p className="text-sm text-gray-600 mb-2">{check.message}</p>
+                            )}
+                            {check.fix_hint && (
+                              <div className="flex items-start gap-2 bg-claw-50 rounded-lg p-3">
+                                <span className="text-xs">💡</span>
+                                <p className="text-xs text-claw-700">{check.fix_hint}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="divide-y divide-gray-100">
-                {cat.checks.map((check, i) => (
-                  <div key={i} className="flex items-center gap-4 px-6 py-3">
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[check.status]}`}
-                    >
-                      {t(`doctor.${check.status}`)}
-                    </span>
-                    <span className="font-medium text-sm text-gray-900">{check.name}</span>
-                    <span className="text-sm text-gray-400 ml-auto">{check.detail}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            );
+          })}
+        </>
       )}
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className={`rounded-xl p-3 text-center ${color}`}>
+      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-xs font-medium mt-0.5">{label}</div>
     </div>
   );
 }
