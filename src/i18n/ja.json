@@ -79,6 +79,63 @@
         "description": "GUI のない VPS サーバーに OpenClaw をデプロイ"
       }
     },
+    "wizard": {
+      "prereqTitle": "前提条件",
+      "prereqInstalled": "OpenClaw がインストールされています",
+      "prereqNotInstalled": "OpenClaw がインストールされていません。先にインストールしてください。",
+      "installLink": "OpenClaw をインストール",
+      "completeTitle": "セットアップ完了！",
+      "completeDesc": "設定が正常に保存されました。",
+      "goToDashboard": "ダッシュボードへ",
+      "startAnother": "別のテンプレートを設定",
+      "configSaved": "保存しました",
+      "configFailed": "保存に失敗しました",
+      "saving": "保存中...",
+      "telegram": {
+        "step1Title": "Telegram ボットを作成",
+        "step1Desc": "Telegram を開き、@BotFather を検索して /newbot を送信。プロンプトに従って新しいボットを作成し、発行されたトークンをコピーしてください。",
+        "step1Link": "https://t.me/BotFather",
+        "step1LinkText": "Telegram で @BotFather を開く",
+        "step2Title": "ボットトークンを入力",
+        "step2Desc": "@BotFather から受け取ったボットトークンを貼り付けてください。123456789:ABCdef... のような形式です。",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "AI モデルを選択",
+        "step3Desc": "Telegram ボットの返信に使用する AI モデルプロバイダーを選択してください。"
+      },
+      "discord": {
+        "step1Title": "Discord アプリケーションを作成",
+        "step1Desc": "Discord デベロッパーポータルにアクセスし、新しいアプリケーションを作成して Bot を追加してください。ボットトークンをコピーします。",
+        "step1Link": "https://discord.com/developers/applications",
+        "step1LinkText": "Discord デベロッパーポータルを開く",
+        "step2Title": "ボットトークンを入力",
+        "step2Desc": "Discord アプリケーション設定からボットトークンを貼り付けてください。",
+        "step2Placeholder": "MTIzNDU2Nzg5..."
+      },
+      "llmProvider": {
+        "step1Title": "AI プロバイダーを選択",
+        "step1Desc": "接続する AI モデルプロバイダーを選択してください。",
+        "step2Title": "API キーを取得",
+        "step2Desc": "プロバイダーのサイトで登録し、API キーをコピーしてください。",
+        "step2Placeholder": "sk-...",
+        "signupLinks": {
+          "deepseek": "https://platform.deepseek.com",
+          "openai": "https://platform.openai.com",
+          "anthropic": "https://console.anthropic.com",
+          "ollama": "https://ollama.com"
+        },
+        "ollamaNote": "Ollama はローカルで実行されます。インストール済みでマシン上で動作していることを確認してください。"
+      },
+      "vpsHeadless": {
+        "step1Title": "デーモンモードを有効化",
+        "step1Desc": "デーモンモードは OpenClaw をバックグラウンドサービスとして実行し、自動起動します。",
+        "step2Title": "ゲートウェイトークンを設定",
+        "step2Desc": "OpenClaw ゲートウェイへのリモートアクセスを保護するための秘密トークンを設定してください。",
+        "step2Placeholder": "Enter a strong secret token..."
+      },
+      "apiKeyLabel": "API キー",
+      "apiKeyHint": "ローカルのみに保存されます。どこにもアップロードされません。",
+      "providerLabel": "プロバイダー"
+    },
     "modelGuide": {
       "title": "AI モデルプロバイダーを選択",
       "recommendation": "どれを選べばいいか分からない？DeepSeek をおすすめします——無料で始められ、とても使いやすいです。",

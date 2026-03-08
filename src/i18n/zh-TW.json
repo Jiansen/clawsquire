@@ -79,6 +79,63 @@
         "description": "在無圖形介面的 VPS 伺服器上部署 OpenClaw"
       }
     },
+    "wizard": {
+      "prereqTitle": "前置條件",
+      "prereqInstalled": "OpenClaw 已安裝",
+      "prereqNotInstalled": "OpenClaw 尚未安裝。請先安裝。",
+      "installLink": "安裝 OpenClaw",
+      "completeTitle": "設定完成！",
+      "completeDesc": "你的設定已成功儲存。",
+      "goToDashboard": "前往儀表板",
+      "startAnother": "設定另一個範本",
+      "configSaved": "已儲存",
+      "configFailed": "儲存失敗",
+      "saving": "儲存中...",
+      "telegram": {
+        "step1Title": "建立 Telegram 機器人",
+        "step1Desc": "開啟 Telegram，搜尋 @BotFather，傳送 /newbot。跟隨指示建立新機器人，複製它給你的 token。",
+        "step1Link": "https://t.me/BotFather",
+        "step1LinkText": "在 Telegram 開啟 @BotFather",
+        "step2Title": "輸入機器人 Token",
+        "step2Desc": "貼上你從 @BotFather 收到的機器人 token。格式類似 123456789:ABCdef...",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "選擇 AI 模型",
+        "step3Desc": "選擇你的 Telegram 機器人回覆時應使用的 AI 模型提供商。"
+      },
+      "discord": {
+        "step1Title": "建立 Discord 應用程式",
+        "step1Desc": "前往 Discord 開發者入口網站，建立新應用程式，然後為其新增 Bot。複製 bot token。",
+        "step1Link": "https://discord.com/developers/applications",
+        "step1LinkText": "開啟 Discord 開發者入口網站",
+        "step2Title": "輸入 Bot Token",
+        "step2Desc": "貼上你從 Discord 應用程式設定取得的 bot token。",
+        "step2Placeholder": "MTIzNDU2Nzg5..."
+      },
+      "llmProvider": {
+        "step1Title": "選擇 AI 提供商",
+        "step1Desc": "選擇你想連接的 AI 模型提供商。",
+        "step2Title": "取得你的 API Key",
+        "step2Desc": "在提供商網站註冊並複製你的 API Key。",
+        "step2Placeholder": "sk-...",
+        "signupLinks": {
+          "deepseek": "https://platform.deepseek.com",
+          "openai": "https://platform.openai.com",
+          "anthropic": "https://console.anthropic.com",
+          "ollama": "https://ollama.com"
+        },
+        "ollamaNote": "Ollama 在本機執行。請確保已安裝並正在執行。"
+      },
+      "vpsHeadless": {
+        "step1Title": "啟用守護程式模式",
+        "step1Desc": "守護程式模式會讓 OpenClaw 以背景服務執行，並自動啟動。",
+        "step2Title": "設定閘道 Token",
+        "step2Desc": "設定一個秘密 token，以保護你對 OpenClaw 閘道的遠端存取。",
+        "step2Placeholder": "Enter a strong secret token..."
+      },
+      "apiKeyLabel": "API Key",
+      "apiKeyHint": "僅儲存於本機。絕不會上傳到任何地方。",
+      "providerLabel": "提供商"
+    },
     "modelGuide": {
       "title": "選擇你的 AI 模型提供商",
       "recommendation": "不確定選哪個？我們推薦 DeepSeek——免費開始，效果很好。",

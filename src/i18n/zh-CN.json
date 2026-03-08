@@ -79,6 +79,63 @@
         "description": "在无图形界面的 VPS 服务器上部署 OpenClaw"
       }
     },
+    "wizard": {
+      "prereqTitle": "前置条件",
+      "prereqInstalled": "OpenClaw 已安装",
+      "prereqNotInstalled": "未安装 OpenClaw。请先安装。",
+      "installLink": "安装 OpenClaw",
+      "completeTitle": "配置完成！",
+      "completeDesc": "配置已成功保存。",
+      "goToDashboard": "前往仪表盘",
+      "startAnother": "设置另一个模板",
+      "configSaved": "已保存",
+      "configFailed": "保存失败",
+      "saving": "保存中...",
+      "telegram": {
+        "step1Title": "创建 Telegram 机器人",
+        "step1Desc": "打开 Telegram，搜索 @BotFather，发送 /newbot。按提示创建新机器人。复制它给你的 token。",
+        "step1Link": "https://t.me/BotFather",
+        "step1LinkText": "在 Telegram 中打开 @BotFather",
+        "step2Title": "输入 Bot Token",
+        "step2Desc": "粘贴从 @BotFather 收到的 bot token。格式类似 123456789:ABCdef...",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "选择 AI 模型",
+        "step3Desc": "选择 Telegram 机器人回复时应使用的 AI 模型提供商。"
+      },
+      "discord": {
+        "step1Title": "创建 Discord 应用",
+        "step1Desc": "前往 Discord 开发者门户，创建新应用，然后为其添加 Bot。复制 bot token。",
+        "step1Link": "https://discord.com/developers/applications",
+        "step1LinkText": "打开 Discord 开发者门户",
+        "step2Title": "输入 Bot Token",
+        "step2Desc": "粘贴 Discord 应用设置中的 bot token。",
+        "step2Placeholder": "MTIzNDU2Nzg5..."
+      },
+      "llmProvider": {
+        "step1Title": "选择 AI 提供商",
+        "step1Desc": "选择要连接的 AI 模型提供商。",
+        "step2Title": "获取 API Key",
+        "step2Desc": "在提供商网站注册并复制你的 API Key。",
+        "step2Placeholder": "sk-...",
+        "signupLinks": {
+          "deepseek": "https://platform.deepseek.com",
+          "openai": "https://platform.openai.com",
+          "anthropic": "https://console.anthropic.com",
+          "ollama": "https://ollama.com"
+        },
+        "ollamaNote": "Ollama 为本地运行。请确保已安装并在本机运行。"
+      },
+      "vpsHeadless": {
+        "step1Title": "启用守护模式",
+        "step1Desc": "守护模式将 OpenClaw 作为后台服务运行，开机自动启动。",
+        "step2Title": "设置网关 Token",
+        "step2Desc": "设置用于保护远程访问 OpenClaw 网关的密钥。",
+        "step2Placeholder": "Enter a strong secret token..."
+      },
+      "apiKeyLabel": "API Key",
+      "apiKeyHint": "仅保存在本地。不会上传到任何地方。",
+      "providerLabel": "提供商"
+    },
     "modelGuide": {
       "title": "选择你的 AI 模型提供商",
       "recommendation": "不确定选哪个？推荐 DeepSeek——免费开始，效果很好。",

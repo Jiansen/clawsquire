@@ -79,6 +79,63 @@
         "description": "OpenClaw auf einem VPS-Server ohne grafische Oberfläche bereitstellen"
       }
     },
+    "wizard": {
+      "prereqTitle": "Voraussetzungen",
+      "prereqInstalled": "OpenClaw ist installiert",
+      "prereqNotInstalled": "OpenClaw ist nicht installiert. Bitte installiere es zuerst.",
+      "installLink": "OpenClaw installieren",
+      "completeTitle": "Einrichtung abgeschlossen!",
+      "completeDesc": "Deine Konfiguration wurde erfolgreich gespeichert.",
+      "goToDashboard": "Zum Dashboard",
+      "startAnother": "Weitere Vorlage einrichten",
+      "configSaved": "Gespeichert",
+      "configFailed": "Speichern fehlgeschlagen",
+      "saving": "Wird gespeichert...",
+      "telegram": {
+        "step1Title": "Telegram-Bot erstellen",
+        "step1Desc": "Öffne Telegram, suche nach @BotFather und sende /newbot. Folge den Anweisungen, um einen neuen Bot zu erstellen. Kopiere den Token, den du erhältst.",
+        "step1Link": "https://t.me/BotFather",
+        "step1LinkText": "@BotFather in Telegram öffnen",
+        "step2Title": "Bot-Token eingeben",
+        "step2Desc": "Füge den Bot-Token ein, den du von @BotFather erhalten hast. Er sieht etwa so aus: 123456789:ABCdef...",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "KI-Modell wählen",
+        "step3Desc": "Wähle, welchen KI-Modell-Anbieter dein Telegram-Bot für Antworten verwenden soll."
+      },
+      "discord": {
+        "step1Title": "Discord-Anwendung erstellen",
+        "step1Desc": "Gehe zum Discord Developer Portal, erstelle eine neue Anwendung und füge einen Bot hinzu. Kopiere den Bot-Token.",
+        "step1Link": "https://discord.com/developers/applications",
+        "step1LinkText": "Discord Developer Portal öffnen",
+        "step2Title": "Bot-Token eingeben",
+        "step2Desc": "Füge den Bot-Token aus den Einstellungen deiner Discord-Anwendung ein.",
+        "step2Placeholder": "MTIzNDU2Nzg5..."
+      },
+      "llmProvider": {
+        "step1Title": "KI-Anbieter wählen",
+        "step1Desc": "Wähle den KI-Modell-Anbieter, den du verbinden möchtest.",
+        "step2Title": "API-Schlüssel holen",
+        "step2Desc": "Registriere dich auf der Website des Anbieters und kopiere deinen API-Schlüssel.",
+        "step2Placeholder": "sk-...",
+        "signupLinks": {
+          "deepseek": "https://platform.deepseek.com",
+          "openai": "https://platform.openai.com",
+          "anthropic": "https://console.anthropic.com",
+          "ollama": "https://ollama.com"
+        },
+        "ollamaNote": "Ollama läuft lokal. Stelle sicher, dass es installiert und gestartet ist."
+      },
+      "vpsHeadless": {
+        "step1Title": "Daemon-Modus aktivieren",
+        "step1Desc": "Der Daemon-Modus führt OpenClaw als Hintergrunddienst aus, der automatisch startet.",
+        "step2Title": "Gateway-Token setzen",
+        "step2Desc": "Setze ein geheimes Token, um den Fernzugriff auf dein OpenClaw-Gateway zu sichern.",
+        "step2Placeholder": "Enter a strong secret token..."
+      },
+      "apiKeyLabel": "API-Schlüssel",
+      "apiKeyHint": "Nur lokal gespeichert. Wird nirgendwo hochgeladen.",
+      "providerLabel": "Anbieter"
+    },
     "modelGuide": {
       "title": "Wähle deinen KI-Modell-Anbieter",
       "recommendation": "Nicht sicher, welchen? Wir empfehlen DeepSeek — kostenlos zum Starten und funktioniert hervorragend.",

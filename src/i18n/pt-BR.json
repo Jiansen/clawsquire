@@ -79,6 +79,63 @@
         "description": "Implantar o OpenClaw em um servidor VPS sem interface gráfica"
       }
     },
+    "wizard": {
+      "prereqTitle": "Pré-requisitos",
+      "prereqInstalled": "OpenClaw está instalado",
+      "prereqNotInstalled": "OpenClaw não está instalado. Por favor, instale-o primeiro.",
+      "installLink": "Instalar OpenClaw",
+      "completeTitle": "Configuração concluída!",
+      "completeDesc": "Sua configuração foi salva com sucesso.",
+      "goToDashboard": "Ir para o Painel",
+      "startAnother": "Configurar outro modelo",
+      "configSaved": "Salvo",
+      "configFailed": "Falha ao salvar",
+      "saving": "Salvando...",
+      "telegram": {
+        "step1Title": "Criar um bot do Telegram",
+        "step1Desc": "Abra o Telegram, procure por @BotFather e envie /newbot. Siga as instruções para criar um novo bot. Copie o token que você receber.",
+        "step1Link": "https://t.me/BotFather",
+        "step1LinkText": "Abrir @BotFather no Telegram",
+        "step2Title": "Inserir token do bot",
+        "step2Desc": "Cole o token do bot que você recebeu do @BotFather. Parece com 123456789:ABCdef...",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "Escolher modelo de IA",
+        "step3Desc": "Selecione qual provedor de modelo de IA seu bot do Telegram deve usar para respostas."
+      },
+      "discord": {
+        "step1Title": "Criar uma aplicação Discord",
+        "step1Desc": "Acesse o Discord Developer Portal, crie uma nova aplicação e adicione um Bot a ela. Copie o token do bot.",
+        "step1Link": "https://discord.com/developers/applications",
+        "step1LinkText": "Abrir Discord Developer Portal",
+        "step2Title": "Inserir token do bot",
+        "step2Desc": "Cole o token do bot das configurações da sua aplicação Discord.",
+        "step2Placeholder": "MTIzNDU2Nzg5..."
+      },
+      "llmProvider": {
+        "step1Title": "Escolher provedor de IA",
+        "step1Desc": "Selecione o provedor de modelo de IA que deseja conectar.",
+        "step2Title": "Obter sua API Key",
+        "step2Desc": "Cadastre-se no site do provedor e copie sua API Key.",
+        "step2Placeholder": "sk-...",
+        "signupLinks": {
+          "deepseek": "https://platform.deepseek.com",
+          "openai": "https://platform.openai.com",
+          "anthropic": "https://console.anthropic.com",
+          "ollama": "https://ollama.com"
+        },
+        "ollamaNote": "Ollama roda localmente. Certifique-se de que está instalado e em execução no seu computador."
+      },
+      "vpsHeadless": {
+        "step1Title": "Habilitar modo daemon",
+        "step1Desc": "O modo daemon executa o OpenClaw como um serviço em segundo plano que inicia automaticamente.",
+        "step2Title": "Definir token do gateway",
+        "step2Desc": "Defina um token secreto para proteger o acesso remoto ao seu gateway OpenClaw.",
+        "step2Placeholder": "Enter a strong secret token..."
+      },
+      "apiKeyLabel": "API Key",
+      "apiKeyHint": "Armazenada apenas localmente. Nunca enviada a lugar nenhum.",
+      "providerLabel": "Provedor"
+    },
     "modelGuide": {
       "title": "Escolha seu provedor de modelo de IA",
       "recommendation": "Não sabe qual escolher? Recomendamos o DeepSeek — é grátis para começar e funciona muito bem.",

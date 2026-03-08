@@ -11,31 +11,27 @@
 - **Config Backups** — Versioned snapshots with diff and one-click rollback
 - **Dashboard** — See your OpenClaw status at a glance
 
-## Quick Start
+## Status
 
-Download the latest release for your platform:
+🚧 **In active development** — not yet released. Pre-built binaries coming soon.
 
-| Platform | Download |
-|----------|----------|
-| macOS | [ClawSquire.dmg](https://github.com/Jiansen/clawsquire/releases/latest) |
-| Linux | [ClawSquire.AppImage](https://github.com/Jiansen/clawsquire/releases/latest) |
-| Windows | [ClawSquire-Setup.msi](https://github.com/Jiansen/clawsquire/releases/latest) |
+## Quick Start (Development)
 
-> Prerequisite: [OpenClaw](https://github.com/openclaw/openclaw) must be installed on your system.
+```bash
+# Prerequisites: Rust, Node.js ≥22, pnpm
+git clone https://github.com/Jiansen/clawsquire.git
+cd clawsquire
+pnpm install
+pnpm tauri dev
+```
+
+> [OpenClaw](https://openclaw.ai/) is recommended but not required to explore the UI. ClawSquire gracefully handles the case when OpenClaw is not installed.
 
 ## Languages
 
 EN 🇬🇧 · 简体中文 🇨🇳 · 繁體中文 🇭🇰 · 日本語 🇯🇵 · Español 🇪🇸 · Deutsch 🇩🇪 · Português 🇧🇷
 
 ClawSquire automatically detects your system language. You can also switch languages in Settings.
-
-## Development
-
-```bash
-# Prerequisites: Rust, Node.js ≥22, pnpm
-pnpm install
-pnpm tauri dev
-```
 
 ## Tech Stack
 
