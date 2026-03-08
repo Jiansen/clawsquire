@@ -1,4 +1,4 @@
-use crate::constants::{DEFAULT_GATEWAY_PORT, OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
+use crate::constants::{OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -664,50 +664,69 @@ fn parse_openai_response(stdout: &str, model: &str) -> LlmTestResult {
 }
 
 pub fn test_llm_via_gateway() -> LlmTestResult {
-    let url = format!(
-        "http://localhost:{}/v1/chat/completions",
-        DEFAULT_GATEWAY_PORT
-    );
-    let body = serde_json::json!({
-        "model": "default",
-        "messages": [{"role": "user", "content": "Hello! Introduce yourself in one sentence."}],
-        "max_tokens": 100
-    })
-    .to_string();
-
-    match Command::new("curl")
+    let output = match Command::new(OPENCLAW_CLI)
         .args([
-            "-s",
-            "--max-time",
-            "20",
-            "-X",
-            "POST",
-            &url,
-            "-H",
-            "Content-Type: application/json",
-            "-d",
-            &body,
+            "agent",
+            "--session-id", "clawsquire-llm-test",
+            "--message", "Say OK in one word.",
+            "--json",
+            "--timeout", "30",
         ])
         .output()
     {
-        Ok(o) => {
-            let stdout = String::from_utf8_lossy(&o.stdout).to_string();
-            if stdout.is_empty() || stdout.contains("Connection refused") {
-                return LlmTestResult {
-                    success: false,
-                    response: None,
-                    error: Some("Gateway not reachable. Is the daemon running?".to_string()),
-                    model: None,
-                };
+        Ok(o) => o,
+        Err(e) => {
+            return LlmTestResult {
+                success: false,
+                response: None,
+                error: Some(format!("Failed to run openclaw: {}", e)),
+                model: None,
             }
-            parse_openai_response(&stdout, "gateway-default")
         }
-        Err(e) => LlmTestResult {
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    if !output.status.success() || stdout.is_empty() {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        return LlmTestResult {
             success: false,
             response: None,
-            error: Some(format!("curl failed: {}", e)),
+            error: Some(if !stderr.is_empty() { truncate_resp(&stderr) } else { "Gateway agent returned no output.".to_string() }),
             model: None,
-        },
+        };
+    }
+
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+        let model = json
+            .get("result")
+            .and_then(|r| r.get("meta"))
+            .and_then(|m| m.get("agentMeta"))
+            .and_then(|a| a.get("model"))
+            .and_then(|m| m.as_str())
+            .map(|s| s.to_string());
+        let text = json
+            .get("result")
+            .and_then(|r| r.get("payloads"))
+            .and_then(|p| p.get(0))
+            .and_then(|p| p.get("text"))
+            .and_then(|t| t.as_str())
+            .map(|s| s.to_string());
+
+        if json.get("status").and_then(|s| s.as_str()) == Some("ok") && text.is_some() {
+            return LlmTestResult {
+                success: true,
+                response: text,
+                error: None,
+                model,
+            };
+        }
+    }
+
+    LlmTestResult {
+        success: false,
+        response: None,
+        error: Some(truncate_resp(&stdout)),
+        model: None,
     }
 }
 
@@ -908,19 +927,14 @@ pub struct AgentChatResult {
 }
 
 pub fn agent_chat(message: &str) -> AgentChatResult {
-    let url = format!(
-        "http://localhost:{}/v1/chat/completions",
-        DEFAULT_GATEWAY_PORT
-    );
-    let body = serde_json::json!({
-        "model": "default",
-        "messages": [{"role": "user", "content": message}],
-        "max_tokens": 500
-    })
-    .to_string();
-
-    let output = match Command::new("curl")
-        .args(["-s", "--max-time", "30", "-X", "POST", &url, "-H", "Content-Type: application/json", "-d", &body])
+    let output = match Command::new(OPENCLAW_CLI)
+        .args([
+            "agent",
+            "--session-id", "clawsquire",
+            "--message", message,
+            "--json",
+            "--timeout", "60",
+        ])
         .output()
     {
         Ok(o) => o,
@@ -928,48 +942,54 @@ pub fn agent_chat(message: &str) -> AgentChatResult {
             return AgentChatResult {
                 success: false,
                 reply: None,
-                error: Some(format!("Request failed: {}", e)),
+                error: Some(format!("Failed to run openclaw agent: {}", e)),
             }
         }
     };
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    if stdout.is_empty() || stdout.contains("Connection refused") {
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+
+    if !output.status.success() {
+        let err_msg = if !stderr.is_empty() { &stderr } else { &stdout };
         return AgentChatResult {
             success: false,
             reply: None,
-            error: Some("Gateway not reachable. Start the daemon first.".to_string()),
-        };
-    }
-    if stdout.contains("NotFound") || stdout.contains("Not Found") || stdout.contains("404") {
-        return AgentChatResult {
-            success: false,
-            reply: None,
-            error: Some("Chat endpoint not available. Make sure OpenClaw gateway is running and a model is configured.".to_string()),
+            error: Some(truncate_resp(err_msg)),
         };
     }
 
     if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-        if let Some(err) = json.get("error") {
+        if json.get("status").and_then(|s| s.as_str()) == Some("ok") {
+            if let Some(text) = json
+                .get("result")
+                .and_then(|r| r.get("payloads"))
+                .and_then(|p| p.get(0))
+                .and_then(|p| p.get("text"))
+                .and_then(|t| t.as_str())
+            {
+                return AgentChatResult {
+                    success: true,
+                    reply: Some(text.to_string()),
+                    error: None,
+                };
+            }
+        }
+        if let Some(err) = json.get("error").and_then(|e| e.as_str()) {
             return AgentChatResult {
                 success: false,
                 reply: None,
                 error: Some(err.to_string()),
             };
         }
-        if let Some(content) = json
-            .get("choices")
-            .and_then(|c| c.get(0))
-            .and_then(|c| c.get("message"))
-            .and_then(|m| m.get("content"))
-            .and_then(|c| c.as_str())
-        {
-            return AgentChatResult {
-                success: true,
-                reply: Some(content.to_string()),
-                error: None,
-            };
-        }
+    }
+
+    if stdout.is_empty() {
+        return AgentChatResult {
+            success: false,
+            reply: None,
+            error: Some("No response from OpenClaw agent. Check that the gateway is running.".to_string()),
+        };
     }
 
     AgentChatResult {
