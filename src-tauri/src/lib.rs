@@ -10,48 +10,66 @@ use doctor::DoctorReport;
 use openclaw::{InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, UninstallResult};
 
 #[tauri::command]
-fn get_environment() -> Environment {
-    detect::detect_environment()
+async fn get_environment() -> Environment {
+    tauri::async_runtime::spawn_blocking(detect::detect_environment)
+        .await
+        .unwrap_or_else(|_| detect::detect_environment())
 }
 
 #[tauri::command]
-fn config_get(path: String) -> Result<String, String> {
-    openclaw::config_get(&path)
+async fn config_get(path: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::config_get(&path))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn config_set(path: String, value: String) -> Result<(), String> {
-    openclaw::config_set(&path, &value)
+async fn config_set(path: String, value: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::config_set(&path, &value))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn run_doctor() -> Result<DoctorReport, String> {
-    doctor::run_structured_doctor()
+async fn run_doctor() -> Result<DoctorReport, String> {
+    tauri::async_runtime::spawn_blocking(doctor::run_structured_doctor)
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn daemon_status() -> Result<openclaw::DaemonStatus, String> {
-    openclaw::daemon_status()
+async fn daemon_status() -> Result<openclaw::DaemonStatus, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::daemon_status)
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn create_backup(label: Option<String>) -> Result<BackupEntry, String> {
-    backup::create_backup(label.as_deref())
+async fn create_backup(label: Option<String>) -> Result<BackupEntry, String> {
+    tauri::async_runtime::spawn_blocking(move || backup::create_backup(label.as_deref()))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn list_backups() -> Result<Vec<BackupEntry>, String> {
-    backup::list_backups()
+async fn list_backups() -> Result<Vec<BackupEntry>, String> {
+    tauri::async_runtime::spawn_blocking(backup::list_backups)
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn restore_backup(id: String) -> Result<(), String> {
-    backup::restore_backup(&id)
+async fn restore_backup(id: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || backup::restore_backup(&id))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn diff_backups(id1: String, id2: Option<String>) -> Result<Vec<DiffEntry>, String> {
-    backup::diff_backups(&id1, id2.as_deref())
+async fn diff_backups(id1: String, id2: Option<String>) -> Result<Vec<DiffEntry>, String> {
+    tauri::async_runtime::spawn_blocking(move || backup::diff_backups(&id1, id2.as_deref()))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
