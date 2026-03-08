@@ -70,13 +70,13 @@
     },
     "ready": {
       "title": "OpenClaw 準備完了！",
-      "desc": "AIプロバイダー（{{provider}}）の設定が完了しました。今すぐOpenClawとチャットを始められます！",
-      "startDaemonHint": "ゲートウェイを起動してAIアシスタントとの会話を開始しましょう。",
-      "tryChatTitle": "クイックチャットを試す",
-      "tryChatPlaceholder": "OpenClawに何か話しかけてみましょう...",
+      "desc": "AIプロバイダー ({{provider}}) が設定済みです。OpenClawがタスクを実行できます！",
+      "startDaemonHint": "Gatewayを起動してAIアシスタントの利用を開始しましょう。",
+      "tryChatTitle": "クイックタスクを試す",
+      "tryChatPlaceholder": "OpenClawに何かお願いしてみましょう…例：「最近のメールを要約して」",
       "send": "送信",
-      "thinking": "OpenClaw が考え中...",
-      "chatAgain": "別のメッセージを送る",
+      "thinking": "OpenClawが作業中…",
+      "chatAgain": "別のタスクを試す",
       "setupBotsHint": "オプション：Telegram/Discordボットを設定してリモートアクセス →"
     }
   },

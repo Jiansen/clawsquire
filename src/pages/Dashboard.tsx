@@ -370,10 +370,25 @@ function ReadyToUseCard({
   onSetupBots: () => void;
 }) {
   const { t } = useTranslation();
-  const [message, setMessage] = useState('');
-  const [phase, setPhase] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
-  const [reply, setReply] = useState('');
-  const [chatError, setChatError] = useState('');
+  const STORAGE_KEY = 'clawsquire-last-task';
+
+  const stored = (() => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) as { phase: string; reply: string; error: string; message: string } : null;
+    } catch { return null; }
+  })();
+
+  const [message, setMessage] = useState(stored?.message || '');
+  const [phase, setPhase] = useState<'idle' | 'sending' | 'done' | 'error'>(
+    (stored?.phase === 'done' || stored?.phase === 'error') ? stored.phase as 'done' | 'error' : 'idle'
+  );
+  const [reply, setReply] = useState(stored?.reply || '');
+  const [chatError, setChatError] = useState(stored?.error || '');
+
+  const persist = (p: string, r: string, e: string, m: string) => {
+    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ phase: p, reply: r, error: e, message: m })); } catch {}
+  };
 
   const handleSend = async () => {
     const msg = message.trim() || 'Hello! What can you do?';
@@ -385,13 +400,18 @@ function ReadyToUseCard({
       if (res.success && res.reply) {
         setReply(res.reply);
         setPhase('done');
+        persist('done', res.reply, '', msg);
       } else {
-        setChatError(res.error || 'No response');
+        const err = res.error || 'No response';
+        setChatError(err);
         setPhase('error');
+        persist('error', '', err, msg);
       }
     } catch (e) {
-      setChatError(String(e));
+      const err = String(e);
+      setChatError(err);
       setPhase('error');
+      persist('error', '', err, msg);
     }
   };
 
@@ -455,7 +475,7 @@ function ReadyToUseCard({
                 <p className="text-sm text-gray-800 whitespace-pre-wrap">{reply}</p>
               </div>
               <button
-                onClick={() => { setPhase('idle'); setMessage(''); }}
+                onClick={() => { setPhase('idle'); setMessage(''); sessionStorage.removeItem(STORAGE_KEY); }}
                 className="text-xs text-green-600 underline"
               >
                 {t('dashboard.ready.chatAgain')}

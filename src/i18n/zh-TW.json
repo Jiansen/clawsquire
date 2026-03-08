@@ -70,13 +70,13 @@
     },
     "ready": {
       "title": "OpenClaw 已就緒！",
-      "desc": "你的 AI 供應商（{{provider}}）已設定完成。現在就可以開始與 OpenClaw 對話了！",
-      "startDaemonHint": "啟動閘道即可開始與 AI 助手對話。",
-      "tryChatTitle": "試試快速對話",
-      "tryChatPlaceholder": "對 OpenClaw 說點什麼...",
+      "desc": "AI 提供商 ({{provider}}) 已設定。OpenClaw 現在可以為你執行任務！",
+      "startDaemonHint": "啟動 Gateway 開始使用 AI 助手。",
+      "tryChatTitle": "試試快速任務",
+      "tryChatPlaceholder": "讓 OpenClaw 做點什麼…例如「幫我摘要最近的郵件」",
       "send": "傳送",
-      "thinking": "OpenClaw 正在思考...",
-      "chatAgain": "再傳一則訊息",
+      "thinking": "OpenClaw 正在工作…",
+      "chatAgain": "再試一個任務",
       "setupBotsHint": "可選：設定 Telegram/Discord 機器人以遠端存取 →"
     }
   },

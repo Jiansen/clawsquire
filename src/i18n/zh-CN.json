@@ -70,13 +70,13 @@
     },
     "ready": {
       "title": "OpenClaw 已就绪！",
-      "desc": "你的 AI 服务商（{{provider}}）已配置完成。现在就可以开始与 OpenClaw 对话了！",
-      "startDaemonHint": "启动网关即可开始与 AI 助手对话。",
-      "tryChatTitle": "试试快速对话",
-      "tryChatPlaceholder": "对 OpenClaw 说点什么...",
+      "desc": "AI 提供商 ({{provider}}) 已配置。OpenClaw 现在可以为你执行任务！",
+      "startDaemonHint": "启动 Gateway 开始使用 AI 助手。",
+      "tryChatTitle": "试试快速任务",
+      "tryChatPlaceholder": "让 OpenClaw 做点什么…例如「帮我总结最近的邮件」",
       "send": "发送",
-      "thinking": "OpenClaw 正在思考...",
-      "chatAgain": "再发一条消息",
+      "thinking": "OpenClaw 正在工作…",
+      "chatAgain": "再试一个任务",
       "setupBotsHint": "可选：设置 Telegram/Discord 机器人以远程访问 →"
     }
   },

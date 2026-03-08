@@ -70,13 +70,13 @@
     },
     "ready": {
       "title": "OpenClaw ist bereit!",
-      "desc": "Dein KI-Anbieter ({{provider}}) ist konfiguriert. Du kannst jetzt sofort mit OpenClaw chatten!",
-      "startDaemonHint": "Starte das Gateway, um mit deinem KI-Assistenten zu chatten.",
-      "tryChatTitle": "Schnell-Chat ausprobieren",
-      "tryChatPlaceholder": "Sag OpenClaw etwas...",
+      "desc": "Ihr KI-Anbieter ({{provider}}) ist konfiguriert. OpenClaw kann jetzt Aufgaben für Sie ausführen!",
+      "startDaemonHint": "Starten Sie das Gateway, um Ihren KI-Assistenten zu nutzen.",
+      "tryChatTitle": "Schnellaufgabe testen",
+      "tryChatPlaceholder": "Bitten Sie OpenClaw, etwas zu tun... z.B. 'Fasse meine letzten E-Mails zusammen'",
       "send": "Senden",
-      "thinking": "OpenClaw denkt nach...",
-      "chatAgain": "Weitere Nachricht senden",
+      "thinking": "OpenClaw arbeitet...",
+      "chatAgain": "Andere Aufgabe testen",
       "setupBotsHint": "Optional: Telegram/Discord-Bots für Fernzugriff einrichten →"
     }
   },

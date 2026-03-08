@@ -70,13 +70,13 @@
     },
     "ready": {
       "title": "¡OpenClaw está listo!",
-      "desc": "Tu proveedor de IA ({{provider}}) está configurado. ¡Puedes empezar a chatear con OpenClaw ahora mismo!",
-      "startDaemonHint": "Inicia el Gateway para comenzar a chatear con tu asistente de IA.",
-      "tryChatTitle": "Prueba un chat rápido",
-      "tryChatPlaceholder": "Dile algo a OpenClaw...",
+      "desc": "Tu proveedor de IA ({{provider}}) está configurado. ¡OpenClaw puede ejecutar tareas para ti!",
+      "startDaemonHint": "Inicia el Gateway para comenzar a usar tu asistente de IA.",
+      "tryChatTitle": "Prueba una tarea rápida",
+      "tryChatPlaceholder": "Pídele a OpenClaw que haga algo... ej. 'Resume mis correos recientes'",
       "send": "Enviar",
-      "thinking": "OpenClaw está pensando...",
-      "chatAgain": "Enviar otro mensaje",
+      "thinking": "OpenClaw está trabajando...",
+      "chatAgain": "Probar otra tarea",
       "setupBotsHint": "Opcional: Configura bots de Telegram/Discord para acceso remoto →"
     }
   },
