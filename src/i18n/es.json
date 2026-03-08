@@ -264,6 +264,7 @@
     "system": "Seguir sistema",
     "about": "Acerca de",
     "version": "Versión",
+    "customHint": "Permisos personalizados: ajuste fino desde la página de Config o el CLI de openclaw.",
     "dangerZone": "Zona de peligro",
     "uninstallOpenClaw": "Desinstalar OpenClaw",
     "uninstallDescription": "Detener el daemon, eliminar el servicio del sistema y desinstalar OpenClaw. Tu configuración se respaldará primero.",

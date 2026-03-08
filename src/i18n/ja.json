@@ -264,6 +264,7 @@
     "system": "システムに合わせる",
     "about": "について",
     "version": "バージョン",
+    "customHint": "カスタム権限：設定ページまたはopenclaw CLIで微調整できます。",
     "dangerZone": "危険な操作",
     "uninstallOpenClaw": "OpenClaw をアンインストール",
     "uninstallDescription": "デーモンの停止、システムサービスの削除、OpenClaw のアンインストールを行います。設定は事前にバックアップされます。",

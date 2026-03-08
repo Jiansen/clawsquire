@@ -264,6 +264,7 @@
     "system": "跟隨系統",
     "about": "關於",
     "version": "版本",
+    "customHint": "自訂權限：透過設定頁面或 openclaw CLI 精細調整。",
     "dangerZone": "危險操作",
     "uninstallOpenClaw": "解除安裝 OpenClaw",
     "uninstallDescription": "停止守護程式、移除系統服務、解除安裝 OpenClaw。操作前會自動備份設定。",

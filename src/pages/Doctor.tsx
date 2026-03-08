@@ -77,7 +77,6 @@ export default function Doctor() {
       {!report && !loading && !error && (
         <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
           <div className="text-4xl mb-4">🩺</div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('doctor.title')}</h3>
           <p className="text-sm text-gray-500 mb-4">
             {t('doctor.description')}
           </p>

@@ -266,6 +266,7 @@
     "system": "System",
     "about": "About",
     "version": "Version",
+    "customHint": "Custom permissions: fine-tune via Config page or openclaw CLI.",
     "dangerZone": "Danger Zone",
     "uninstallOpenClaw": "Uninstall OpenClaw",
     "uninstallDescription": "Stop daemon, remove system service, and uninstall OpenClaw. Your config can be backed up first.",

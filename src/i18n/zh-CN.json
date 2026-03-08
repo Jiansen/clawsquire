@@ -264,6 +264,7 @@
     "system": "跟随系统",
     "about": "关于",
     "version": "版本",
+    "customHint": "自定义权限：通过配置页面或 openclaw CLI 精细调整。",
     "dangerZone": "危险区域",
     "uninstallOpenClaw": "卸载 OpenClaw",
     "uninstallDescription": "停止守护进程、移除系统服务、卸载 OpenClaw。可以先备份配置。",

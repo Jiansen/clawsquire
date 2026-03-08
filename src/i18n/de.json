@@ -264,6 +264,7 @@
     "system": "System",
     "about": "Über",
     "version": "Version",
+    "customHint": "Benutzerdefinierte Berechtigungen: Feinabstimmung über die Config-Seite oder openclaw CLI.",
     "dangerZone": "Gefahrenzone",
     "uninstallOpenClaw": "OpenClaw deinstallieren",
     "uninstallDescription": "Daemon stoppen, Systemdienst entfernen und OpenClaw deinstallieren. Deine Konfiguration wird vorher gesichert.",

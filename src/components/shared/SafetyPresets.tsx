@@ -83,7 +83,14 @@ export default function SafetyPresets({ value, onChange, showDetails = false }: 
       </div>
 
       {(showDetails || value === 'custom' || expandCustom) && (
-        <PermissionsList level={value} />
+        <>
+          <PermissionsList level={value} />
+          {value === 'custom' && (
+            <p className="text-xs text-gray-400 text-center mt-2">
+              {t('settings.customHint')}
+            </p>
+          )}
+        </>
       )}
     </div>
   );
