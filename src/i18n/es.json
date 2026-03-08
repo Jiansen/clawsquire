@@ -158,7 +158,11 @@
           "anthropic": "https://console.anthropic.com",
           "ollama": "https://ollama.com"
         },
-        "ollamaNote": "Ollama se ejecuta localmente. Asegúrate de que está instalado y en ejecución en tu máquina."
+        "ollamaNote": "Ollama se ejecuta localmente. Asegúrate de que está instalado y en ejecución en tu máquina.",
+        "step3Title": "Elegir modelo predeterminado",
+        "step3Desc": "Selecciona qué modelo de IA usar por defecto. Puedes cambiarlo en cualquier momento.",
+        "noModels": "No se encontraron modelos para este proveedor.",
+        "skipModelHint": "Puedes omitir este paso y configurar un modelo más tarde."
       },
       "vpsHeadless": {
         "step1Title": "Habilitar modo daemon",
@@ -175,7 +179,9 @@
       "testSuccess": "¡Conexión exitosa!",
       "testResponse": "La IA dice:",
       "testFailed": "Conexión fallida",
-      "testModel": "Modelo probado: {{model}}"
+      "testModel": "Modelo probado: {{model}}",
+      "searchProviders": "Buscar proveedores...",
+      "noProviderMatch": "No se encontraron proveedores"
     },
     "modelGuide": {
       "title": "Elige tu proveedor de modelo de IA",

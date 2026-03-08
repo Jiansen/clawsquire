@@ -1,4 +1,4 @@
-use crate::constants::{OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
+use crate::constants::{DEFAULT_GATEWAY_PORT, OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -538,6 +538,54 @@ fn parse_openai_response(stdout: &str, model: &str) -> LlmTestResult {
         response: None,
         error: Some(truncate_resp(stdout)),
         model: Some(model.to_string()),
+    }
+}
+
+pub fn test_llm_via_gateway() -> LlmTestResult {
+    let url = format!(
+        "http://localhost:{}/v1/chat/completions",
+        DEFAULT_GATEWAY_PORT
+    );
+    let body = serde_json::json!({
+        "model": "default",
+        "messages": [{"role": "user", "content": "Hello! Introduce yourself in one sentence."}],
+        "max_tokens": 100
+    })
+    .to_string();
+
+    match Command::new("curl")
+        .args([
+            "-s",
+            "--max-time",
+            "20",
+            "-X",
+            "POST",
+            &url,
+            "-H",
+            "Content-Type: application/json",
+            "-d",
+            &body,
+        ])
+        .output()
+    {
+        Ok(o) => {
+            let stdout = String::from_utf8_lossy(&o.stdout).to_string();
+            if stdout.is_empty() || stdout.contains("Connection refused") {
+                return LlmTestResult {
+                    success: false,
+                    response: None,
+                    error: Some("Gateway not reachable. Is the daemon running?".to_string()),
+                    model: None,
+                };
+            }
+            parse_openai_response(&stdout, "gateway-default")
+        }
+        Err(e) => LlmTestResult {
+            success: false,
+            response: None,
+            error: Some(format!("curl failed: {}", e)),
+            model: None,
+        },
     }
 }
 

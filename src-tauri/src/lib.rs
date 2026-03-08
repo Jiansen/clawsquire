@@ -93,6 +93,13 @@ async fn test_llm(provider: String, api_key: String) -> Result<LlmTestResult, St
 }
 
 #[tauri::command]
+async fn test_llm_gateway() -> Result<openclaw::LlmTestResult, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::test_llm_via_gateway)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn install_openclaw() -> Result<InstallResult, String> {
     tauri::async_runtime::spawn_blocking(|| openclaw::install_openclaw())
         .await
@@ -126,6 +133,7 @@ pub fn run() {
             list_models,
             check_llm_config,
             test_llm,
+            test_llm_gateway,
             install_openclaw,
             uninstall_openclaw,
         ])

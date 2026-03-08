@@ -158,7 +158,11 @@
           "anthropic": "https://console.anthropic.com",
           "ollama": "https://ollama.com"
         },
-        "ollamaNote": "Ollama はローカルで実行されます。インストール済みでマシン上で動作していることを確認してください。"
+        "ollamaNote": "Ollama はローカルで実行されます。インストール済みでマシン上で動作していることを確認してください。",
+        "step3Title": "デフォルトモデルを選択",
+        "step3Desc": "デフォルトで使用するAIモデルを選んでください。後からいつでも変更できます。",
+        "noModels": "このプロバイダーのモデルが見つかりません。",
+        "skipModelHint": "このステップをスキップして、後でモデルを設定できます。"
       },
       "vpsHeadless": {
         "step1Title": "デーモンモードを有効化",
@@ -175,7 +179,9 @@
       "testSuccess": "接続成功！",
       "testResponse": "AI の応答：",
       "testFailed": "接続失敗",
-      "testModel": "テストモデル：{{model}}"
+      "testModel": "テストモデル：{{model}}",
+      "searchProviders": "プロバイダーを検索...",
+      "noProviderMatch": "一致するプロバイダーがありません"
     },
     "modelGuide": {
       "title": "AI モデルプロバイダーを選択",

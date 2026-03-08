@@ -27,6 +27,12 @@
     "safetyLevel": "Safety Level",
     "safetyConservative": "Conservative",
     "safetyDescription": "Only basic features are enabled. Advanced features require manual activation.",
+    "daemon": {
+      "start": "Start",
+      "stop": "Stop",
+      "starting": "Starting...",
+      "stopping": "Stopping..."
+    },
     "install": {
       "desc": "Install OpenClaw to unlock all features — setup wizard, health checks, config management.",
       "whatWillHappen": "What will happen:",
@@ -158,7 +164,11 @@
           "anthropic": "https://console.anthropic.com",
           "ollama": "https://ollama.com"
         },
-        "ollamaNote": "Ollama runs locally. Make sure it's installed and running on your machine."
+        "ollamaNote": "Ollama runs locally. Make sure it's installed and running on your machine.",
+        "step3Title": "Choose Default Model",
+        "step3Desc": "Pick which model to use by default. You can change this anytime.",
+        "noModels": "No models found for this provider.",
+        "skipModelHint": "You can skip this step and configure a model later."
       },
       "vpsHeadless": {
         "step1Title": "Enable Daemon Mode",
@@ -175,7 +185,9 @@
       "testSuccess": "Connection successful!",
       "testResponse": "AI says:",
       "testFailed": "Connection failed",
-      "testModel": "Tested model: {{model}}"
+      "testModel": "Tested model: {{model}}",
+      "searchProviders": "Search providers...",
+      "noProviderMatch": "No matching providers"
     },
     "modelGuide": {
       "title": "Choose your AI Model Provider",

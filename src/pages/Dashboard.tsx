@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [llmStatus, setLlmStatus] = useState<LlmConfigStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [backingUp, setBackingUp] = useState(false);
+  const [daemonAction, setDaemonAction] = useState<'idle' | 'starting' | 'stopping'>('idle');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -84,6 +85,21 @@ export default function Dashboard() {
       document.removeEventListener('visibilitychange', onVisible);
     };
   }, [refresh]);
+
+  const handleDaemonToggle = async () => {
+    if (daemonAction !== 'idle') return;
+    const action = running ? 'stopping' : 'starting';
+    setDaemonAction(action);
+    try {
+      await invoke(running ? 'daemon_stop' : 'daemon_start');
+      await refresh();
+    } catch {
+      // refresh will show actual state
+      await refresh();
+    } finally {
+      setDaemonAction('idle');
+    }
+  };
 
   const handleBackupNow = async () => {
     setBackingUp(true);
@@ -130,15 +146,36 @@ export default function Dashboard() {
           <InfoTooltip conceptKey="gateway" />
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
-            <span className={`inline-block w-3 h-3 rounded-full ${statusColor} ${running ? 'animate-pulse' : ''}`} />
-            <span className="text-lg font-semibold text-gray-900">{statusText}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2.5">
+              <span className={`inline-block w-3 h-3 rounded-full ${statusColor} ${running ? 'animate-pulse' : ''}`} />
+              <span className="text-lg font-semibold text-gray-900">{statusText}</span>
+            </div>
+            {version && (
+              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                {version}
+              </span>
+            )}
           </div>
-          {version && (
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-              {version}
-            </span>
+          {installed && (
+            <button
+              onClick={handleDaemonToggle}
+              disabled={daemonAction !== 'idle'}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${
+                running
+                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              {daemonAction === 'starting'
+                ? t('dashboard.daemon.starting')
+                : daemonAction === 'stopping'
+                  ? t('dashboard.daemon.stopping')
+                  : running
+                    ? t('dashboard.daemon.stop')
+                    : t('dashboard.daemon.start')}
+            </button>
           )}
         </div>
 

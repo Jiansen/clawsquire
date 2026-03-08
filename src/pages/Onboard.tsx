@@ -13,7 +13,7 @@ const TEMPLATES = [
 ] as const;
 
 interface StepDef {
-  type: 'info' | 'input' | 'select' | 'complete';
+  type: 'info' | 'input' | 'select' | 'model-select' | 'complete';
   titleKey: string;
   descKey: string;
   link?: string;
@@ -32,6 +32,8 @@ const STATIC_LLM_PROVIDERS = [
   { value: 'deepseek', labelKey: 'onboard.modelGuide.providers.deepseek.name', icon: '🚀' },
   { value: 'ollama', labelKey: 'onboard.modelGuide.providers.ollama.name', icon: '💻' },
 ];
+
+const PINNED_PROVIDER_IDS = ['openai', 'anthropic', 'deepseek'];
 
 const PROVIDER_ICONS: Record<string, string> = {
   openai: '🤖', anthropic: '🧠', google: '🔍', 'openai-codex': '💻',
@@ -67,6 +69,11 @@ function getSteps(templateId: string): StepDef[] {
           placeholder: 'onboard.wizard.llmProvider.step2Placeholder',
           isSecret: true,
           conceptKey: 'apiKey',
+        },
+        {
+          type: 'model-select',
+          titleKey: 'onboard.wizard.llmProvider.step3Title',
+          descKey: 'onboard.wizard.llmProvider.step3Desc',
         },
         {
           type: 'complete',
@@ -237,6 +244,10 @@ function OnboardWizard({ templateId }: { templateId: string }) {
   const navigate = useNavigate();
 
   const [dynamicProviders, setDynamicProviders] = useState<DynamicProvider[] | null>(null);
+  const [models, setModels] = useState<{ id: string; input: string; context_window: string }[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [providerSearch, setProviderSearch] = useState('');
 
   useEffect(() => {
     invoke<DynamicProvider[]>('list_providers')
@@ -300,6 +311,7 @@ function OnboardWizard({ templateId }: { templateId: string }) {
     if (step.type === 'info') return true;
     if (step.type === 'select') return true;
     if (step.type === 'input') return inputValue.trim().length > 0;
+    if (step.type === 'model-select') return models.length === 0 || selectedModel.length > 0;
     return true;
   })();
 
@@ -336,7 +348,34 @@ function OnboardWizard({ templateId }: { templateId: string }) {
       setSelectedProvider(values[`select-${currentStep}`] || 'openai');
     }
 
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    if (step.type === 'model-select' && selectedModel && models.length > 0) {
+      setSaving(true);
+      try {
+        await invoke('config_set', { path: 'models.default', value: selectedModel });
+      } catch (e) {
+        setError(String(e));
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+    }
+
+    const nextStep = Math.min(currentStep + 1, steps.length - 1);
+    if (steps[nextStep]?.type === 'model-select') {
+      const provider = values[`select-0`] || selectedProvider;
+      setModelsLoading(true);
+      setModels([]);
+      try {
+        const res = await invoke<{ id: string; input: string; context_window: string }[]>('list_models', { provider });
+        setModels(res);
+        if (res.length > 0) setSelectedModel(res[0].id);
+      } catch {
+        setModels([]);
+      }
+      setModelsLoading(false);
+    }
+
+    setCurrentStep(nextStep);
   };
 
   const handleBack = () => {
@@ -395,38 +434,79 @@ function OnboardWizard({ templateId }: { templateId: string }) {
           </a>
         )}
 
-        {step.type === 'select' && step.options && (
-          <div className="grid grid-cols-2 gap-3">
-            {(step.isDynamic ? providerOptions : step.options).map((opt) => {
-              const selected = (values[`select-${currentStep}`] || 'openai') === opt.value;
-              const translated = t(opt.labelKey, { defaultValue: '' });
-              const displayName: string = (typeof translated === 'string' && translated) ? translated : ('label' in opt ? String((opt as Record<string, unknown>).label) : opt.value);
-              const mCount = 'modelCount' in opt ? Number((opt as Record<string, unknown>).modelCount) : 0;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setValues((v) => ({ ...v, [`select-${currentStep}`]: opt.value }))}
-                  className={`relative rounded-xl border-2 p-4 text-left transition-all ${
-                    selected
-                      ? 'border-claw-500 bg-claw-50 shadow-sm'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {opt.recommended && (
-                    <span className="absolute -top-2 right-2 bg-claw-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {t('common.recommended')}
-                    </span>
-                  )}
-                  <span className="text-2xl">{opt.icon}</span>
-                  <div className="mt-2 text-sm font-medium text-gray-900">{displayName}</div>
-                  {mCount > 0 && (
-                    <div className="text-xs text-gray-400 mt-0.5">{mCount} models</div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {step.type === 'select' && step.options && (() => {
+          const allOpts = step.isDynamic ? providerOptions : step.options;
+          const renderCard = (opt: typeof allOpts[number]) => {
+            const selected = (values[`select-${currentStep}`] || 'openai') === opt.value;
+            const translated = t(opt.labelKey, { defaultValue: '' });
+            const displayName: string = (typeof translated === 'string' && translated) ? translated : ('label' in opt ? String((opt as Record<string, unknown>).label) : opt.value);
+            const mCount = 'modelCount' in opt ? Number((opt as Record<string, unknown>).modelCount) : 0;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setValues((v) => ({ ...v, [`select-${currentStep}`]: opt.value }))}
+                className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+                  selected
+                    ? 'border-claw-500 bg-claw-50 shadow-sm'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                {opt.recommended && (
+                  <span className="absolute -top-2 right-2 bg-claw-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {t('common.recommended')}
+                  </span>
+                )}
+                <span className="text-2xl">{opt.icon}</span>
+                <div className="mt-2 text-sm font-medium text-gray-900">{displayName}</div>
+                {mCount > 0 && (
+                  <div className="text-xs text-gray-400 mt-0.5">{mCount} models</div>
+                )}
+              </button>
+            );
+          };
+
+          if (!step.isDynamic) {
+            return <div className="grid grid-cols-2 gap-3">{allOpts.map(renderCard)}</div>;
+          }
+
+          const pinned = allOpts.filter((o) => PINNED_PROVIDER_IDS.includes(o.value));
+          const others = allOpts.filter((o) => !PINNED_PROVIDER_IDS.includes(o.value));
+          const q = providerSearch.toLowerCase();
+          const filtered = q
+            ? others.filter((o) => {
+                const tl = t(o.labelKey, { defaultValue: '' });
+                const name = (typeof tl === 'string' && tl) ? tl : o.value;
+                return name.toLowerCase().includes(q) || o.value.toLowerCase().includes(q);
+              })
+            : others;
+
+          return (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">{pinned.map(renderCard)}</div>
+              {others.length > 0 && (
+                <>
+                  <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={providerSearch}
+                      onChange={(e) => setProviderSearch(e.target.value)}
+                      placeholder={t('onboard.wizard.searchProviders')}
+                      className="w-full rounded-lg border border-gray-200 pl-10 pr-3 py-2 text-sm focus:border-claw-400 focus:ring-1 focus:ring-claw-400 outline-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
+                    {filtered.length > 0 ? filtered.map(renderCard) : (
+                      <p className="col-span-2 text-center text-sm text-gray-400 py-3">{t('onboard.wizard.noProviderMatch')}</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
 
         {step.type === 'input' && (
           <div className="space-y-2">
@@ -524,6 +604,46 @@ function OnboardWizard({ templateId }: { templateId: string }) {
                     </button>
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {step.type === 'model-select' && (
+          <div className="space-y-2">
+            {modelsLoading ? (
+              <div className="text-center py-6 text-sm text-gray-500">
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                {t('common.loading')}
+              </div>
+            ) : models.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-500">{t('onboard.wizard.llmProvider.noModels')}</p>
+                <p className="text-xs text-gray-400 mt-1">{t('onboard.wizard.llmProvider.skipModelHint')}</p>
+              </div>
+            ) : (
+              <div className="max-h-64 overflow-y-auto space-y-1.5 rounded-lg border border-gray-200 p-2">
+                {models.map((m) => {
+                  const shortName = m.id.includes('/') ? m.id.split('/').pop()! : m.id;
+                  const selected = selectedModel === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setSelectedModel(m.id)}
+                      className={`w-full flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-all ${
+                        selected
+                          ? 'bg-claw-50 border-2 border-claw-500'
+                          : 'hover:bg-gray-50 border-2 border-transparent'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">{shortName}</span>
+                        <span className="ml-2 text-xs text-gray-400">{m.input}</span>
+                      </div>
+                      <span className="text-xs text-gray-400">{m.context_window}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

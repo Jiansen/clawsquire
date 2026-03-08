@@ -158,7 +158,11 @@
           "anthropic": "https://console.anthropic.com",
           "ollama": "https://ollama.com"
         },
-        "ollamaNote": "Ollama 在本機執行。請確保已安裝並正在執行。"
+        "ollamaNote": "Ollama 在本機執行。請確保已安裝並正在執行。",
+        "step3Title": "選擇預設模型",
+        "step3Desc": "選擇預設使用的 AI 模型。您可以隨時更改。",
+        "noModels": "未找到此提供商的模型。",
+        "skipModelHint": "您可以跳過此步驟，稍後再設定模型。"
       },
       "vpsHeadless": {
         "step1Title": "啟用守護程式模式",
@@ -175,7 +179,9 @@
       "testSuccess": "連線成功！",
       "testResponse": "AI 回覆：",
       "testFailed": "連線失敗",
-      "testModel": "測試模型：{{model}}"
+      "testModel": "測試模型：{{model}}",
+      "searchProviders": "搜尋提供商...",
+      "noProviderMatch": "未找到符合的提供商"
     },
     "modelGuide": {
       "title": "選擇你的 AI 模型提供商",
