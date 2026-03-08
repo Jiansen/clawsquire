@@ -7,7 +7,7 @@ mod openclaw;
 use backup::{BackupEntry, DiffEntry};
 use detect::Environment;
 use doctor::DoctorReport;
-use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, UninstallResult};
+use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
 
 #[tauri::command]
 async fn get_environment() -> Environment {
@@ -164,6 +164,13 @@ async fn list_channels() -> Result<Vec<ChannelInfo>, String> {
 }
 
 #[tauri::command]
+async fn apply_safety_preset(level: String) -> Result<SafetyApplyResult, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::apply_safety_preset(&level))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn agent_chat(message: String) -> Result<AgentChatResult, String> {
     tauri::async_runtime::spawn_blocking(move || openclaw::agent_chat(&message))
         .await
@@ -206,6 +213,7 @@ pub fn run() {
             list_channels,
             collect_feedback_info,
             agent_chat,
+            apply_safety_preset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

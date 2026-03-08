@@ -964,6 +964,54 @@ pub fn list_channels() -> Result<Vec<ChannelInfo>, String> {
     Ok(channels)
 }
 
+#[derive(Debug, Serialize)]
+pub struct SafetyApplyResult {
+    pub success: bool,
+    pub applied: Vec<String>,
+    pub errors: Vec<String>,
+}
+
+pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
+    let settings: Vec<(&str, &str)> = match level {
+        "conservative" => vec![
+            ("commands.native", "\"ask\""),
+            ("commands.nativeSkills", "\"ask\""),
+            ("commands.restart", "false"),
+        ],
+        "standard" => vec![
+            ("commands.native", "\"ask\""),
+            ("commands.nativeSkills", "\"auto\""),
+            ("commands.restart", "true"),
+        ],
+        "full" => vec![
+            ("commands.native", "\"auto\""),
+            ("commands.nativeSkills", "\"auto\""),
+            ("commands.restart", "true"),
+        ],
+        _ => return SafetyApplyResult {
+            success: true,
+            applied: vec!["custom: no config changes".to_string()],
+            errors: Vec::new(),
+        },
+    };
+
+    let mut applied = Vec::new();
+    let mut errors = Vec::new();
+
+    for (path, value) in settings {
+        match config_set_raw_json(path, value) {
+            Ok(()) => applied.push(format!("{} = {}", path, value)),
+            Err(e) => errors.push(format!("{}: {}", path, e)),
+        }
+    }
+
+    SafetyApplyResult {
+        success: errors.is_empty(),
+        applied,
+        errors,
+    }
+}
+
 pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
     let mut result = UninstallResult {
         daemon_stopped: false,

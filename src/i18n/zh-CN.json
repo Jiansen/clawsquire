@@ -289,6 +289,8 @@
       }
     },
     "safety": "安全等级",
+    "safetyApplying": "正在将安全预设应用到 OpenClaw 配置...",
+    "safetyLocalOnly": "OpenClaw 未安装——预设已保存到本地，安装后将自动应用。",
     "safetyPresets": {
       "conservative": {
         "name": "保守模式",

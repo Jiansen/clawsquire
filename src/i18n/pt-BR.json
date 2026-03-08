@@ -289,6 +289,8 @@
       }
     },
     "safety": "Nível de segurança",
+    "safetyApplying": "Aplicando preset de segurança à configuração do OpenClaw...",
+    "safetyLocalOnly": "OpenClaw não instalado — preset salvo localmente e será aplicado após a instalação.",
     "safetyPresets": {
       "conservative": {
         "name": "Conservador",

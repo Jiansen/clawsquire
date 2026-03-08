@@ -287,6 +287,8 @@
       "result": {"daemon": "Stop daemon", "npm": "Uninstall package (npm)", "config": "Remove config files"}
     },
     "safety": "Safety Level",
+    "safetyApplying": "Applying safety preset to OpenClaw config...",
+    "safetyLocalOnly": "OpenClaw not installed — preset saved locally and will be applied after installation.",
     "safetyPresets": {
       "conservative": {
         "name": "Conservative",

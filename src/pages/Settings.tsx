@@ -33,9 +33,27 @@ export default function Settings() {
     invoke<{ openclaw_installed: boolean; openclaw_version: string | null }>('get_environment').then(setEnv);
   }, []);
 
-  const handleSafetyChange = (level: SafetyLevel) => {
+  const [safetyApplying, setSafetyApplying] = useState(false);
+  const [safetyError, setSafetyError] = useState<string | null>(null);
+
+  const handleSafetyChange = async (level: SafetyLevel) => {
     setSafetyLevel(level);
     localStorage.setItem(SAFETY_KEY, level);
+    setSafetyError(null);
+
+    if (!env?.openclaw_installed) return;
+
+    setSafetyApplying(true);
+    try {
+      const res = await invoke<{ success: boolean; errors: string[] }>('apply_safety_preset', { level });
+      if (!res.success && res.errors.length > 0) {
+        setSafetyError(res.errors.join('; '));
+      }
+    } catch (e) {
+      setSafetyError(String(e));
+    } finally {
+      setSafetyApplying(false);
+    }
   };
 
   const [uninstallCurrentStep, setUninstallCurrentStep] = useState(0);
@@ -106,6 +124,19 @@ export default function Settings() {
           <InfoTooltip conceptKey="sandbox" />
         </div>
         <SafetyPresets value={safetyLevel} onChange={handleSafetyChange} showDetails />
+        {safetyApplying && (
+          <p className="mt-3 text-xs text-gray-500 flex items-center gap-1.5">
+            <span className="animate-spin">⏳</span> {t('settings.safetyApplying')}
+          </p>
+        )}
+        {safetyError && (
+          <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-2.5 text-xs text-red-700">
+            {safetyError}
+          </div>
+        )}
+        {!env?.openclaw_installed && (
+          <p className="mt-3 text-xs text-gray-400">{t('settings.safetyLocalOnly')}</p>
+        )}
       </div>
 
       {/* Language */}
