@@ -24,10 +24,13 @@
 - **Dashboard** — See your OpenClaw status at a glance
 - **Safety Presets** — Conservative / Standard / Full security levels with one-click apply
 - **LLM Provider Setup** — Connect 22+ AI providers (OpenAI, Anthropic, DeepSeek, Google, etc.) with live connection testing
+- **System Tray** — Runs quietly in background; close the window and it stays in your tray
+- **Auto-Update** — Detects new releases from GitHub and shows a one-click download banner
+- **Error Recovery** — Global error boundary with one-click recovery and bug reporting
 
 ## Status
 
-🚧 **In active development** — not yet released. Pre-built binaries coming soon.
+🚀 **Pre-release (v0.1.0)** — Core features complete. Pre-built binaries for macOS, Windows, and Linux available on [Releases](https://github.com/Jiansen/clawsquire/releases).
 
 ## Quick Start (Development)
 
