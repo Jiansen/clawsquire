@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "ClawSquire",
+    "tagline": "OpenClaw のコンパニオンアプリ"
+  },
+  "nav": {
+    "dashboard": "ダッシュボード",
+    "onboard": "セットアップ",
+    "doctor": "ヘルスチェック",
+    "backup": "バックアップ",
+    "settings": "設定"
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "openclawStatus": "OpenClaw ステータス",
+    "running": "実行中",
+    "stopped": "停止",
+    "notInstalled": "未インストール",
+    "version": "バージョン",
+    "quickActions": "クイックアクション",
+    "newSetup": "新規セットアップ",
+    "runDoctor": "診断を実行",
+    "backupNow": "今すぐバックアップ",
+    "viewConfig": "設定を表示"
+  },
+  "doctor": {
+    "title": "ヘルスチェック",
+    "runCheck": "チェック開始",
+    "rerun": "再チェック",
+    "pass": "合格",
+    "warn": "警告",
+    "fail": "失敗",
+    "categories": {
+      "installation": "インストール",
+      "config": "設定",
+      "gateway": "ゲートウェイ",
+      "security": "セキュリティ",
+      "backup": "バックアップ"
+    }
+  },
+  "backup": {
+    "title": "設定バックアップ",
+    "create": "バックアップ作成",
+    "restore": "復元",
+    "diff": "比較",
+    "label": "ラベル",
+    "timestamp": "作成日時",
+    "size": "サイズ",
+    "confirmRestore": "このバックアップを復元しますか？現在の設定は先に自動バックアップされます。",
+    "noBackups": "バックアップがありません。最初のバックアップを作成して設定を保護しましょう。"
+  },
+  "onboard": {
+    "title": "セットアップアシスタント",
+    "chooseTemplate": "セットアップテンプレートを選択",
+    "step": "ステップ {{current}} / {{total}}",
+    "back": "戻る",
+    "next": "次へ",
+    "finish": "完了",
+    "templates": {
+      "telegram": {
+        "name": "Telegram グループアシスタント",
+        "description": "OpenClaw を Telegram グループチャットの AI アシスタントとして設定"
+      },
+      "discord": {
+        "name": "Discord ボット",
+        "description": "OpenClaw を Discord ボットとして設定"
+      },
+      "llm-provider": {
+        "name": "LLM プロバイダー",
+        "description": "LLM プロバイダーを素早く接続（DeepSeek、OpenAI、Anthropic、Ollama）"
+      },
+      "vps-headless": {
+        "name": "VPS ヘッドレスデプロイ",
+        "description": "GUI のない VPS サーバーに OpenClaw をデプロイ"
+      }
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システムに合わせる",
+    "about": "について",
+    "version": "バージョン",
+    "dangerZone": "危険な操作",
+    "uninstallOpenClaw": "OpenClaw をアンインストール",
+    "uninstallDescription": "デーモンの停止、システムサービスの削除、OpenClaw のアンインストールを行います。設定は事前にバックアップされます。"
+  },
+  "welcome": {
+    "title": "ClawSquire へようこそ",
+    "subtitle": "あなたの OpenClaw コンパニオンアプリ",
+    "openclawNotFound": "このシステムに OpenClaw がインストールされていません。",
+    "installGuide": "まず OpenClaw をインストールしてから、ここに戻ってください。",
+    "installCommand": "npm install -g @anthropic/openclaw",
+    "retry": "再確認"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "close": "閉じる"
+  }
+}

@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-claw-50: #fdf4ff;
+  --color-claw-100: #fae8ff;
+  --color-claw-200: #f5d0fe;
+  --color-claw-300: #f0abfc;
+  --color-claw-400: #e879f9;
+  --color-claw-500: #d946ef;
+  --color-claw-600: #c026d3;
+  --color-claw-700: #a21caf;
+  --color-claw-800: #86198f;
+  --color-claw-900: #701a75;
+
+  --color-shield-50: #f0fdf4;
+  --color-shield-500: #22c55e;
+  --color-shield-600: #16a34a;
+
+  --color-warn-500: #f59e0b;
+  --color-fail-500: #ef4444;
+}

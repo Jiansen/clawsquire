@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "ClawSquire",
+    "tagline": "La app compañera de OpenClaw"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "onboard": "Configuración",
+    "doctor": "Diagnóstico",
+    "backup": "Respaldos",
+    "settings": "Ajustes"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "openclawStatus": "Estado de OpenClaw",
+    "running": "Ejecutando",
+    "stopped": "Detenido",
+    "notInstalled": "No instalado",
+    "version": "Versión",
+    "quickActions": "Acciones rápidas",
+    "newSetup": "Nueva configuración",
+    "runDoctor": "Ejecutar diagnóstico",
+    "backupNow": "Respaldar ahora",
+    "viewConfig": "Ver configuración"
+  },
+  "doctor": {
+    "title": "Diagnóstico",
+    "runCheck": "Iniciar verificación",
+    "rerun": "Verificar de nuevo",
+    "pass": "Correcto",
+    "warn": "Advertencia",
+    "fail": "Error",
+    "categories": {
+      "installation": "Instalación",
+      "config": "Configuración",
+      "gateway": "Gateway",
+      "security": "Seguridad",
+      "backup": "Respaldo"
+    }
+  },
+  "backup": {
+    "title": "Respaldos de configuración",
+    "create": "Crear respaldo",
+    "restore": "Restaurar",
+    "diff": "Comparar",
+    "label": "Etiqueta",
+    "timestamp": "Fecha de creación",
+    "size": "Tamaño",
+    "confirmRestore": "¿Restaurar este respaldo? La configuración actual se respaldará primero.",
+    "noBackups": "No hay respaldos. Crea tu primer respaldo para proteger tu configuración."
+  },
+  "onboard": {
+    "title": "Asistente de configuración",
+    "chooseTemplate": "Elige una plantilla de configuración",
+    "step": "Paso {{current}} de {{total}}",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "templates": {
+      "telegram": {
+        "name": "Asistente de grupo Telegram",
+        "description": "Configura OpenClaw como asistente de IA en un grupo de Telegram"
+      },
+      "discord": {
+        "name": "Bot de Discord",
+        "description": "Configura OpenClaw como bot de Discord"
+      },
+      "llm-provider": {
+        "name": "Proveedor LLM",
+        "description": "Conecta rápidamente un proveedor LLM (DeepSeek, OpenAI, Anthropic, Ollama)"
+      },
+      "vps-headless": {
+        "name": "Despliegue VPS headless",
+        "description": "Despliega OpenClaw en un servidor VPS sin interfaz gráfica"
+      }
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Seguir sistema",
+    "about": "Acerca de",
+    "version": "Versión",
+    "dangerZone": "Zona de peligro",
+    "uninstallOpenClaw": "Desinstalar OpenClaw",
+    "uninstallDescription": "Detener el daemon, eliminar el servicio del sistema y desinstalar OpenClaw. Tu configuración se respaldará primero."
+  },
+  "welcome": {
+    "title": "Bienvenido a ClawSquire",
+    "subtitle": "Tu app compañera de OpenClaw",
+    "openclawNotFound": "OpenClaw no está instalado en este sistema.",
+    "installGuide": "Instala OpenClaw primero y luego vuelve aquí.",
+    "installCommand": "npm install -g @anthropic/openclaw",
+    "retry": "Verificar de nuevo"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "close": "Cerrar"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "ClawSquire",
+    "tagline": "O aplicativo companheiro do OpenClaw"
+  },
+  "nav": {
+    "dashboard": "Painel",
+    "onboard": "Configuração",
+    "doctor": "Verificação de Saúde",
+    "backup": "Backups",
+    "settings": "Configurações"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "openclawStatus": "Status do OpenClaw",
+    "running": "Em execução",
+    "stopped": "Parado",
+    "notInstalled": "Não instalado",
+    "version": "Versão",
+    "quickActions": "Ações rápidas",
+    "newSetup": "Nova configuração",
+    "runDoctor": "Executar verificação",
+    "backupNow": "Fazer backup agora",
+    "viewConfig": "Ver configuração"
+  },
+  "doctor": {
+    "title": "Verificação de Saúde",
+    "runCheck": "Executar verificação",
+    "rerun": "Executar novamente",
+    "pass": "Aprovado",
+    "warn": "Aviso",
+    "fail": "Falhou",
+    "categories": {
+      "installation": "Instalação",
+      "config": "Configuração",
+      "gateway": "Gateway",
+      "security": "Segurança",
+      "backup": "Backup"
+    }
+  },
+  "backup": {
+    "title": "Backups de Configuração",
+    "create": "Criar backup",
+    "restore": "Restaurar",
+    "diff": "Comparar",
+    "label": "Rótulo",
+    "timestamp": "Criado em",
+    "size": "Tamanho",
+    "confirmRestore": "Restaurar este backup? A configuração atual será salva primeiro.",
+    "noBackups": "Nenhum backup ainda. Crie seu primeiro backup para proteger sua configuração."
+  },
+  "onboard": {
+    "title": "Assistente de Configuração",
+    "chooseTemplate": "Escolha um modelo de configuração",
+    "step": "Passo {{current}} de {{total}}",
+    "back": "Voltar",
+    "next": "Próximo",
+    "finish": "Concluir",
+    "templates": {
+      "telegram": {
+        "name": "Assistente de Grupo Telegram",
+        "description": "Configurar o OpenClaw como assistente de IA em grupos do Telegram"
+      },
+      "discord": {
+        "name": "Bot Discord",
+        "description": "Configurar o OpenClaw como bot do Discord"
+      },
+      "llm-provider": {
+        "name": "Provedor de LLM",
+        "description": "Conectar rapidamente um provedor de LLM (DeepSeek, OpenAI, Anthropic, Ollama)"
+      },
+      "vps-headless": {
+        "name": "Implantação VPS Headless",
+        "description": "Implantar o OpenClaw em um servidor VPS sem interface gráfica"
+      }
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema",
+    "about": "Sobre",
+    "version": "Versão",
+    "dangerZone": "Zona de perigo",
+    "uninstallOpenClaw": "Desinstalar OpenClaw",
+    "uninstallDescription": "Parar o daemon, remover o serviço do sistema e desinstalar o OpenClaw. Sua configuração será salva antes."
+  },
+  "welcome": {
+    "title": "Bem-vindo ao ClawSquire",
+    "subtitle": "Seu aplicativo companheiro do OpenClaw",
+    "openclawNotFound": "O OpenClaw não está instalado neste sistema.",
+    "installGuide": "Instale o OpenClaw primeiro e depois volte aqui.",
+    "installCommand": "npm install -g @anthropic/openclaw",
+    "retry": "Verificar novamente"
+  },
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "close": "Fechar"
+  }
+}

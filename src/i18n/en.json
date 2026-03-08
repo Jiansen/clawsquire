@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "ClawSquire",
+    "tagline": "The companion app for OpenClaw"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "onboard": "Setup",
+    "doctor": "Health Check",
+    "backup": "Backups",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "openclawStatus": "OpenClaw Status",
+    "running": "Running",
+    "stopped": "Stopped",
+    "notInstalled": "Not Installed",
+    "version": "Version",
+    "quickActions": "Quick Actions",
+    "newSetup": "New Setup",
+    "runDoctor": "Run Doctor",
+    "backupNow": "Backup Now",
+    "viewConfig": "View Config"
+  },
+  "doctor": {
+    "title": "Health Check",
+    "runCheck": "Run Check",
+    "rerun": "Re-run",
+    "pass": "Pass",
+    "warn": "Warning",
+    "fail": "Fail",
+    "categories": {
+      "installation": "Installation",
+      "config": "Configuration",
+      "gateway": "Gateway",
+      "security": "Security",
+      "backup": "Backup"
+    }
+  },
+  "backup": {
+    "title": "Config Backups",
+    "create": "Create Backup",
+    "restore": "Restore",
+    "diff": "Compare",
+    "label": "Label",
+    "timestamp": "Created",
+    "size": "Size",
+    "confirmRestore": "Restore this backup? Current config will be backed up first.",
+    "noBackups": "No backups yet. Create your first backup to protect your config."
+  },
+  "onboard": {
+    "title": "Setup Assistant",
+    "chooseTemplate": "Choose a setup template",
+    "step": "Step {{current}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "templates": {
+      "telegram": {
+        "name": "Telegram Group Assistant",
+        "description": "Set up OpenClaw as a Telegram group chat AI assistant"
+      },
+      "discord": {
+        "name": "Discord Bot",
+        "description": "Configure OpenClaw as a Discord bot"
+      },
+      "llm-provider": {
+        "name": "LLM Provider",
+        "description": "Quickly connect an LLM provider (DeepSeek, OpenAI, Anthropic, Ollama)"
+      },
+      "vps-headless": {
+        "name": "VPS Headless Deploy",
+        "description": "Deploy OpenClaw on a headless VPS server"
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "about": "About",
+    "version": "Version",
+    "dangerZone": "Danger Zone",
+    "uninstallOpenClaw": "Uninstall OpenClaw",
+    "uninstallDescription": "Stop daemon, remove system service, and uninstall OpenClaw. Your config can be backed up first."
+  },
+  "welcome": {
+    "title": "Welcome to ClawSquire",
+    "subtitle": "Your OpenClaw companion app",
+    "openclawNotFound": "OpenClaw is not installed on this system.",
+    "installGuide": "Install OpenClaw first, then come back here.",
+    "installCommand": "npm install -g @anthropic/openclaw",
+    "retry": "Check Again"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close"
+  }
+}

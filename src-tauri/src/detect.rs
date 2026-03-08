@@ -1,0 +1,66 @@
+use serde::Serialize;
+use std::process::Command;
+
+#[derive(Debug, Serialize, Clone)]
+pub struct Environment {
+    pub openclaw_installed: bool,
+    pub openclaw_version: Option<String>,
+    pub openclaw_path: Option<String>,
+    pub config_dir: String,
+    pub platform: String,
+}
+
+pub fn detect_environment() -> Environment {
+    let (installed, version, path) = detect_openclaw();
+    let config_dir = detect_config_dir();
+    let platform = std::env::consts::OS.to_string();
+
+    Environment {
+        openclaw_installed: installed,
+        openclaw_version: version,
+        openclaw_path: path,
+        config_dir,
+        platform,
+    }
+}
+
+fn detect_openclaw() -> (bool, Option<String>, Option<String>) {
+    let which_result = if cfg!(target_os = "windows") {
+        Command::new("where").arg("openclaw").output()
+    } else {
+        Command::new("which").arg("openclaw").output()
+    };
+
+    let path = match which_result {
+        Ok(output) if output.status.success() => {
+            Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
+        }
+        _ => None,
+    };
+
+    if path.is_none() {
+        return (false, None, None);
+    }
+
+    let version = Command::new("openclaw")
+        .arg("--version")
+        .output()
+        .ok()
+        .and_then(|o| {
+            if o.status.success() {
+                Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
+            } else {
+                None
+            }
+        });
+
+    (true, version, path)
+}
+
+fn detect_config_dir() -> String {
+    if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
+        return dir;
+    }
+    let home = dirs::home_dir().unwrap_or_default();
+    home.join(".openclaw").to_string_lossy().to_string()
+}

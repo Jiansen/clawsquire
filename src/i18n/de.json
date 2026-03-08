@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "ClawSquire",
+    "tagline": "Die Begleit-App für OpenClaw"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "onboard": "Einrichtung",
+    "doctor": "Systemprüfung",
+    "backup": "Backups",
+    "settings": "Einstellungen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "openclawStatus": "OpenClaw-Status",
+    "running": "Läuft",
+    "stopped": "Gestoppt",
+    "notInstalled": "Nicht installiert",
+    "version": "Version",
+    "quickActions": "Schnellaktionen",
+    "newSetup": "Neue Einrichtung",
+    "runDoctor": "Prüfung ausführen",
+    "backupNow": "Jetzt sichern",
+    "viewConfig": "Konfiguration anzeigen"
+  },
+  "doctor": {
+    "title": "Systemprüfung",
+    "runCheck": "Prüfung starten",
+    "rerun": "Erneut prüfen",
+    "pass": "Bestanden",
+    "warn": "Warnung",
+    "fail": "Fehlgeschlagen",
+    "categories": {
+      "installation": "Installation",
+      "config": "Konfiguration",
+      "gateway": "Gateway",
+      "security": "Sicherheit",
+      "backup": "Backup"
+    }
+  },
+  "backup": {
+    "title": "Konfigurations-Backups",
+    "create": "Backup erstellen",
+    "restore": "Wiederherstellen",
+    "diff": "Vergleichen",
+    "label": "Bezeichnung",
+    "timestamp": "Erstellt",
+    "size": "Größe",
+    "confirmRestore": "Dieses Backup wiederherstellen? Die aktuelle Konfiguration wird zuerst gesichert.",
+    "noBackups": "Noch keine Backups. Erstelle dein erstes Backup, um deine Konfiguration zu schützen."
+  },
+  "onboard": {
+    "title": "Einrichtungs-Assistent",
+    "chooseTemplate": "Einrichtungsvorlage wählen",
+    "step": "Schritt {{current}} von {{total}}",
+    "back": "Zurück",
+    "next": "Weiter",
+    "finish": "Fertig",
+    "templates": {
+      "telegram": {
+        "name": "Telegram-Gruppen-Assistent",
+        "description": "OpenClaw als KI-Assistent für Telegram-Gruppenchats einrichten"
+      },
+      "discord": {
+        "name": "Discord-Bot",
+        "description": "OpenClaw als Discord-Bot konfigurieren"
+      },
+      "llm-provider": {
+        "name": "LLM-Anbieter",
+        "description": "Schnell einen LLM-Anbieter verbinden (DeepSeek, OpenAI, Anthropic, Ollama)"
+      },
+      "vps-headless": {
+        "name": "VPS Headless-Bereitstellung",
+        "description": "OpenClaw auf einem VPS-Server ohne grafische Oberfläche bereitstellen"
+      }
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "theme": "Design",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System",
+    "about": "Über",
+    "version": "Version",
+    "dangerZone": "Gefahrenzone",
+    "uninstallOpenClaw": "OpenClaw deinstallieren",
+    "uninstallDescription": "Daemon stoppen, Systemdienst entfernen und OpenClaw deinstallieren. Deine Konfiguration wird vorher gesichert."
+  },
+  "welcome": {
+    "title": "Willkommen bei ClawSquire",
+    "subtitle": "Deine OpenClaw-Begleit-App",
+    "openclawNotFound": "OpenClaw ist auf diesem System nicht installiert.",
+    "installGuide": "Installiere zuerst OpenClaw und kehre dann hierher zurück.",
+    "installCommand": "npm install -g @anthropic/openclaw",
+    "retry": "Erneut prüfen"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "close": "Schließen"
+  }
+}

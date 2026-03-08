@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "ClawSquire",
+    "tagline": "OpenClaw 的伴侶應用程式"
+  },
+  "nav": {
+    "dashboard": "儀表板",
+    "onboard": "安裝精靈",
+    "doctor": "健康檢查",
+    "backup": "配置備份",
+    "settings": "設定"
+  },
+  "dashboard": {
+    "title": "儀表板",
+    "openclawStatus": "OpenClaw 狀態",
+    "running": "執行中",
+    "stopped": "已停止",
+    "notInstalled": "未安裝",
+    "version": "版本",
+    "quickActions": "快速操作",
+    "newSetup": "新增設定",
+    "runDoctor": "執行檢查",
+    "backupNow": "立即備份",
+    "viewConfig": "檢視設定"
+  },
+  "doctor": {
+    "title": "健康檢查",
+    "runCheck": "開始檢查",
+    "rerun": "重新檢查",
+    "pass": "通過",
+    "warn": "警告",
+    "fail": "失敗",
+    "categories": {
+      "installation": "安裝",
+      "config": "設定",
+      "gateway": "閘道",
+      "security": "安全性",
+      "backup": "備份"
+    }
+  },
+  "backup": {
+    "title": "配置備份",
+    "create": "建立備份",
+    "restore": "還原",
+    "diff": "比對",
+    "label": "標籤",
+    "timestamp": "建立時間",
+    "size": "大小",
+    "confirmRestore": "確定要還原此備份嗎？目前設定會先自動備份。",
+    "noBackups": "尚無備份。建立第一個備份以保護你的設定。"
+  },
+  "onboard": {
+    "title": "安裝精靈",
+    "chooseTemplate": "選擇設定範本",
+    "step": "第 {{current}} 步，共 {{total}} 步",
+    "back": "上一步",
+    "next": "下一步",
+    "finish": "完成",
+    "templates": {
+      "telegram": {
+        "name": "Telegram 群組助手",
+        "description": "將 OpenClaw 設定為 Telegram 群組聊天 AI 助手"
+      },
+      "discord": {
+        "name": "Discord 機器人",
+        "description": "將 OpenClaw 設定為 Discord 機器人"
+      },
+      "llm-provider": {
+        "name": "LLM 服務接入",
+        "description": "快速接入 LLM 服務（DeepSeek、OpenAI、Anthropic、Ollama）"
+      },
+      "vps-headless": {
+        "name": "VPS 無頭部署",
+        "description": "在無圖形介面的 VPS 伺服器上部署 OpenClaw"
+      }
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "language": "語言",
+    "theme": "主題",
+    "light": "淺色",
+    "dark": "深色",
+    "system": "跟隨系統",
+    "about": "關於",
+    "version": "版本",
+    "dangerZone": "危險操作",
+    "uninstallOpenClaw": "解除安裝 OpenClaw",
+    "uninstallDescription": "停止守護程序、移除系統服務、解除安裝 OpenClaw。操作前會自動備份設定。"
+  },
+  "welcome": {
+    "title": "歡迎使用 ClawSquire",
+    "subtitle": "你的 OpenClaw 伴侶應用程式",
+    "openclawNotFound": "系統中未偵測到 OpenClaw。",
+    "installGuide": "請先安裝 OpenClaw，然後回到這裡。",
+    "installCommand": "npm install -g @anthropic/openclaw",
+    "retry": "重新偵測"
+  },
+  "common": {
+    "loading": "載入中...",
+    "error": "錯誤",
+    "success": "成功",
+    "cancel": "取消",
+    "confirm": "確認",
+    "close": "關閉"
+  }
+}
