@@ -26,7 +26,30 @@
     "viewConfig": "設定を表示",
     "safetyLevel": "セキュリティレベル",
     "safetyConservative": "保守的",
-    "safetyDescription": "基本機能のみ有効です。高度な機能は手動で有効化する必要があります。"
+    "safetyDescription": "基本機能のみ有効です。高度な機能は手動で有効化する必要があります。",
+    "install": {
+      "desc": "OpenClaw をインストールして、セットアップウィザード、ヘルスチェック、設定管理などの全機能をご利用ください。",
+      "whatWillHappen": "実行内容：",
+      "downloadFromNpm": "npm レジストリから OpenClaw をダウンロード",
+      "installPackages": "約700個のパッケージをグローバルインストール",
+      "takeMinutes": "約2〜3分かかります",
+      "requireInternet": "インターネット接続が必要です",
+      "button": "OpenClaw をインストール",
+      "steps": {
+        "connect": "npm レジストリに接続中...",
+        "download": "OpenClaw パッケージをダウンロード中...",
+        "deps": "依存関係をインストール中（1〜2分かかる場合があります）...",
+        "extract": "バイナリをセットアップ中...",
+        "verify": "インストールを検証中...",
+        "done": "完了！"
+      },
+      "elapsed": "経過時間",
+      "appResponsive": "2〜3分かかる場合があります。アプリは応答し続けます。",
+      "success": "OpenClaw {{version}} のインストールが完了しました！",
+      "refreshing": "ダッシュボードを更新中...",
+      "failed": "インストール失敗",
+      "tryAgain": "再試行"
+    }
   },
   "doctor": {
     "title": "ヘルスチェック",
@@ -188,6 +211,22 @@
     "dangerZone": "危険な操作",
     "uninstallOpenClaw": "OpenClaw をアンインストール",
     "uninstallDescription": "デーモンの停止、システムサービスの削除、OpenClaw のアンインストールを行います。設定は事前にバックアップされます。",
+    "uninstall": {
+      "confirmTitle": "本当にアンインストールしますか？",
+      "confirmDesc": "OpenClaw デーモンを停止し、パッケージをアンインストールします。",
+      "alsoDeleteConfig": "設定ファイル（~/.openclaw）も削除する",
+      "autoBackupNote": "アンインストール前にバックアップが自動作成されます。",
+      "steps": {
+        "backup": "アンインストール前のバックアップを作成中...",
+        "daemon": "OpenClaw デーモンを停止中...",
+        "npm": "npm uninstall -g openclaw を実行中...",
+        "config": "設定ファイル（~/.openclaw）を削除中...",
+        "verify": "アンインストールを検証中...",
+        "done": "完了！"
+      },
+      "appResponsive": "OpenClaw をアンインストール中... アプリは応答し続けます。",
+      "notes": "備考："
+    },
     "safety": "セキュリティレベル",
     "safetyPresets": {
       "conservative": {
@@ -231,7 +270,7 @@
     "chooseLanguage": "言語を選択",
     "openclawNotFound": "このシステムに OpenClaw がインストールされていません。",
     "installGuide": "まず OpenClaw をインストールしてから、ここに戻ってください。",
-    "installCommand": "npm install -g @anthropic/openclaw",
+    "installCommand": "npm install -g openclaw",
     "retry": "再確認",
     "safetyNotice": "ClawSquire はデフォルトで最も安全な設定で始まります。いつでも後から機能を追加できます。"
   },

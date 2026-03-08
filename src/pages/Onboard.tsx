@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams, useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import InfoTooltip from '../components/shared/InfoTooltip';
+import { OPENCLAW_GETTING_STARTED_URL } from '../constants';
 
 const TEMPLATES = [
   { id: 'telegram', icon: '💬', est: '~3 min' },
@@ -21,15 +22,31 @@ interface StepDef {
   configPath?: string;
   isSecret?: boolean;
   options?: { value: string; labelKey: string; icon: string; recommended?: boolean }[];
+  isDynamic?: boolean;
   conceptKey?: string;
 }
 
-const LLM_PROVIDERS = [
-  { value: 'deepseek', labelKey: 'onboard.modelGuide.providers.deepseek.name', icon: '🚀', recommended: true },
-  { value: 'openai', labelKey: 'onboard.modelGuide.providers.openai.name', icon: '🤖' },
+const STATIC_LLM_PROVIDERS = [
+  { value: 'openai', labelKey: 'onboard.modelGuide.providers.openai.name', icon: '🤖', recommended: true },
   { value: 'anthropic', labelKey: 'onboard.modelGuide.providers.anthropic.name', icon: '🧠' },
+  { value: 'deepseek', labelKey: 'onboard.modelGuide.providers.deepseek.name', icon: '🚀' },
   { value: 'ollama', labelKey: 'onboard.modelGuide.providers.ollama.name', icon: '💻' },
 ];
+
+const PROVIDER_ICONS: Record<string, string> = {
+  openai: '🤖', anthropic: '🧠', google: '🔍', 'openai-codex': '💻',
+  xai: '⚡', mistral: '🌬️', groq: '🏎️', cerebras: '🧬',
+  openrouter: '🔀', 'amazon-bedrock': '☁️', 'azure-openai-responses': '☁️',
+  'google-vertex': '🔍', 'google-gemini-cli': '🔍', huggingface: '🤗',
+  zai: '🇨🇳', 'github-copilot': '🐙', deepseek: '🚀', ollama: '🖥️',
+};
+
+interface DynamicProvider {
+  id: string;
+  model_count: number;
+  sample_models: string[];
+  priority: number;
+}
 
 function getSteps(templateId: string): StepDef[] {
   switch (templateId) {
@@ -39,7 +56,8 @@ function getSteps(templateId: string): StepDef[] {
           type: 'select',
           titleKey: 'onboard.wizard.llmProvider.step1Title',
           descKey: 'onboard.wizard.llmProvider.step1Desc',
-          options: LLM_PROVIDERS,
+          options: STATIC_LLM_PROVIDERS,
+          isDynamic: true,
           conceptKey: 'llmProvider',
         },
         {
@@ -79,7 +97,8 @@ function getSteps(templateId: string): StepDef[] {
           type: 'select',
           titleKey: 'onboard.wizard.telegram.step3Title',
           descKey: 'onboard.wizard.telegram.step3Desc',
-          options: LLM_PROVIDERS,
+          options: STATIC_LLM_PROVIDERS,
+          isDynamic: true,
           conceptKey: 'llmProvider',
         },
         {
@@ -173,7 +192,7 @@ function TemplateList() {
           <div>
             <p className="text-sm font-medium text-yellow-800">{t('onboard.wizard.prereqNotInstalled')}</p>
             <a
-              href="https://openclaw.ai/docs/getting-started"
+              href={OPENCLAW_GETTING_STARTED_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-yellow-700 underline mt-1 inline-block"
@@ -216,11 +235,31 @@ function TemplateList() {
 function OnboardWizard({ templateId }: { templateId: string }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const [dynamicProviders, setDynamicProviders] = useState<DynamicProvider[] | null>(null);
+
+  useEffect(() => {
+    invoke<DynamicProvider[]>('list_providers')
+      .then(setDynamicProviders)
+      .catch(() => setDynamicProviders(null));
+  }, []);
+
+  const providerOptions = dynamicProviders
+    ? dynamicProviders.map((p) => ({
+        value: p.id,
+        labelKey: `onboard.modelGuide.providers.${p.id}.name`,
+        label: p.id,
+        icon: PROVIDER_ICONS[p.id] || '🔌',
+        recommended: p.priority === 0,
+        modelCount: p.model_count,
+      }))
+    : STATIC_LLM_PROVIDERS.map((p) => ({ ...p, label: p.value, modelCount: 0 }));
+
   const steps = getSteps(templateId);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [values, setValues] = useState<Record<string, string>>({});
-  const [selectedProvider, setSelectedProvider] = useState('deepseek');
+  const [selectedProvider, setSelectedProvider] = useState('openai');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -280,7 +319,7 @@ function OnboardWizard({ templateId }: { templateId: string }) {
     }
 
     if (step.type === 'select' && (templateId === 'telegram' || templateId === 'llm-provider')) {
-      setSelectedProvider(values[`select-${currentStep}`] || 'deepseek');
+      setSelectedProvider(values[`select-${currentStep}`] || 'openai');
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -344,8 +383,11 @@ function OnboardWizard({ templateId }: { templateId: string }) {
 
         {step.type === 'select' && step.options && (
           <div className="grid grid-cols-2 gap-3">
-            {step.options.map((opt) => {
-              const selected = (values[`select-${currentStep}`] || 'deepseek') === opt.value;
+            {(step.isDynamic ? providerOptions : step.options).map((opt) => {
+              const selected = (values[`select-${currentStep}`] || 'openai') === opt.value;
+              const translated = t(opt.labelKey, { defaultValue: '' });
+              const displayName: string = (typeof translated === 'string' && translated) ? translated : ('label' in opt ? String((opt as Record<string, unknown>).label) : opt.value);
+              const mCount = 'modelCount' in opt ? Number((opt as Record<string, unknown>).modelCount) : 0;
               return (
                 <button
                   key={opt.value}
@@ -362,7 +404,10 @@ function OnboardWizard({ templateId }: { templateId: string }) {
                     </span>
                   )}
                   <span className="text-2xl">{opt.icon}</span>
-                  <div className="mt-2 text-sm font-medium text-gray-900">{t(opt.labelKey)}</div>
+                  <div className="mt-2 text-sm font-medium text-gray-900">{displayName}</div>
+                  {mCount > 0 && (
+                    <div className="text-xs text-gray-400 mt-0.5">{mCount} models</div>
+                  )}
                 </button>
               );
             })}

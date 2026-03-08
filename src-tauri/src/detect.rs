@@ -1,3 +1,4 @@
+use crate::constants::{OPENCLAW_CLI, OPENCLAW_STATE_DIR_DEFAULT};
 use serde::Serialize;
 use std::process::Command;
 
@@ -26,9 +27,9 @@ pub fn detect_environment() -> Environment {
 
 fn detect_openclaw() -> (bool, Option<String>, Option<String>) {
     let which_result = if cfg!(target_os = "windows") {
-        Command::new("where").arg("openclaw").output()
+        Command::new("where").arg(OPENCLAW_CLI).output()
     } else {
-        Command::new("which").arg("openclaw").output()
+        Command::new("which").arg(OPENCLAW_CLI).output()
     };
 
     let path = match which_result {
@@ -42,7 +43,7 @@ fn detect_openclaw() -> (bool, Option<String>, Option<String>) {
         return (false, None, None);
     }
 
-    let version = Command::new("openclaw")
+    let version = Command::new(OPENCLAW_CLI)
         .arg("--version")
         .output()
         .ok()
@@ -62,5 +63,5 @@ fn detect_config_dir() -> String {
         return dir;
     }
     let home = dirs::home_dir().unwrap_or_default();
-    home.join(".openclaw").to_string_lossy().to_string()
+    home.join(OPENCLAW_STATE_DIR_DEFAULT).to_string_lossy().to_string()
 }

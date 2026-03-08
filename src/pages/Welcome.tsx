@@ -77,7 +77,7 @@ export default function Welcome({ onLanguageSelected }: WelcomeProps) {
         >
           OpenClaw
         </a>{' '}
-        (275K ★)
+        (Open Source ★)
       </p>
     </div>
   );

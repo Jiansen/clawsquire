@@ -26,7 +26,30 @@
     "viewConfig": "View Config",
     "safetyLevel": "Safety Level",
     "safetyConservative": "Conservative",
-    "safetyDescription": "Only basic features are enabled. Advanced features require manual activation."
+    "safetyDescription": "Only basic features are enabled. Advanced features require manual activation.",
+    "install": {
+      "desc": "Install OpenClaw to unlock all features — setup wizard, health checks, config management.",
+      "whatWillHappen": "What will happen:",
+      "downloadFromNpm": "Download OpenClaw from npm registry",
+      "installPackages": "Install ~700 packages globally",
+      "takeMinutes": "Takes about 2-3 minutes",
+      "requireInternet": "Requires internet connection",
+      "button": "Install OpenClaw",
+      "steps": {
+        "connect": "Connecting to npm registry...",
+        "download": "Downloading OpenClaw package...",
+        "deps": "Installing dependencies (this may take 1-2 minutes)...",
+        "extract": "Setting up binaries...",
+        "verify": "Verifying installation...",
+        "done": "Complete!"
+      },
+      "elapsed": "Elapsed",
+      "appResponsive": "This may take 2-3 minutes. The app remains responsive.",
+      "success": "OpenClaw {{version}} installed successfully!",
+      "refreshing": "Refreshing dashboard...",
+      "failed": "Installation failed",
+      "tryAgain": "Try Again"
+    }
   },
   "doctor": {
     "title": "Health Check",
@@ -188,6 +211,22 @@
     "dangerZone": "Danger Zone",
     "uninstallOpenClaw": "Uninstall OpenClaw",
     "uninstallDescription": "Stop daemon, remove system service, and uninstall OpenClaw. Your config can be backed up first.",
+    "uninstall": {
+      "confirmTitle": "Are you sure?",
+      "confirmDesc": "This will stop the OpenClaw daemon and uninstall the package.",
+      "alsoDeleteConfig": "Also delete configuration files (~/.openclaw)",
+      "autoBackupNote": "A backup will be created automatically before uninstalling.",
+      "steps": {
+        "backup": "Creating pre-uninstall backup...",
+        "daemon": "Stopping OpenClaw daemon...",
+        "npm": "Running npm uninstall -g openclaw...",
+        "config": "Removing configuration files (~/.openclaw)...",
+        "verify": "Verifying removal...",
+        "done": "Complete!"
+      },
+      "appResponsive": "Uninstalling OpenClaw... The app remains responsive.",
+      "notes": "Notes:"
+    },
     "safety": "Safety Level",
     "safetyPresets": {
       "conservative": {
@@ -231,7 +270,7 @@
     "chooseLanguage": "Choose your language",
     "openclawNotFound": "OpenClaw is not installed on this system.",
     "installGuide": "Install OpenClaw first, then come back here.",
-    "installCommand": "npm install -g @anthropic/openclaw",
+    "installCommand": "npm install -g openclaw",
     "retry": "Check Again",
     "safetyNotice": "ClawSquire starts with the safest settings by default. You can always enable more features later."
   },

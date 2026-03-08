@@ -69,7 +69,7 @@ export default function Sidebar() {
 
   return (
     <aside className="flex flex-col items-center w-16 min-h-screen bg-gray-900 py-4">
-      <div className="mb-6 text-claw-400 font-bold text-lg select-none">CS</div>
+      <div className="mb-6 text-claw-400 font-bold text-lg select-none" title="ClawSquire">CS</div>
 
       <nav className="flex flex-col gap-1 flex-1">
         {navItems.map((item) => (

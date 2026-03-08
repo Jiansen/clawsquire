@@ -1,4 +1,5 @@
 mod backup;
+mod constants;
 mod detect;
 mod doctor;
 mod openclaw;
@@ -6,6 +7,7 @@ mod openclaw;
 use backup::{BackupEntry, DiffEntry};
 use detect::Environment;
 use doctor::DoctorReport;
+use openclaw::{InstallResult, ModelInfo, ProviderInfo, UninstallResult};
 
 #[tauri::command]
 fn get_environment() -> Environment {
@@ -52,6 +54,44 @@ fn diff_backups(id1: String, id2: Option<String>) -> Result<Vec<DiffEntry>, Stri
     backup::diff_backups(&id1, id2.as_deref())
 }
 
+#[tauri::command]
+fn daemon_stop() -> Result<String, String> {
+    openclaw::daemon_stop()
+}
+
+#[tauri::command]
+fn daemon_start() -> Result<String, String> {
+    openclaw::daemon_start()
+}
+
+#[tauri::command]
+async fn list_providers() -> Result<Vec<ProviderInfo>, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::list_providers)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn list_models(provider: String) -> Result<Vec<ModelInfo>, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::list_models(&provider))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn install_openclaw() -> Result<InstallResult, String> {
+    tauri::async_runtime::spawn_blocking(|| openclaw::install_openclaw())
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::uninstall_openclaw(remove_config))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -66,6 +106,12 @@ pub fn run() {
             list_backups,
             restore_backup,
             diff_backups,
+            daemon_stop,
+            daemon_start,
+            list_providers,
+            list_models,
+            install_openclaw,
+            uninstall_openclaw,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

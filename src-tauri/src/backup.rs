@@ -1,3 +1,4 @@
+use crate::constants::{CLAWSQUIRE_DATA_DIR, OPENCLAW_CONFIG_FILENAME};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -22,13 +23,13 @@ pub struct DiffEntry {
 fn backup_dir() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join(".clawsquire")
+        .join(CLAWSQUIRE_DATA_DIR)
         .join("backups")
 }
 
 fn config_path() -> PathBuf {
     let env = crate::detect::detect_environment();
-    PathBuf::from(&env.config_dir).join("openclaw.json")
+    PathBuf::from(&env.config_dir).join(OPENCLAW_CONFIG_FILENAME)
 }
 
 pub fn create_backup(label: Option<&str>) -> Result<BackupEntry, String> {

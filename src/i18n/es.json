@@ -26,7 +26,30 @@
     "viewConfig": "Ver configuración",
     "safetyLevel": "Nivel de seguridad",
     "safetyConservative": "Conservador",
-    "safetyDescription": "Solo las funciones básicas están habilitadas. Las funciones avanzadas requieren activación manual."
+    "safetyDescription": "Solo las funciones básicas están habilitadas. Las funciones avanzadas requieren activación manual.",
+    "install": {
+      "desc": "Instala OpenClaw para desbloquear todas las funciones: asistente de configuración, chequeo de salud, gestión de configuración.",
+      "whatWillHappen": "Lo que sucederá:",
+      "downloadFromNpm": "Descargar OpenClaw del registro npm",
+      "installPackages": "Instalar ~700 paquetes globalmente",
+      "takeMinutes": "Tarda aproximadamente 2-3 minutos",
+      "requireInternet": "Requiere conexión a internet",
+      "button": "Instalar OpenClaw",
+      "steps": {
+        "connect": "Conectando al registro npm...",
+        "download": "Descargando el paquete OpenClaw...",
+        "deps": "Instalando dependencias (puede tardar 1-2 minutos)...",
+        "extract": "Configurando binarios...",
+        "verify": "Verificando instalación...",
+        "done": "¡Completado!"
+      },
+      "elapsed": "Tiempo transcurrido",
+      "appResponsive": "Puede tardar 2-3 minutos. La aplicación permanece activa.",
+      "success": "¡OpenClaw {{version}} instalado correctamente!",
+      "refreshing": "Actualizando panel...",
+      "failed": "Instalación fallida",
+      "tryAgain": "Reintentar"
+    }
   },
   "doctor": {
     "title": "Diagnóstico",
@@ -188,6 +211,22 @@
     "dangerZone": "Zona de peligro",
     "uninstallOpenClaw": "Desinstalar OpenClaw",
     "uninstallDescription": "Detener el daemon, eliminar el servicio del sistema y desinstalar OpenClaw. Tu configuración se respaldará primero.",
+    "uninstall": {
+      "confirmTitle": "¿Estás seguro?",
+      "confirmDesc": "Esto detendrá el daemon de OpenClaw y desinstalará el paquete.",
+      "alsoDeleteConfig": "También eliminar archivos de configuración (~/.openclaw)",
+      "autoBackupNote": "Se creará una copia de seguridad automáticamente antes de desinstalar.",
+      "steps": {
+        "backup": "Creando copia de seguridad previa...",
+        "daemon": "Deteniendo el daemon de OpenClaw...",
+        "npm": "Ejecutando npm uninstall -g openclaw...",
+        "config": "Eliminando archivos de configuración (~/.openclaw)...",
+        "verify": "Verificando desinstalación...",
+        "done": "¡Completado!"
+      },
+      "appResponsive": "Desinstalando OpenClaw... La aplicación permanece activa.",
+      "notes": "Notas:"
+    },
     "safety": "Nivel de seguridad",
     "safetyPresets": {
       "conservative": {
@@ -231,7 +270,7 @@
     "chooseLanguage": "Elige tu idioma",
     "openclawNotFound": "OpenClaw no está instalado en este sistema.",
     "installGuide": "Instala OpenClaw primero y luego vuelve aquí.",
-    "installCommand": "npm install -g @anthropic/openclaw",
+    "installCommand": "npm install -g openclaw",
     "retry": "Verificar de nuevo",
     "safetyNotice": "ClawSquire comienza con la configuración más segura por defecto. Siempre puedes habilitar más funciones más tarde."
   },

@@ -1,3 +1,4 @@
+use crate::constants::{CLAWSQUIRE_DATA_DIR, OPENCLAW_CLI, OPENCLAW_NPM_PKG};
 use serde::Serialize;
 use std::process::Command;
 
@@ -66,7 +67,7 @@ fn run_own_checks() -> Vec<DoctorCheckResult> {
     let mut checks = Vec::new();
 
     // Check: OpenClaw installed?
-    let openclaw_output = Command::new("openclaw").arg("--version").output();
+    let openclaw_output = Command::new(OPENCLAW_CLI).arg("--version").output();
     match openclaw_output {
         Ok(output) if output.status.success() => {
             let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -84,7 +85,7 @@ fn run_own_checks() -> Vec<DoctorCheckResult> {
                 status: CheckStatus::Fail,
                 message: "OpenClaw is not installed or not in PATH.".to_string(),
                 category: "installation".to_string(),
-                fix_hint: Some("Install with: npm install -g @anthropic/openclaw".to_string()),
+                fix_hint: Some(format!("Install with: npm install -g {}", OPENCLAW_NPM_PKG)),
             });
         }
     }
@@ -113,7 +114,7 @@ fn run_own_checks() -> Vec<DoctorCheckResult> {
     // Check: ClawSquire backup directory
     let backup_dir = dirs::home_dir()
         .unwrap_or_default()
-        .join(".clawsquire")
+        .join(CLAWSQUIRE_DATA_DIR)
         .join("backups");
     if backup_dir.exists() {
         let count = std::fs::read_dir(&backup_dir)
@@ -144,7 +145,7 @@ fn run_own_checks() -> Vec<DoctorCheckResult> {
 }
 
 fn run_openclaw_doctor() -> Result<Vec<DoctorCheckResult>, String> {
-    let output = Command::new("openclaw")
+    let output = Command::new(OPENCLAW_CLI)
         .args(["doctor", "--non-interactive", "--yes"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw doctor: {}", e))?;

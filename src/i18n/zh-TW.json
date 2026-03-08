@@ -26,7 +26,30 @@
     "viewConfig": "檢視設定",
     "safetyLevel": "安全等級",
     "safetyConservative": "保守模式",
-    "safetyDescription": "僅啟用基礎功能。進階功能需手動開啟。"
+    "safetyDescription": "僅啟用基礎功能。進階功能需手動開啟。",
+    "install": {
+      "desc": "安裝 OpenClaw 以解鎖所有功能 — 設定精靈、健康檢查、設定管理。",
+      "whatWillHappen": "即將執行：",
+      "downloadFromNpm": "從 npm 倉庫下載 OpenClaw",
+      "installPackages": "全域安裝約 700 個依賴套件",
+      "takeMinutes": "預計需要 2-3 分鐘",
+      "requireInternet": "需要網路連線",
+      "button": "安裝 OpenClaw",
+      "steps": {
+        "connect": "正在連線至 npm 倉庫...",
+        "download": "正在下載 OpenClaw 套件...",
+        "deps": "正在安裝依賴（可能需要 1-2 分鐘）...",
+        "extract": "正在設定可執行檔...",
+        "verify": "正在驗證安裝...",
+        "done": "完成！"
+      },
+      "elapsed": "已用時間",
+      "appResponsive": "預計需要 2-3 分鐘，應用程式保持回應。",
+      "success": "OpenClaw {{version}} 安裝成功！",
+      "refreshing": "正在重新整理儀表板...",
+      "failed": "安裝失敗",
+      "tryAgain": "重試"
+    }
   },
   "doctor": {
     "title": "健康檢查",
@@ -188,6 +211,22 @@
     "dangerZone": "危險操作",
     "uninstallOpenClaw": "解除安裝 OpenClaw",
     "uninstallDescription": "停止守護程式、移除系統服務、解除安裝 OpenClaw。操作前會自動備份設定。",
+    "uninstall": {
+      "confirmTitle": "確定要解除安裝嗎？",
+      "confirmDesc": "這將停止 OpenClaw 守護程序並解除安裝套件。",
+      "alsoDeleteConfig": "同時刪除設定檔（~/.openclaw）",
+      "autoBackupNote": "解除安裝前將自動建立備份。",
+      "steps": {
+        "backup": "正在建立解除安裝前備份...",
+        "daemon": "正在停止 OpenClaw 守護程序...",
+        "npm": "正在執行 npm uninstall -g openclaw...",
+        "config": "正在刪除設定檔（~/.openclaw）...",
+        "verify": "正在驗證解除安裝...",
+        "done": "完成！"
+      },
+      "appResponsive": "正在解除安裝 OpenClaw... 應用程式保持回應。",
+      "notes": "備註："
+    },
     "safety": "安全等級",
     "safetyPresets": {
       "conservative": {
@@ -231,7 +270,7 @@
     "chooseLanguage": "選擇你的語言",
     "openclawNotFound": "系統中未偵測到 OpenClaw。",
     "installGuide": "請先安裝 OpenClaw，然後回到這裡。",
-    "installCommand": "npm install -g @anthropic/openclaw",
+    "installCommand": "npm install -g openclaw",
     "retry": "重新偵測",
     "safetyNotice": "ClawSquire 預設使用最安全的設定。你隨時可以開啟更多功能。"
   },

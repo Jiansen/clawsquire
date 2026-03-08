@@ -26,7 +26,30 @@
     "viewConfig": "查看配置",
     "safetyLevel": "安全等级",
     "safetyConservative": "保守模式",
-    "safetyDescription": "仅启用基础功能。高级功能需要手动开启。"
+    "safetyDescription": "仅启用基础功能。高级功能需要手动开启。",
+    "install": {
+      "desc": "安装 OpenClaw 以解锁所有功能 — 配置向导、健康检查、配置管理。",
+      "whatWillHappen": "即将执行：",
+      "downloadFromNpm": "从 npm 仓库下载 OpenClaw",
+      "installPackages": "全局安装约 700 个依赖包",
+      "takeMinutes": "预计需要 2-3 分钟",
+      "requireInternet": "需要网络连接",
+      "button": "安装 OpenClaw",
+      "steps": {
+        "connect": "正在连接 npm 仓库...",
+        "download": "正在下载 OpenClaw 包...",
+        "deps": "正在安装依赖（可能需要 1-2 分钟）...",
+        "extract": "正在设置可执行文件...",
+        "verify": "正在验证安装...",
+        "done": "完成！"
+      },
+      "elapsed": "已用时间",
+      "appResponsive": "预计需要 2-3 分钟，应用保持响应。",
+      "success": "OpenClaw {{version}} 安装成功！",
+      "refreshing": "正在刷新仪表盘...",
+      "failed": "安装失败",
+      "tryAgain": "重试"
+    }
   },
   "doctor": {
     "title": "健康检查",
@@ -188,6 +211,22 @@
     "dangerZone": "危险区域",
     "uninstallOpenClaw": "卸载 OpenClaw",
     "uninstallDescription": "停止守护进程、移除系统服务、卸载 OpenClaw。可以先备份配置。",
+    "uninstall": {
+      "confirmTitle": "确定要卸载吗？",
+      "confirmDesc": "这将停止 OpenClaw 守护进程并卸载软件包。",
+      "alsoDeleteConfig": "同时删除配置文件（~/.openclaw）",
+      "autoBackupNote": "卸载前将自动创建备份。",
+      "steps": {
+        "backup": "正在创建卸载前备份...",
+        "daemon": "正在停止 OpenClaw 守护进程...",
+        "npm": "正在执行 npm uninstall -g openclaw...",
+        "config": "正在删除配置文件（~/.openclaw）...",
+        "verify": "正在验证卸载...",
+        "done": "完成！"
+      },
+      "appResponsive": "正在卸载 OpenClaw... 应用保持响应。",
+      "notes": "备注："
+    },
     "safety": "安全等级",
     "safetyPresets": {
       "conservative": {
@@ -231,7 +270,7 @@
     "chooseLanguage": "选择你的语言",
     "openclawNotFound": "此系统未安装 OpenClaw。",
     "installGuide": "请先安装 OpenClaw，然后回到这里。",
-    "installCommand": "npm install -g @anthropic/openclaw",
+    "installCommand": "npm install -g openclaw",
     "retry": "重新检测",
     "safetyNotice": "ClawSquire 默认使用最安全的设置。你随时可以开启更多功能。"
   },
