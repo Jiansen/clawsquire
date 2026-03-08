@@ -974,18 +974,18 @@ pub struct SafetyApplyResult {
 pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
     let settings: Vec<(&str, &str)> = match level {
         "conservative" => vec![
-            ("commands.native", "\"ask\""),
-            ("commands.nativeSkills", "\"ask\""),
+            ("commands.native", "false"),
+            ("commands.nativeSkills", "false"),
             ("commands.restart", "false"),
         ],
         "standard" => vec![
-            ("commands.native", "\"ask\""),
+            ("commands.native", "\"auto\""),
             ("commands.nativeSkills", "\"auto\""),
             ("commands.restart", "true"),
         ],
         "full" => vec![
-            ("commands.native", "\"auto\""),
-            ("commands.nativeSkills", "\"auto\""),
+            ("commands.native", "true"),
+            ("commands.nativeSkills", "true"),
             ("commands.restart", "true"),
         ],
         _ => return SafetyApplyResult {
