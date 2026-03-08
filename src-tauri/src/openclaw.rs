@@ -36,9 +36,69 @@ pub fn config_set(path: &str, value: &str) -> Result<(), String> {
     }
 }
 
+fn config_set_raw_json(path: &str, json_value: &str) -> Result<(), String> {
+    let output = Command::new(OPENCLAW_CLI)
+        .args(["config", "set", path, json_value, "--json"])
+        .output()
+        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+    }
+}
+
+fn provider_base_url(provider: &str) -> Option<&'static str> {
+    match provider {
+        "openai" => Some("https://api.openai.com/v1"),
+        "anthropic" => Some("https://api.anthropic.com"),
+        "google" => Some("https://generativelanguage.googleapis.com/v1beta"),
+        "deepseek" => Some("https://api.deepseek.com/v1"),
+        "groq" => Some("https://api.groq.com/openai/v1"),
+        "xai" => Some("https://api.x.ai/v1"),
+        "mistral" => Some("https://api.mistral.ai/v1"),
+        "zai" => Some("https://open.bigmodel.cn/api/paas/v4"),
+        "openrouter" => Some("https://openrouter.ai/api/v1"),
+        "cerebras" => Some("https://api.cerebras.ai/v1"),
+        _ => None,
+    }
+}
+
+fn provider_default_models(provider: &str) -> Vec<serde_json::Value> {
+    let pairs: &[(&str, &str)] = match provider {
+        "openai" => &[("o4-mini", "O4 Mini"), ("gpt-4.1", "GPT 4.1"), ("gpt-4.1-mini", "GPT 4.1 Mini")],
+        "anthropic" => &[("claude-sonnet-4-20250514", "Claude Sonnet 4"), ("claude-haiku-3.5-20241022", "Claude 3.5 Haiku")],
+        "deepseek" => &[("deepseek-chat", "DeepSeek Chat"), ("deepseek-reasoner", "DeepSeek Reasoner")],
+        "google" => &[("gemini-2.5-flash", "Gemini 2.5 Flash"), ("gemini-2.5-pro", "Gemini 2.5 Pro")],
+        "groq" => &[("llama-3.3-70b-versatile", "Llama 3.3 70B")],
+        "xai" => &[("grok-3-mini", "Grok 3 Mini")],
+        "mistral" => &[("mistral-large-latest", "Mistral Large")],
+        "zai" => &[("glm-4.7-flash", "GLM 4.7 Flash")],
+        _ => &[],
+    };
+    pairs
+        .iter()
+        .map(|(id, name)| serde_json::json!({"id": id, "name": name}))
+        .collect()
+}
+
+pub fn setup_provider(provider: &str, api_key: &str) -> Result<(), String> {
+    let base_url = provider_base_url(provider)
+        .ok_or_else(|| format!("Unknown provider: {}", provider))?;
+    let models = provider_default_models(provider);
+    let config = serde_json::json!({
+        "baseUrl": base_url,
+        "apiKey": api_key,
+        "models": models,
+    });
+    let path = format!("models.providers.{}", provider);
+    config_set_raw_json(&path, &config.to_string())
+}
+
 pub fn daemon_status() -> Result<DaemonStatus, String> {
     let output = match Command::new(OPENCLAW_CLI)
-        .args(["daemon", "status"])
+        .args(["gateway", "status"])
         .output()
     {
         Ok(o) => o,
@@ -46,27 +106,72 @@ pub fn daemon_status() -> Result<DaemonStatus, String> {
     };
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-    let running = stdout.contains("running") && !stdout.contains("not running") && !stdout.contains("stopped");
+    let stderr = String::from_utf8_lossy(&output.stderr).to_lowercase();
+    let combined = format!("{}{}", stdout, stderr);
+    let running = (combined.contains("running") || combined.contains("healthy") || combined.contains("listening"))
+        && !combined.contains("not running")
+        && !combined.contains("not loaded")
+        && !combined.contains("stopped");
 
     Ok(DaemonStatus { running, pid: None })
 }
 
 pub fn daemon_stop() -> Result<String, String> {
     let output = Command::new(OPENCLAW_CLI)
-        .args(["daemon", "stop"])
+        .args(["gateway", "stop"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
 
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    if !output.status.success() && !stderr.is_empty() {
+        return Err(stderr);
+    }
+    Ok(if stdout.is_empty() { stderr } else { stdout })
 }
 
 pub fn daemon_start() -> Result<String, String> {
+    // Ensure gateway.mode=local is set (required for gateway to listen)
+    let _ = config_set_raw_json("gateway.mode", "\"local\"");
+
+    // Try `gateway start` first; if the service isn't installed, install it then start
     let output = Command::new(OPENCLAW_CLI)
-        .args(["daemon", "start"])
+        .args(["gateway", "start"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
 
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    let combined = format!("{}\n{}", stdout, stderr);
+
+    if combined.contains("not loaded") || combined.contains("not installed") || combined.contains("gateway install") {
+        let install = Command::new(OPENCLAW_CLI)
+            .args(["gateway", "install"])
+            .output()
+            .map_err(|e| format!("Failed to install gateway: {}", e))?;
+
+        if !install.status.success() {
+            let err = String::from_utf8_lossy(&install.stderr).trim().to_string();
+            return Err(format!("Gateway install failed: {}", err));
+        }
+
+        let start2 = Command::new(OPENCLAW_CLI)
+            .args(["gateway", "start"])
+            .output()
+            .map_err(|e| format!("Failed to start gateway: {}", e))?;
+
+        let out = String::from_utf8_lossy(&start2.stdout).trim().to_string();
+        if !start2.status.success() {
+            let err = String::from_utf8_lossy(&start2.stderr).trim().to_string();
+            return Err(if err.is_empty() { out } else { err });
+        }
+        return Ok(out);
+    }
+
+    if !output.status.success() && !stderr.is_empty() {
+        return Err(stderr);
+    }
+    Ok(if stdout.is_empty() { stderr } else { stdout })
 }
 
 #[derive(Debug, Serialize)]
@@ -183,7 +288,43 @@ pub fn list_providers() -> Result<Vec<ProviderInfo>, String> {
     Ok(result)
 }
 
+fn parse_model_lines(stdout: &str, prefix: &str) -> Vec<ModelInfo> {
+    stdout
+        .lines()
+        .skip(1)
+        .filter_map(|line| {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 3 && parts[0].starts_with(prefix) {
+                Some(ModelInfo {
+                    id: parts[0].to_string(),
+                    input: parts[1].to_string(),
+                    context_window: parts[2].to_string(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 pub fn list_models(provider: &str) -> Result<Vec<ModelInfo>, String> {
+    let prefix = format!("{}/", provider);
+
+    // First try configured models (without --all)
+    if let Ok(output) = Command::new(OPENCLAW_CLI)
+        .args(["models", "list", "--provider", provider])
+        .output()
+    {
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let models = parse_model_lines(&stdout, &prefix);
+            if !models.is_empty() {
+                return Ok(models);
+            }
+        }
+    }
+
+    // Fall back to full catalog
     let output = Command::new(OPENCLAW_CLI)
         .args(["models", "list", "--all"])
         .output()
@@ -194,26 +335,7 @@ pub fn list_models(provider: &str) -> Result<Vec<ModelInfo>, String> {
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let prefix = format!("{}/", provider);
-
-    let models: Vec<ModelInfo> = stdout
-        .lines()
-        .skip(1)
-        .filter_map(|line| {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts.len() >= 3 && parts[0].starts_with(&prefix) {
-                Some(ModelInfo {
-                    id: parts[0].to_string(),
-                    input: parts[1].to_string(),
-                    context_window: parts[2].to_string(),
-                })
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    Ok(models)
+    Ok(parse_model_lines(&stdout, &prefix))
 }
 
 #[derive(Debug, Serialize)]

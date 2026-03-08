@@ -55,13 +55,24 @@ fn diff_backups(id1: String, id2: Option<String>) -> Result<Vec<DiffEntry>, Stri
 }
 
 #[tauri::command]
-fn daemon_stop() -> Result<String, String> {
-    openclaw::daemon_stop()
+async fn daemon_stop() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::daemon_stop)
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-fn daemon_start() -> Result<String, String> {
-    openclaw::daemon_start()
+async fn daemon_start() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::daemon_start)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn setup_provider(provider: String, api_key: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::setup_provider(&provider, &api_key))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -129,6 +140,7 @@ pub fn run() {
             diff_backups,
             daemon_stop,
             daemon_start,
+            setup_provider,
             list_providers,
             list_models,
             check_llm_config,

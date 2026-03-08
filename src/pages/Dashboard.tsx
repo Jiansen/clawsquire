@@ -86,15 +86,17 @@ export default function Dashboard() {
     };
   }, [refresh]);
 
+  const [daemonError, setDaemonError] = useState<string | null>(null);
   const handleDaemonToggle = async () => {
     if (daemonAction !== 'idle') return;
     const action = running ? 'stopping' : 'starting';
     setDaemonAction(action);
+    setDaemonError(null);
     try {
       await invoke(running ? 'daemon_stop' : 'daemon_start');
       await refresh();
-    } catch {
-      // refresh will show actual state
+    } catch (e) {
+      setDaemonError(String(e));
       await refresh();
     } finally {
       setDaemonAction('idle');
@@ -178,6 +180,12 @@ export default function Dashboard() {
             </button>
           )}
         </div>
+
+        {daemonError && (
+          <div className="mt-2 rounded-lg bg-red-50 border border-red-200 p-2.5 text-xs text-red-700">
+            {daemonError}
+          </div>
+        )}
 
         {env && (
           <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-500">

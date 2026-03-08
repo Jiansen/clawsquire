@@ -334,8 +334,7 @@ function OnboardWizard({ templateId }: { templateId: string }) {
     if (step.type === 'input' && !step.configPath && templateId === 'llm-provider') {
       setSaving(true);
       try {
-        const providerConfigPath = `models.providers.${selectedProvider}.apiKey`;
-        await invoke('config_set', { path: providerConfigPath, value: inputValue.trim() });
+        await invoke('setup_provider', { provider: selectedProvider, apiKey: inputValue.trim() });
       } catch (e) {
         setError(String(e));
         setSaving(false);
@@ -349,15 +348,8 @@ function OnboardWizard({ templateId }: { templateId: string }) {
     }
 
     if (step.type === 'model-select' && selectedModel && models.length > 0) {
-      setSaving(true);
-      try {
-        await invoke('config_set', { path: 'models.default', value: selectedModel });
-      } catch (e) {
-        setError(String(e));
-        setSaving(false);
-        return;
-      }
-      setSaving(false);
+      // Model is already configured in the provider — this step is confirmation only.
+      // No additional config_set needed.
     }
 
     const nextStep = Math.min(currentStep + 1, steps.length - 1);
