@@ -136,23 +136,13 @@ jobs:
         run: |
           $edgeVersion = (Get-Item "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe").VersionInfo.FileVersion
           Write-Host "Edge version: $edgeVersion"
-          $majorVersion = $edgeVersion.Split('.')[0]
-          # Try the standard MSFT CDN; fall back to npm msedgedriver package
-          try {
-            $url = "https://msedgedriver.azureedge.net/$edgeVersion/edgedriver_win64.zip"
-            Invoke-WebRequest -Uri $url -OutFile edgedriver.zip -TimeoutSec 30
-            Expand-Archive -Path edgedriver.zip -DestinationPath "$env:USERPROFILE\.cargo\bin" -Force
-            Remove-Item edgedriver.zip
-          } catch {
-            Write-Host "CDN download failed, trying npm msedgedriver package..."
-            npm install -g msedgedriver@$majorVersion
-            $npmBin = (npm root -g) -replace 'node_modules$', 'node_modules\.bin'
-            Copy-Item "$npmBin\msedgedriver.cmd" "$env:USERPROFILE\.cargo\bin\" -ErrorAction SilentlyContinue
-            $driverPath = (npm root -g) + "\msedgedriver\lib\msedgedriver.exe"
-            if (Test-Path $driverPath) {
-              Copy-Item $driverPath "$env:USERPROFILE\.cargo\bin\msedgedriver.exe"
-            }
-          }
+          $url = "https://msedgedriver.microsoft.com/$edgeVersion/edgedriver_win64.zip"
+          Write-Host "Downloading from: $url"
+          Invoke-WebRequest -Uri $url -OutFile edgedriver.zip -TimeoutSec 60
+          Expand-Archive -Path edgedriver.zip -DestinationPath "$env:USERPROFILE\.cargo\bin" -Force
+          Remove-Item edgedriver.zip
+          Write-Host "msedgedriver installed"
+          & "$env:USERPROFILE\.cargo\bin\msedgedriver.exe" --version
         shell: pwsh
 
       - name: Install E2E deps
