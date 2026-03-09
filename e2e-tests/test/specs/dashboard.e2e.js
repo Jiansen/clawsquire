@@ -10,13 +10,13 @@
 
 describe("Dashboard", () => {
   before(async () => {
-    // Skip Welcome by pre-setting locale
+    // App is already loaded (global before hook waits for about:blank to resolve).
+    // Skip Welcome by pre-setting locale, then refresh to apply.
     await browser.execute(() => {
       localStorage.setItem("clawsquire.locale", "en");
     });
     await browser.refresh();
-    // Wait for React to mount and show the window (visible:false until ready)
-    await browser.pause(8000);
+    await browser.pause(5000);
   });
 
   it("renders the sidebar navigation", async () => {

@@ -8,11 +8,12 @@
 
 describe("Doctor Page", () => {
   before(async () => {
+    // App is already loaded (global before hook waits for about:blank to resolve).
     await browser.execute(() => {
       localStorage.setItem("clawsquire.locale", "en");
     });
     await browser.refresh();
-    await browser.pause(8000);
+    await browser.pause(5000);
   });
 
   it("navigates to the Doctor page", async () => {

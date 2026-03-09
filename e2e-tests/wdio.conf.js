@@ -84,6 +84,20 @@ export const config = {
     await new Promise((resolve) => setTimeout(resolve, 3000));
   },
 
+  before: async () => {
+    // Wait for the Tauri app to navigate away from about:blank.
+    // WebView2 starts at about:blank; localStorage is inaccessible there.
+    await browser.waitUntil(
+      async () => {
+        const url = await browser.getUrl();
+        return url && url !== "about:blank";
+      },
+      { timeout: 30_000, interval: 500, timeoutMsg: "App never left about:blank" }
+    );
+    // Extra pause for React to mount and IPC calls to settle
+    await browser.pause(3000);
+  },
+
   afterTest: async function (test, _context, { error, passed }) {
     const slug = `${test.parent}-${test.title}`.replace(/[^a-zA-Z0-9]+/g, "-").slice(0, 80);
     const status = passed ? "pass" : "fail";
