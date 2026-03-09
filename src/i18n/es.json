@@ -56,8 +56,13 @@
       "failed": "Instalación fallida",
       "tryAgain": "Reintentar",
       "npmRequired": "Se requiere Node.js y npm",
-      "npmRequiredDesc": "OpenClaw requiere Node.js (v18+) y npm para instalarse. Instala Node.js primero y luego reinicia ClawSquire.",
-      "downloadNodejs": "Descargar Node.js"
+      "npmRequiredDesc": "OpenClaw requiere Node.js (v18+) y npm. Puedes instalarlo automáticamente o descargarlo manualmente.",
+      "downloadNodejs": "Descargar Node.js",
+      "autoInstallNode": "Instalar Node.js automáticamente",
+      "orDownloadManually": "O descargar manualmente desde nodejs.org",
+      "nodeInstalling": "Instalando Node.js...",
+      "nodeDownloading": "Descargando y extrayendo Node.js LTS...",
+      "nodeInstallHint": "Descargando binario de Node.js (~30MB). No requiere permisos de administrador."
     },
     "llmGuide": {
       "title": "Siguiente paso: Conectar un modelo de IA",

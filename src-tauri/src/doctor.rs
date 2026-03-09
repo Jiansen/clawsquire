@@ -1,6 +1,6 @@
 use crate::constants::{CLAWSQUIRE_DATA_DIR, OPENCLAW_CLI, OPENCLAW_NPM_PKG};
+use crate::detect::cmd_with_path;
 use serde::Serialize;
-use std::process::Command;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct DoctorCheckResult {
@@ -67,7 +67,7 @@ fn run_own_checks() -> Vec<DoctorCheckResult> {
     let mut checks = Vec::new();
 
     // Check: OpenClaw installed?
-    let openclaw_output = Command::new(OPENCLAW_CLI).arg("--version").output();
+    let openclaw_output = cmd_with_path(OPENCLAW_CLI).arg("--version").output();
     match openclaw_output {
         Ok(output) if output.status.success() => {
             let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -145,7 +145,7 @@ fn run_own_checks() -> Vec<DoctorCheckResult> {
 }
 
 fn run_openclaw_doctor() -> Result<Vec<DoctorCheckResult>, String> {
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["doctor", "--non-interactive", "--yes"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw doctor: {}", e))?;

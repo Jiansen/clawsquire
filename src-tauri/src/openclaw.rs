@@ -1,4 +1,5 @@
 use crate::constants::{OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
+use crate::detect::cmd_with_path;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -9,7 +10,7 @@ pub struct DaemonStatus {
 }
 
 pub fn config_get(path: &str) -> Result<String, String> {
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["config", "get", path, "--json"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -24,7 +25,7 @@ pub fn config_get(path: &str) -> Result<String, String> {
 pub fn config_set(path: &str, value: &str) -> Result<(), String> {
     let json_value =
         serde_json::to_string(value).unwrap_or_else(|_| format!("\"{}\"", value));
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["config", "set", path, &json_value, "--json"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -37,7 +38,7 @@ pub fn config_set(path: &str, value: &str) -> Result<(), String> {
 }
 
 fn config_set_raw_json(path: &str, json_value: &str) -> Result<(), String> {
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["config", "set", path, json_value, "--json"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -97,7 +98,7 @@ pub fn setup_provider(provider: &str, api_key: &str) -> Result<(), String> {
 }
 
 pub fn daemon_status() -> Result<DaemonStatus, String> {
-    let output = match Command::new(OPENCLAW_CLI)
+    let output = match cmd_with_path(OPENCLAW_CLI)
         .args(["gateway", "status"])
         .output()
     {
@@ -117,7 +118,7 @@ pub fn daemon_status() -> Result<DaemonStatus, String> {
 }
 
 pub fn daemon_stop() -> Result<String, String> {
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["gateway", "stop"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -135,7 +136,7 @@ pub fn daemon_start() -> Result<String, String> {
     let _ = config_set_raw_json("gateway.mode", "\"local\"");
 
     // Try `gateway start` first; if the service isn't installed, install it then start
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["gateway", "start"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -145,7 +146,7 @@ pub fn daemon_start() -> Result<String, String> {
     let combined = format!("{}\n{}", stdout, stderr);
 
     if combined.contains("not loaded") || combined.contains("not installed") || combined.contains("gateway install") {
-        let install = Command::new(OPENCLAW_CLI)
+        let install = cmd_with_path(OPENCLAW_CLI)
             .args(["gateway", "install"])
             .output()
             .map_err(|e| format!("Failed to install gateway: {}", e))?;
@@ -155,7 +156,7 @@ pub fn daemon_start() -> Result<String, String> {
             return Err(format!("Gateway install failed: {}", err));
         }
 
-        let start2 = Command::new(OPENCLAW_CLI)
+        let start2 = cmd_with_path(OPENCLAW_CLI)
             .args(["gateway", "start"])
             .output()
             .map_err(|e| format!("Failed to start gateway: {}", e))?;
@@ -191,13 +192,13 @@ pub struct InstallResult {
 
 pub fn install_openclaw() -> Result<InstallResult, String> {
     let pkg = format!("{}@latest", OPENCLAW_NPM_PKG);
-    let output = Command::new("npm")
+    let output = cmd_with_path("npm")
         .args(["install", "-g", &pkg])
         .output()
         .map_err(|e| format!("Failed to run npm: {}", e))?;
 
     if output.status.success() {
-        let version = Command::new(OPENCLAW_CLI)
+        let version = cmd_with_path(OPENCLAW_CLI)
             .arg("--version")
             .output()
             .ok()
@@ -245,7 +246,7 @@ const PRIORITY_PROVIDERS: &[&str] = &[
 ];
 
 pub fn list_providers() -> Result<Vec<ProviderInfo>, String> {
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["models", "list", "--all"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -311,7 +312,7 @@ pub fn list_models(provider: &str) -> Result<Vec<ModelInfo>, String> {
     let prefix = format!("{}/", provider);
 
     // First try configured models (without --all)
-    if let Ok(output) = Command::new(OPENCLAW_CLI)
+    if let Ok(output) = cmd_with_path(OPENCLAW_CLI)
         .args(["models", "list", "--provider", provider])
         .output()
     {
@@ -325,7 +326,7 @@ pub fn list_models(provider: &str) -> Result<Vec<ModelInfo>, String> {
     }
 
     // Fall back to full catalog
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["models", "list", "--all"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -365,7 +366,7 @@ pub fn check_llm_config() -> LlmConfigStatus {
         }
     }
 
-    if let Ok(output) = Command::new(OPENCLAW_CLI)
+    if let Ok(output) = cmd_with_path(OPENCLAW_CLI)
         .args(["config", "get", "models.providers", "--json"])
         .output()
     {
@@ -664,7 +665,7 @@ fn parse_openai_response(stdout: &str, model: &str) -> LlmTestResult {
 }
 
 pub fn test_llm_via_gateway() -> LlmTestResult {
-    let output = match Command::new(OPENCLAW_CLI)
+    let output = match cmd_with_path(OPENCLAW_CLI)
         .args([
             "agent",
             "--session-id", "clawsquire-llm-test",
@@ -746,7 +747,7 @@ pub struct ChannelAddResult {
 }
 
 pub fn add_channel(channel: &str, token: &str) -> Result<ChannelAddResult, String> {
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["channels", "add", "--channel", channel, "--token", token])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -807,7 +808,7 @@ pub struct FeedbackInfo {
 pub fn collect_feedback_info() -> FeedbackInfo {
     let platform = std::env::consts::OS.to_string();
 
-    let openclaw_version = Command::new(OPENCLAW_CLI)
+    let openclaw_version = cmd_with_path(OPENCLAW_CLI)
         .arg("--version")
         .output()
         .ok()
@@ -815,7 +816,7 @@ pub fn collect_feedback_info() -> FeedbackInfo {
         .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
         .unwrap_or_else(|| "not installed".to_string());
 
-    let gateway_status = Command::new(OPENCLAW_CLI)
+    let gateway_status = cmd_with_path(OPENCLAW_CLI)
         .args(["gateway", "status"])
         .output()
         .ok()
@@ -927,7 +928,7 @@ pub struct AgentChatResult {
 }
 
 pub fn agent_chat(message: &str) -> AgentChatResult {
-    let output = match Command::new(OPENCLAW_CLI)
+    let output = match cmd_with_path(OPENCLAW_CLI)
         .args([
             "agent",
             "--session-id", "clawsquire",
@@ -1000,7 +1001,7 @@ pub fn agent_chat(message: &str) -> AgentChatResult {
 }
 
 pub fn list_channels() -> Result<Vec<ChannelInfo>, String> {
-    let output = Command::new(OPENCLAW_CLI)
+    let output = cmd_with_path(OPENCLAW_CLI)
         .args(["channels", "list"])
         .output()
         .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
@@ -1078,7 +1079,7 @@ pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String
         errors: Vec::new(),
     };
 
-    match Command::new(OPENCLAW_CLI).args(["daemon", "stop"]).output() {
+    match cmd_with_path(OPENCLAW_CLI).args(["daemon", "stop"]).output() {
         Ok(o) if o.status.success() => result.daemon_stopped = true,
         Ok(o) => {
             let msg = String::from_utf8_lossy(&o.stderr).trim().to_string();
@@ -1090,7 +1091,7 @@ pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String
         Err(e) => result.errors.push(format!("daemon stop: {}", e)),
     }
 
-    match Command::new("npm")
+    match cmd_with_path("npm")
         .args(["uninstall", "-g", OPENCLAW_NPM_PKG])
         .output()
     {

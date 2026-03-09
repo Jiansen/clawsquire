@@ -56,8 +56,13 @@
       "failed": "インストール失敗",
       "tryAgain": "再試行",
       "npmRequired": "Node.js と npm が必要です",
-      "npmRequiredDesc": "OpenClaw のインストールには Node.js（v18+）と npm が必要です。まず Node.js をインストールしてから ClawSquire を再起動してください。",
-      "downloadNodejs": "Node.js をダウンロード"
+      "npmRequiredDesc": "OpenClaw には Node.js（v18+）と npm が必要です。自動インストールするか、手動でダウンロードできます。",
+      "downloadNodejs": "Node.js をダウンロード",
+      "autoInstallNode": "Node.js を自動インストール",
+      "orDownloadManually": "または nodejs.org から手動ダウンロード",
+      "nodeInstalling": "Node.js をインストール中...",
+      "nodeDownloading": "Node.js LTS をダウンロード・展開中...",
+      "nodeInstallHint": "Node.js バイナリをダウンロード中（約30MB）。管理者権限は不要です。"
     },
     "llmGuide": {
       "title": "次のステップ：AI モデルを接続",

@@ -56,8 +56,13 @@
       "failed": "安裝失敗",
       "tryAgain": "重試",
       "npmRequired": "需要 Node.js 和 npm",
-      "npmRequiredDesc": "OpenClaw 需要 Node.js（v18+）和 npm 才能安裝。請先安裝 Node.js，然後重啟 ClawSquire。",
-      "downloadNodejs": "下載 Node.js"
+      "npmRequiredDesc": "OpenClaw 需要 Node.js（v18+）和 npm。可以一鍵自動安裝，也可以手動下載。",
+      "downloadNodejs": "下載 Node.js",
+      "autoInstallNode": "一鍵安裝 Node.js",
+      "orDownloadManually": "或從 nodejs.org 手動下載",
+      "nodeInstalling": "正在安裝 Node.js...",
+      "nodeDownloading": "正在下載並解壓 Node.js LTS...",
+      "nodeInstallHint": "正在下載 Node.js 二進位檔案（約 30MB），無需管理員權限。"
     },
     "llmGuide": {
       "title": "下一步：連接 AI 模型",

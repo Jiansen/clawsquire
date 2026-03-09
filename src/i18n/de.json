@@ -56,8 +56,13 @@
       "failed": "Installation fehlgeschlagen",
       "tryAgain": "Erneut versuchen",
       "npmRequired": "Node.js & npm erforderlich",
-      "npmRequiredDesc": "OpenClaw benötigt Node.js (v18+) und npm zur Installation. Bitte installiere zuerst Node.js und starte ClawSquire neu.",
-      "downloadNodejs": "Node.js herunterladen"
+      "npmRequiredDesc": "OpenClaw benötigt Node.js (v18+) und npm. Du kannst es automatisch installieren oder manuell herunterladen.",
+      "downloadNodejs": "Node.js herunterladen",
+      "autoInstallNode": "Node.js automatisch installieren",
+      "orDownloadManually": "Oder manuell von nodejs.org herunterladen",
+      "nodeInstalling": "Node.js wird installiert...",
+      "nodeDownloading": "Node.js LTS wird heruntergeladen und entpackt...",
+      "nodeInstallHint": "Node.js-Binärdatei wird heruntergeladen (~30MB). Keine Admin-Rechte erforderlich."
     },
     "llmGuide": {
       "title": "Nächster Schritt: KI-Modell verbinden",
