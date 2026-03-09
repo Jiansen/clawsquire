@@ -255,7 +255,7 @@ export default function Settings() {
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">{t('settings.about')}</h3>
         <div className="space-y-2 text-sm">
-          <AboutRow label={t('settings.version')} value="0.1.0" />
+          <AboutRow label={t('settings.version')} value="0.1.2" />
           <AboutRow label="OpenClaw" value={env?.openclaw_version ?? '—'} />
           <AboutRow label="Tauri" value="2.x" />
           <AboutRow label="React" value="19.x" />
