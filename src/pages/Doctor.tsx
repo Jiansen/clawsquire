@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import InfoTooltip from '../components/shared/InfoTooltip';
+import CommunitySearch from '../components/shared/CommunitySearch';
 
 interface DoctorCheck {
   name: string;
@@ -30,6 +31,8 @@ export default function Doctor() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedCheck, setExpandedCheck] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
 
   const runDoctor = async () => {
     setLoading(true);
@@ -99,6 +102,18 @@ export default function Doctor() {
             <SummaryCard label={t('doctor.fail')} value={report.summary.failures} color="bg-red-100 text-red-700" />
           </div>
 
+          {report.summary.failures > 0 && !showSearch && (
+            <button
+              onClick={() => setShowSearch(true)}
+              className="w-full rounded-xl border-2 border-dashed border-claw-200 bg-claw-50/50 p-4
+                         text-center hover:border-claw-300 transition"
+            >
+              <span className="text-sm font-medium text-claw-700">
+                🔍 {t('doctor.search.cta')}
+              </span>
+            </button>
+          )}
+
           {groupedChecks.map(({ category, checks }) => {
             const catPassed = checks.filter((c) => c.status === 'pass').length;
             const catTotal = checks.length;
@@ -149,6 +164,18 @@ export default function Doctor() {
                                 <p className="text-xs text-claw-700">{check.fix_hint}</p>
                               </div>
                             )}
+                            {check.status !== 'pass' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSearchQuery(check.name);
+                                  setShowSearch(true);
+                                }}
+                                className="mt-2 text-xs text-claw-600 hover:text-claw-700 hover:underline transition"
+                              >
+                                🔍 {t('doctor.search.searchFor', { name: check.name })}
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -159,6 +186,32 @@ export default function Doctor() {
             );
           })}
         </>
+      )}
+
+      {showSearch && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-gray-700">
+              🔍 {t('doctor.search.title')}
+            </h3>
+            <button
+              onClick={() => { setShowSearch(false); setSearchQuery(null); }}
+              className="text-xs text-gray-400 hover:text-gray-600 transition"
+            >
+              {t('common.close')}
+            </button>
+          </div>
+          <CommunitySearch initialQuery={searchQuery ?? undefined} />
+        </div>
+      )}
+
+      {!showSearch && !loading && (
+        <button
+          onClick={() => setShowSearch(true)}
+          className="text-xs text-gray-400 hover:text-claw-600 transition"
+        >
+          🔍 {t('doctor.search.toggleOpen')}
+        </button>
       )}
     </div>
   );

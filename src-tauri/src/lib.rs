@@ -1,4 +1,5 @@
 mod backup;
+mod community_search;
 mod constants;
 mod detect;
 mod doctor;
@@ -6,6 +7,7 @@ mod node_install;
 mod openclaw;
 
 use backup::{BackupEntry, DiffEntry};
+use community_search::{SearchResponse, SmartSearchResponse};
 use detect::{Environment, UpdateCheck};
 use doctor::DoctorReport;
 use node_install::NodeInstallResult;
@@ -207,6 +209,20 @@ async fn copy_screenshot_to_clipboard(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn search_community_issues(query: String) -> Result<SearchResponse, String> {
+    tauri::async_runtime::spawn_blocking(move || community_search::search_issues(&query))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn smart_search(query: String, lang: String) -> Result<SmartSearchResponse, String> {
+    tauri::async_runtime::spawn_blocking(move || community_search::smart_search(&query, &lang))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 async fn check_for_updates() -> UpdateCheck {
     let version = env!("CARGO_PKG_VERSION").to_string();
     tauri::async_runtime::spawn_blocking(move || detect::check_for_updates(&version))
@@ -291,6 +307,8 @@ pub fn run() {
             copy_screenshot_to_clipboard,
             agent_chat,
             apply_safety_preset,
+            search_community_issues,
+            smart_search,
             check_for_updates,
         ])
         .build(tauri::generate_context!())

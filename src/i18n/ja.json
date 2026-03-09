@@ -100,6 +100,23 @@
       "gateway": "ゲートウェイ",
       "security": "セキュリティ",
       "backup": "バックアップ"
+    },
+    "search": {
+      "title": "コミュニティ検索",
+      "placeholder": "問題を入力してください（例: \"node not found\" や \"gateway crash\"）",
+      "noResults": "一致する Issue が見つかりません。別のキーワードをお試しください。",
+      "resultCount": "{{count}} 件の結果",
+      "resolved": "解決済み",
+      "open": "未解決",
+      "comments": "件のコメント",
+      "searchFor": "\"{{name}}\" についてコミュニティを検索",
+      "cta": "失敗した項目の解決策をコミュニティで検索",
+      "toggleOpen": "OpenClaw コミュニティの Issue を検索",
+      "smartToggle": "AI 検索に切り替え",
+      "phaseKeywords": "AI がキーワードを抽出中...",
+      "aiSummary": "AI サマリー",
+      "extractedKeywords": "検索キーワード",
+      "poweredBy": "GitHub Search API — openclaw/openclaw"
     }
   },
   "backup": {

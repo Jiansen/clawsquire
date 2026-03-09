@@ -100,6 +100,23 @@
       "gateway": "网关",
       "security": "安全",
       "backup": "备份"
+    },
+    "search": {
+      "title": "社区搜索",
+      "placeholder": "描述你的问题，如 \"node not found\" 或 \"网关崩溃\"",
+      "noResults": "未找到匹配的 Issue。请尝试不同的关键词。",
+      "resultCount": "找到 {{count}} 条结果",
+      "resolved": "已解决",
+      "open": "未解决",
+      "comments": "条评论",
+      "searchFor": "搜索社区中关于 \"{{name}}\" 的方案",
+      "cta": "搜索社区方案解决失败的检查项",
+      "toggleOpen": "搜索 OpenClaw 社区 Issue",
+      "smartToggle": "切换 AI 智能搜索",
+      "phaseKeywords": "AI 正在提取关键词...",
+      "aiSummary": "AI 摘要",
+      "extractedKeywords": "搜索关键词",
+      "poweredBy": "由 GitHub Search API 提供 — openclaw/openclaw"
     }
   },
   "backup": {

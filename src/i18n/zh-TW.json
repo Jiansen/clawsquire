@@ -100,6 +100,23 @@
       "gateway": "閘道",
       "security": "安全性",
       "backup": "備份"
+    },
+    "search": {
+      "title": "社群搜尋",
+      "placeholder": "描述你的問題，如 \"node not found\" 或 \"閘道當機\"",
+      "noResults": "未找到匹配的 Issue。請嘗試不同的關鍵字。",
+      "resultCount": "找到 {{count}} 筆結果",
+      "resolved": "已解決",
+      "open": "未解決",
+      "comments": "則留言",
+      "searchFor": "搜尋社群中關於 \"{{name}}\" 的方案",
+      "cta": "搜尋社群方案解決失敗的檢查項",
+      "toggleOpen": "搜尋 OpenClaw 社群 Issue",
+      "smartToggle": "切換 AI 智慧搜尋",
+      "phaseKeywords": "AI 正在擷取關鍵字...",
+      "aiSummary": "AI 摘要",
+      "extractedKeywords": "搜尋關鍵字",
+      "poweredBy": "由 GitHub Search API 提供 — openclaw/openclaw"
     }
   },
   "backup": {

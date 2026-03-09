@@ -100,6 +100,23 @@
       "gateway": "Gateway",
       "security": "Segurança",
       "backup": "Backup"
+    },
+    "search": {
+      "title": "Pesquisa na comunidade",
+      "placeholder": "Descreva seu problema, ex. \"node not found\" ou \"gateway crash\"",
+      "noResults": "Nenhuma issue encontrada. Tente palavras-chave diferentes.",
+      "resultCount": "{{count}} resultados encontrados",
+      "resolved": "Resolvido",
+      "open": "Aberto",
+      "comments": "comentários",
+      "searchFor": "Pesquisar na comunidade por \"{{name}}\"",
+      "cta": "Pesquisar soluções na comunidade para verificações com falha",
+      "toggleOpen": "Pesquisar issues da comunidade OpenClaw",
+      "smartToggle": "Alternar pesquisa com IA",
+      "phaseKeywords": "IA extraindo palavras-chave...",
+      "aiSummary": "Resumo IA",
+      "extractedKeywords": "Palavras-chave",
+      "poweredBy": "Powered by GitHub Search API — openclaw/openclaw"
     }
   },
   "backup": {
