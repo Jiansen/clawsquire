@@ -1,9 +1,11 @@
 import os from "os";
 import path from "path";
+import fs from "fs";
 import { spawn, spawnSync } from "child_process";
 import { fileURLToPath } from "url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const SCREENSHOTS_DIR = path.resolve(__dirname, "screenshots");
 
 let tauriDriver;
 let exit = false;
@@ -40,6 +42,14 @@ export const config = {
   },
 
   onPrepare: () => {
+    fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
+
+    const binPath = appBinaryPath();
+    if (fs.existsSync(binPath)) {
+      console.log(`[e2e] Binary already exists at ${binPath}, skipping build`);
+      return;
+    }
+
     const npm = os.platform() === "win32" ? "npm.cmd" : "npm";
     spawnSync(npm, ["run", "tauri", "build", "--", "--debug", "--no-bundle"], {
       cwd: path.resolve(__dirname, ".."),
@@ -71,8 +81,32 @@ export const config = {
       }
     });
 
-    // Wait for tauri-driver to start listening on port 4444
     await new Promise((resolve) => setTimeout(resolve, 3000));
+  },
+
+  afterTest: async function (test, _context, { error, passed }) {
+    const slug = `${test.parent}-${test.title}`.replace(/[^a-zA-Z0-9]+/g, "-").slice(0, 80);
+    const status = passed ? "pass" : "fail";
+    const filename = `${status}--${slug}.png`;
+    const filepath = path.join(SCREENSHOTS_DIR, filename);
+
+    try {
+      await browser.saveScreenshot(filepath);
+      if (!passed) {
+        console.log(`[e2e] Screenshot saved: ${filepath}`);
+      }
+    } catch (e) {
+      console.warn(`[e2e] Could not save screenshot: ${e.message}`);
+    }
+
+    if (error) {
+      try {
+        const html = await browser.getPageSource();
+        const htmlPath = filepath.replace(".png", ".html");
+        fs.writeFileSync(htmlPath, html, "utf-8");
+        console.log(`[e2e] Page source saved: ${htmlPath}`);
+      } catch (_) {}
+    }
   },
 
   afterSession: () => {
