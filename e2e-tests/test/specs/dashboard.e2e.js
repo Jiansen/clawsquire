@@ -43,7 +43,7 @@ describe("Dashboard", () => {
   });
 
   it("shows OpenClaw not-installed status", async () => {
-    const status = await $("*=Not Installed");
+    const status = await $("span*=Not Installed");
     await status.waitForExist({ timeout: 15_000 });
     expect(await status.isExisting()).toBe(true);
   });
