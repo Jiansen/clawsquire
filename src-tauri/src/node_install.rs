@@ -1,7 +1,7 @@
 use crate::constants::CLAWSQUIRE_DATA_DIR;
+use crate::detect::hidden_cmd;
 use serde::Serialize;
 use std::path::PathBuf;
-use std::process::Command;
 
 const NODE_LTS_MAJOR: &str = "22";
 
@@ -94,7 +94,7 @@ fn install_unix(version: &str, os_name: &str, arch: &str, install_dir: &PathBuf)
     let tmp = std::env::temp_dir().join(&tarball);
 
     // Download
-    let dl = Command::new("curl")
+    let dl = hidden_cmd("curl")
         .args(["-fSL", "--max-time", "300", "-o"])
         .arg(&tmp)
         .arg(&url)
@@ -123,7 +123,7 @@ fn install_unix(version: &str, os_name: &str, arch: &str, install_dir: &PathBuf)
     }
 
     // Extract — strip one level so contents go directly into install_dir
-    let extract = Command::new("tar")
+    let extract = hidden_cmd("tar")
         .args(["xf"])
         .arg(&tmp)
         .arg("-C")
@@ -175,7 +175,7 @@ fn install_windows(version: &str, arch: &str, install_dir: &PathBuf) -> NodeInst
     let tmp = std::env::temp_dir().join(&zipname);
 
     // Download
-    let dl = Command::new("curl")
+    let dl = hidden_cmd("curl")
         .args(["-fSL", "--max-time", "300", "-o"])
         .arg(&tmp)
         .arg(&url)
@@ -211,7 +211,7 @@ fn install_windows(version: &str, arch: &str, install_dir: &PathBuf) -> NodeInst
         tmp.display(),
         extract_dir.display()
     );
-    let extract = Command::new("powershell")
+    let extract = hidden_cmd("powershell")
         .args(["-NoProfile", "-Command", &ps_cmd])
         .output();
 
@@ -245,7 +245,7 @@ fn install_windows(version: &str, arch: &str, install_dir: &PathBuf) -> NodeInst
             if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
                 let src = entry.path();
                 // Copy all files from the subfolder into install_dir
-                let cp = Command::new("robocopy")
+                let cp = hidden_cmd("robocopy")
                     .args(["/E", "/MOVE", "/NFL", "/NDL", "/NJH", "/NJS"])
                     .arg(&src)
                     .arg(install_dir)
@@ -293,7 +293,7 @@ fn node_binary_path(install_dir: &PathBuf) -> PathBuf {
 }
 
 fn get_node_version(node_bin: &PathBuf) -> Option<String> {
-    Command::new(node_bin)
+    hidden_cmd(node_bin.to_str().unwrap_or("node"))
         .arg("--version")
         .output()
         .ok()
@@ -308,7 +308,7 @@ fn get_node_version(node_bin: &PathBuf) -> Option<String> {
 
 /// Query nodejs.org dist index for the latest LTS version in NODE_LTS_MAJOR.
 fn resolve_latest_lts() -> Option<String> {
-    let output = Command::new("curl")
+    let output = hidden_cmd("curl")
         .args([
             "-sL",
             "--max-time",
@@ -364,6 +364,7 @@ fn platform_pair() -> (String, String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::process::Command;
 
     #[test]
     fn platform_pair_returns_valid_values() {

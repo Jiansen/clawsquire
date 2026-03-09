@@ -1,5 +1,5 @@
 use crate::constants::{OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
-use crate::detect::cmd_with_path;
+use crate::detect::{cmd_with_path, hidden_cmd};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -465,7 +465,7 @@ fn test_openai_compat(url: &str, model: &str, auth: &str) -> LlmTestResult {
     })
     .to_string();
 
-    let mut cmd = Command::new("curl");
+    let mut cmd = hidden_cmd("curl");
     cmd.args([
         "-s",
         "--max-time",
@@ -501,7 +501,7 @@ fn test_anthropic(api_key: &str) -> LlmTestResult {
     })
     .to_string();
 
-    match Command::new("curl")
+    match hidden_cmd("curl")
         .args([
             "-s",
             "--max-time",
@@ -572,7 +572,7 @@ fn test_google(api_key: &str) -> LlmTestResult {
     })
     .to_string();
 
-    match Command::new("curl")
+    match hidden_cmd("curl")
         .args([
             "-s",
             "--max-time",

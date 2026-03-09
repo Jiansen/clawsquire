@@ -2,6 +2,8 @@ use crate::constants::{CLAWSQUIRE_DATA_DIR, OPENCLAW_CLI, OPENCLAW_STATE_DIR_DEF
 use serde::Serialize;
 use std::path::PathBuf;
 use std::process::Command;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Environment {
@@ -99,12 +101,25 @@ fn newest_subdir(parent: &PathBuf) -> Option<PathBuf> {
         .max()
 }
 
+/// Create a Command that won't flash a console window on Windows.
+/// Applies CREATE_NO_WINDOW (0x08000000) on Windows; no-op elsewhere.
+pub fn hidden_cmd(program: &str) -> Command {
+    #[allow(unused_mut)]
+    let mut c = Command::new(program);
+    #[cfg(target_os = "windows")]
+    {
+        c.creation_flags(0x08000000);
+    }
+    c
+}
+
 /// Create a Command with the expanded PATH set.
-/// On Windows, wraps through `cmd /C` so that `.cmd` scripts (npm, npx) are resolved.
+/// On Windows, wraps through `cmd /C` so that `.cmd` scripts (npm, npx) are resolved,
+/// and uses CREATE_NO_WINDOW to prevent console flash.
 pub fn cmd_with_path(program: &str) -> Command {
     #[cfg(target_os = "windows")]
     {
-        let mut c = Command::new("cmd");
+        let mut c = hidden_cmd("cmd");
         c.args(["/C", program]);
         c.env("PATH", expanded_path());
         c
@@ -215,7 +230,7 @@ pub fn check_for_updates(current_version: &str) -> UpdateCheck {
         GITHUB_REPO
     );
 
-    let result = Command::new("curl")
+    let result = hidden_cmd("curl")
         .args(["-sL", "-H", "Accept: application/vnd.github.v3+json", &url])
         .output();
 
