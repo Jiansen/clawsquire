@@ -1,8 +1,9 @@
 import './i18n';
 import './styles/globals.css';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import ErrorBoundary from './components/ErrorBoundary';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
@@ -49,6 +50,10 @@ export default function App() {
   const [hasChosenLocale, setHasChosenLocale] = useState(
     () => localStorage.getItem(LOCALE_KEY) !== null,
   );
+
+  useEffect(() => {
+    getCurrentWindow().show().catch(() => {});
+  }, []);
 
   if (!hasChosenLocale) {
     return (

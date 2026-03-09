@@ -10,7 +10,8 @@ describe("Welcome / First Launch", () => {
     // Ensure no locale is stored so Welcome screen appears
     await browser.execute(() => localStorage.removeItem("clawsquire.locale"));
     await browser.refresh();
-    await browser.pause(2000);
+    // Wait for React to mount and show the window
+    await browser.pause(8000);
   });
 
   it("shows the language selection grid on first launch", async () => {

@@ -15,8 +15,8 @@ describe("Dashboard", () => {
       localStorage.setItem("clawsquire.locale", "en");
     });
     await browser.refresh();
-    // Allow React to render + IPC calls to complete
-    await browser.pause(5000);
+    // Wait for React to mount and show the window (visible:false until ready)
+    await browser.pause(8000);
   });
 
   it("renders the sidebar navigation", async () => {

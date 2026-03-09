@@ -12,7 +12,7 @@ describe("Doctor Page", () => {
       localStorage.setItem("clawsquire.locale", "en");
     });
     await browser.refresh();
-    await browser.pause(3000);
+    await browser.pause(8000);
   });
 
   it("navigates to the Doctor page", async () => {
