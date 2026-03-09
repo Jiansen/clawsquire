@@ -28,6 +28,10 @@ export const config = {
     {
       maxInstances: 1,
       browserName: "wry",
+      // Disable WebDriver BiDi — tauri-driver only supports classic WebDriver.
+      // BiDi creates a CDP mapper context that shows about:blank instead of app content.
+      // See: https://github.com/tauri-apps/wry/issues/1485
+      "wdio:enforceWebDriverClassic": true,
       "tauri:options": {
         application: appBinaryPath(),
       },
