@@ -17,19 +17,10 @@ describe("Doctor Page", () => {
   });
 
   it("navigates to the Doctor page", async () => {
-    // Click the Doctor link in the sidebar
-    const doctorLink = await $("a[href='/doctor'], a*=Doctor, a*=Health");
-    if (await doctorLink.isExisting()) {
-      await doctorLink.click();
-      await browser.pause(2000);
-    } else {
-      // Navigate directly
-      await browser.execute(() => {
-        window.location.hash = "";
-        window.location.pathname = "/doctor";
-      });
-      await browser.pause(3000);
-    }
+    const doctorLink = await $("a[href='/doctor']");
+    await doctorLink.waitForExist({ timeout: 10_000 });
+    await doctorLink.click();
+    await browser.pause(3000);
   });
 
   it("renders the Doctor page heading", async () => {

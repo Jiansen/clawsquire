@@ -42,11 +42,10 @@ describe("Dashboard", () => {
     expect(buttons.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("shows install-related UI when OpenClaw is not installed", async () => {
-    // Look for any dashed border card (InstallCard) or install-related button
-    const installIndicator = await $("[class*='border-dashed'], button*=Install, button*=OpenClaw");
-    await installIndicator.waitForExist({ timeout: 15_000 });
-    expect(await installIndicator.isExisting()).toBe(true);
+  it("shows OpenClaw not-installed status", async () => {
+    const status = await $("*=Not Installed");
+    await status.waitForExist({ timeout: 15_000 });
+    expect(await status.isExisting()).toBe(true);
   });
 });
 
