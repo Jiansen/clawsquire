@@ -20,9 +20,9 @@ interface DoctorReport {
 const CATEGORY_ORDER = ['installation', 'config', 'gateway', 'security', 'backup'];
 
 const STATUS_STYLES = {
-  pass: { bg: 'bg-green-50', border: 'border-green-200', icon: '✅', badge: 'bg-green-100 text-green-700' },
-  warn: { bg: 'bg-yellow-50', border: 'border-yellow-200', icon: '⚠️', badge: 'bg-yellow-100 text-yellow-700' },
-  fail: { bg: 'bg-red-50', border: 'border-red-200', icon: '❌', badge: 'bg-red-100 text-red-700' },
+  pass: { bg: 'bg-green-50 dark:bg-green-950/30', icon: '✅', badge: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' },
+  warn: { bg: 'bg-yellow-50 dark:bg-yellow-950/30', icon: '⚠️', badge: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' },
+  fail: { bg: 'bg-red-50 dark:bg-red-950/30', icon: '❌', badge: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' },
 };
 
 export default function Doctor() {
@@ -59,11 +59,10 @@ export default function Doctor() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      {/* Health Check Section */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-gray-900">🩺 {t('doctor.title')}</h2>
+            <h2 className="text-2xl font-bold">🩺 {t('doctor.title')}</h2>
             <InfoTooltip conceptKey="gateway" inline />
           </div>
           <button
@@ -77,25 +76,25 @@ export default function Doctor() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 text-sm text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
 
         {loading && !report && (
-          <div className="rounded-xl bg-gray-50 border border-gray-200 p-8 text-center">
-            <div className="w-6 h-6 border-2 border-gray-300 border-t-claw-500 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-gray-500">{t('doctor.checking')}</p>
+          <div className="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-8 text-center">
+            <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 border-t-claw-500 rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('doctor.checking')}</p>
           </div>
         )}
 
         {report && (
           <div className="space-y-4">
             <div className="grid grid-cols-4 gap-3">
-              <SummaryCard label={t('doctor.total')} value={report.summary.total} color="bg-gray-100 text-gray-700" />
-              <SummaryCard label={t('doctor.pass')} value={report.summary.passed} color="bg-green-100 text-green-700" />
-              <SummaryCard label={t('doctor.warn')} value={report.summary.warnings} color="bg-yellow-100 text-yellow-700" />
-              <SummaryCard label={t('doctor.fail')} value={report.summary.failures} color="bg-red-100 text-red-700" />
+              <SummaryCard label={t('doctor.total')} value={report.summary.total} color="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" />
+              <SummaryCard label={t('doctor.pass')} value={report.summary.passed} color="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" />
+              <SummaryCard label={t('doctor.warn')} value={report.summary.warnings} color="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" />
+              <SummaryCard label={t('doctor.fail')} value={report.summary.failures} color="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" />
             </div>
 
             {groupedChecks.map(({ category, checks }) => {
@@ -103,18 +102,20 @@ export default function Doctor() {
               const catTotal = checks.length;
               const catHasIssues = checks.some((c) => c.status !== 'pass');
               return (
-                <div key={category} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-700">
+                <div key={category} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       {t(`doctor.categories.${category}`)}
                     </h3>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      catHasIssues ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                      catHasIssues
+                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400'
+                        : 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
                     }`}>
                       {catPassed}/{catTotal}
                     </span>
                   </div>
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-gray-50 dark:divide-gray-800">
                     {checks.map((check, idx) => {
                       const style = STATUS_STYLES[check.status];
                       const key = `${category}-${idx}`;
@@ -124,13 +125,13 @@ export default function Doctor() {
                           <button
                             onClick={() => setExpandedCheck(isExpanded ? null : key)}
                             className={`w-full flex items-center gap-3 px-4 py-3 text-left
-                                       hover:bg-gray-50 transition-colors ${style.bg}`}
+                                       hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${style.bg}`}
                           >
                             <span className="text-base flex-shrink-0">{style.icon}</span>
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-gray-900">{check.name}</div>
+                              <div className="text-sm font-medium">{check.name}</div>
                               {check.message && (
-                                <div className="text-xs text-gray-500 truncate">{check.message}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{check.message}</div>
                               )}
                             </div>
                             <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${style.badge}`}>
@@ -138,14 +139,14 @@ export default function Doctor() {
                             </span>
                           </button>
                           {isExpanded && (check.fix_hint || check.message) && (
-                            <div className="px-4 pb-3 pt-1 bg-gray-50">
+                            <div className="px-4 pb-3 pt-1 bg-gray-50 dark:bg-gray-800/30">
                               {check.message && (
-                                <p className="text-sm text-gray-600 mb-2">{check.message}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{check.message}</p>
                               )}
                               {check.fix_hint && (
-                                <div className="flex items-start gap-2 bg-claw-50 rounded-lg p-3">
+                                <div className="flex items-start gap-2 bg-claw-50 dark:bg-claw-900/20 rounded-lg p-3">
                                   <span className="text-xs">💡</span>
-                                  <p className="text-xs text-claw-700">{check.fix_hint}</p>
+                                  <p className="text-xs text-claw-700 dark:text-claw-400">{check.fix_hint}</p>
                                 </div>
                               )}
                               {check.status !== 'pass' && (
@@ -154,7 +155,7 @@ export default function Doctor() {
                                     e.stopPropagation();
                                     setSearchQuery(check.name);
                                   }}
-                                  className="mt-2 text-xs text-claw-600 hover:text-claw-700 hover:underline transition"
+                                  className="mt-2 text-xs text-claw-600 dark:text-claw-400 hover:text-claw-700 dark:hover:text-claw-300 hover:underline transition"
                                 >
                                   🔍 {t('doctor.search.searchFor', { name: check.name })}
                                 </button>
@@ -172,13 +173,12 @@ export default function Doctor() {
         )}
       </section>
 
-      {/* Community Search Section — always visible */}
-      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <section className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-5">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          <h3 className="text-lg font-semibold mb-1">
             🔍 {t('doctor.search.title')}
           </h3>
-          <p className="text-xs text-gray-500">{t('doctor.search.subtitle')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('doctor.search.subtitle')}</p>
         </div>
         <CommunitySearch initialQuery={searchQuery || undefined} key={searchQuery} />
       </section>

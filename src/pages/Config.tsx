@@ -63,12 +63,12 @@ export default function Config() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">{t('config.title')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('config.title')}</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowRaw(!showRaw)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-              showRaw ? 'bg-claw-100 text-claw-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              showRaw ? 'bg-claw-100 text-claw-700' : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'
             }`}
           >
             {showRaw ? t('config.treeView') : t('config.jsonView')}
@@ -76,8 +76,8 @@ export default function Config() {
           <button
             onClick={loadConfig}
             disabled={loading}
-            className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600
-                       hover:bg-gray-200 disabled:opacity-50 transition-all"
+            className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400
+                       hover:bg-gray-200 dark:hover:bg-gray-800 disabled:opacity-50 transition-all"
           >
             {loading ? '...' : '↻'}
           </button>
@@ -85,15 +85,15 @@ export default function Config() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
       {!parsed && !loading && !error && (
-        <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
+        <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 dark:bg-gray-800/50 p-12 text-center">
           <div className="text-4xl mb-4">📄</div>
-          <p className="text-sm text-gray-500">{t('config.notFound')}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('config.notFound')}</p>
         </div>
       )}
 
@@ -106,7 +106,7 @@ export default function Config() {
       )}
 
       {parsed && !showRaw && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
           <ConfigTree
             data={masked as Record<string, unknown>}
             path=""
@@ -138,7 +138,7 @@ function ConfigTree({
   depth: number;
 }) {
   return (
-    <div className={depth > 0 ? 'border-l border-gray-100 ml-4' : ''}>
+    <div className={depth > 0 ? 'border-l border-gray-100 dark:border-gray-800 ml-4' : ''}>
       {Object.entries(data).map(([key, value]) => {
         const fullPath = path ? `${path}.${key}` : key;
         const isObject = value && typeof value === 'object' && !Array.isArray(value);
@@ -151,7 +151,7 @@ function ConfigTree({
             <div key={key}>
               <button
                 onClick={() => onToggle(fullPath)}
-                className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-800/50 transition-colors"
               >
                 <svg
                   className={`w-3 h-3 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
@@ -181,9 +181,9 @@ function ConfigTree({
         }
 
         return (
-          <div key={key} className="flex items-start gap-3 px-4 py-2 hover:bg-gray-50">
-            <span className="text-sm text-gray-500 min-w-[120px] flex-shrink-0 font-mono">{key}</span>
-            <span className="text-sm text-gray-900 font-mono break-all">
+          <div key={key} className="flex items-start gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-800/50">
+            <span className="text-sm text-gray-500 dark:text-gray-400 min-w-[120px] flex-shrink-0 font-mono">{key}</span>
+            <span className="text-sm text-gray-900 dark:text-gray-100 font-mono break-all">
               {isArray
                 ? `[${(value as unknown[]).map((v) => JSON.stringify(v)).join(', ')}]`
                 : typeof value === 'boolean'

@@ -26,18 +26,18 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-800/50 px-4">
           <div className="max-w-md text-center">
             <div className="text-5xl mb-4">🦞</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Something went wrong
             </h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               ClawSquire encountered an unexpected error. Your data is safe.
             </p>
 
             {this.state.error && (
-              <pre className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-left text-xs text-red-700 overflow-auto max-h-32">
+              <pre className="mb-6 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4 text-left text-xs text-red-700 dark:text-red-400 overflow-auto max-h-32">
                 {this.state.error.message}
               </pre>
             )}
@@ -53,7 +53,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="rounded-lg bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-all"
+                className="rounded-lg bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all"
               >
                 Reload App
               </button>
@@ -65,7 +65,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                 href="https://github.com/Jiansen/clawsquire/issues/new?template=bug_report.yml"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-gray-600"
+                className="underline hover:text-gray-600 dark:text-gray-400"
               >
                 report a bug
               </a>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
 import { useState } from 'react';
 import FeedbackButton from '../shared/FeedbackButton';
+import { useTheme } from '../../lib/useTheme';
 
 const navItems = [
   {
@@ -74,6 +75,14 @@ const navItems = [
 export default function Sidebar() {
   const { t, i18n } = useTranslation();
   const [langOpen, setLangOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  const cycleTheme = () => {
+    const next: Record<string, 'light' | 'dark' | 'system'> = {
+      light: 'dark', dark: 'system', system: 'light',
+    };
+    setTheme(next[theme] ?? 'light');
+  };
 
   const currentLocale = SUPPORTED_LOCALES.find((l) => l.code === i18n.language);
 
@@ -103,6 +112,13 @@ export default function Sidebar() {
 
       <div className="flex flex-col items-center gap-1 mt-auto">
         <FeedbackButton />
+        <button
+          onClick={cycleTheme}
+          title={t('settings.theme')}
+          className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-sm"
+        >
+          {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '💻'}
+        </button>
         <div className="relative">
         <button
           onClick={() => setLangOpen(!langOpen)}

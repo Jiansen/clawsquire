@@ -40,17 +40,17 @@ export default function InfoTooltip({ conceptKey, inline }: InfoTooltipProps) {
       {open && (
         <div
           className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2
-                     w-72 rounded-xl bg-white shadow-lg border border-gray-200 p-4
+                     w-72 rounded-xl bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 p-4
                      animate-in fade-in slide-in-from-bottom-1"
         >
-          <h4 className="font-semibold text-gray-900 text-sm mb-2">{title}</h4>
-          <p className="text-sm text-gray-600 leading-relaxed mb-3">{explanation}</p>
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-2">{title}</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">{explanation}</p>
           <div className="flex items-start gap-2 bg-claw-50 rounded-lg p-2.5">
             <span className="text-claw-500 text-xs mt-0.5">💡</span>
             <p className="text-xs text-claw-700 leading-relaxed">{tip}</p>
           </div>
           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
-            <div className="w-2 h-2 bg-white border-r border-b border-gray-200 rotate-45" />
+            <div className="w-2 h-2 bg-white dark:bg-gray-900 border-r border-b border-gray-200 dark:border-gray-800 rotate-45" />
           </div>
         </div>
       )}

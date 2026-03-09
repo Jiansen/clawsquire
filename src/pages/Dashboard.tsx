@@ -131,7 +131,7 @@ export default function Dashboard() {
   const running = daemon?.running ?? false;
   const llmConfigured = llmStatus?.has_provider ?? false;
 
-  const statusColor = !installed ? 'bg-gray-400' : running ? 'bg-green-500' : 'bg-red-500';
+  const statusColor = !installed ? 'bg-gray-400' : running ? 'bg-green-500' : 'bg-red-50 dark:bg-red-950/300';
   const statusText = !installed
     ? t('dashboard.notInstalled')
     : running
@@ -141,11 +141,11 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h2>
         <button
           onClick={refresh}
           disabled={loading}
-          className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600
+          className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400
                      hover:bg-gray-200 disabled:opacity-50 transition-all"
         >
           {loading ? '...' : '↻'}
@@ -153,7 +153,7 @@ export default function Dashboard() {
       </div>
 
       {updateInfo?.update_available && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex items-center justify-between">
+        <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-xl">🆕</span>
             <div>
@@ -179,9 +179,9 @@ export default function Dashboard() {
       )}
 
       {/* Status Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-500">{t('dashboard.openclawStatus')}</h3>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.openclawStatus')}</h3>
           <InfoTooltip conceptKey="gateway" />
         </div>
 
@@ -189,10 +189,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2.5">
               <span className={`inline-block w-3 h-3 rounded-full ${statusColor} ${running ? 'animate-pulse' : ''}`} />
-              <span className="text-lg font-semibold text-gray-900">{statusText}</span>
+              <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">{statusText}</span>
             </div>
             {version && (
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                 {version}
               </span>
             )}
@@ -203,8 +203,8 @@ export default function Dashboard() {
               disabled={daemonAction !== 'idle'}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${
                 running
-                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 hover:bg-red-200'
+                  : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 hover:bg-green-200'
               }`}
             >
               {daemonAction === 'starting'
@@ -219,19 +219,19 @@ export default function Dashboard() {
         </div>
 
         {daemonError && (
-          <div className="mt-2 rounded-lg bg-red-50 border border-red-200 p-2.5 text-xs text-red-700">
+          <div className="mt-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-2.5 text-xs text-red-700 dark:text-red-400">
             {daemonError}
           </div>
         )}
 
         {env && (
-          <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-500">
+          <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-500 dark:text-gray-400">
             <div>
-              <span className="font-medium text-gray-700">{t('dashboard.platform')}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">{t('dashboard.platform')}</span>
               <p className="mt-0.5">{env.platform}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-700">{t('dashboard.configDir')}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">{t('dashboard.configDir')}</span>
               <p className="mt-0.5 truncate" title={env.config_dir}>{env.config_dir}</p>
             </div>
           </div>
@@ -244,21 +244,21 @@ export default function Dashboard() {
           label={t('dashboard.safetyLevel')}
           value={t('dashboard.safetyConservative')}
           icon="🛡️"
-          color="bg-green-50 border-green-200"
+          color="bg-green-50 border-green-200 dark:border-green-800"
           onClick={() => navigate('/settings')}
         />
         <InfoCard
           label={t('backup.title')}
           value={String(backupCount)}
           icon="💾"
-          color="bg-blue-50 border-blue-200"
+          color="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800"
           onClick={() => navigate('/backup')}
         />
       </div>
 
       {/* Quick Actions */}
       <div>
-        <h3 className="text-sm font-medium text-gray-500 mb-3">{t('dashboard.quickActions')}</h3>
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">{t('dashboard.quickActions')}</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <ActionCard
             label={t('dashboard.newSetup')}
@@ -327,19 +327,19 @@ function LlmGuidanceCard({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 p-6">
+    <div className="rounded-xl border-2 border-dashed border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 p-6">
       <div className="text-center mb-4">
         <div className="text-4xl mb-3">🧠</div>
         <h3 className="text-base font-semibold text-purple-800 mb-1">
           {t('dashboard.llmGuide.title')}
         </h3>
-        <p className="text-sm text-purple-700">
+        <p className="text-sm text-purple-700 dark:text-purple-400">
           {t('dashboard.llmGuide.desc')}
         </p>
       </div>
-      <div className="bg-purple-100 rounded-lg p-3 mb-4 text-left">
+      <div className="bg-purple-100 dark:bg-purple-900/40 rounded-lg p-3 mb-4 text-left">
         <p className="text-xs font-medium text-purple-800 mb-2">{t('dashboard.llmGuide.whyNeeded')}</p>
-        <ul className="text-xs text-purple-700 space-y-1">
+        <ul className="text-xs text-purple-700 dark:text-purple-400 space-y-1">
           <li>• {t('dashboard.llmGuide.reason1')}</li>
           <li>• {t('dashboard.llmGuide.reason2')}</li>
           <li>• {t('dashboard.llmGuide.reason3')}</li>
@@ -419,16 +419,16 @@ function ReadyToUseCard({
     <div className="rounded-xl border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-6">
       <div className="text-center mb-4">
         <div className="text-4xl mb-2">🎉</div>
-        <h3 className="text-base font-semibold text-green-800">
+        <h3 className="text-base font-semibold text-green-800 dark:text-green-400">
           {t('dashboard.ready.title')}
         </h3>
-        <p className="text-sm text-green-700 mt-1">
+        <p className="text-sm text-green-700 dark:text-green-400 mt-1">
           {t('dashboard.ready.desc', { provider: providerName })}
         </p>
       </div>
 
       {!gatewayRunning ? (
-        <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4 mb-4">
+        <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200 dark:border-yellow-800 p-4 mb-4">
           <p className="text-sm text-yellow-800 font-medium mb-2">{t('dashboard.ready.startDaemonHint')}</p>
           <button
             onClick={onStartDaemon}
@@ -438,8 +438,8 @@ function ReadyToUseCard({
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-green-200 p-4 mb-4">
-          <h4 className="text-sm font-medium text-green-800 mb-2 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-900 rounded-lg border border-green-200 dark:border-green-800 p-4 mb-4">
+          <h4 className="text-sm font-medium text-green-800 dark:text-green-400 mb-2 flex items-center gap-2">
             💬 {t('dashboard.ready.tryChatTitle')}
           </h4>
 
@@ -450,7 +450,7 @@ function ReadyToUseCard({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={t('dashboard.ready.tryChatPlaceholder')}
-                className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-400 focus:ring-1 focus:ring-green-300 outline-none"
+                className="flex-1 rounded-lg border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm focus:border-green-400 focus:ring-1 focus:ring-green-300 outline-none"
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               />
               <button
@@ -472,7 +472,7 @@ function ReadyToUseCard({
             <div className="space-y-2">
               <div className="rounded-lg bg-green-50 border border-green-100 p-3 mt-2">
                 <p className="text-xs text-green-500 font-medium mb-1">🦞 OpenClaw:</p>
-                <p className="text-sm text-gray-800 whitespace-pre-wrap">{reply}</p>
+                <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{reply}</p>
               </div>
               <button
                 onClick={() => { setPhase('idle'); setMessage(''); sessionStorage.removeItem(STORAGE_KEY); }}
@@ -485,8 +485,8 @@ function ReadyToUseCard({
 
           {phase === 'error' && (
             <div className="space-y-2 mt-2">
-              <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3">
-                <p className="text-xs text-yellow-700">{chatError}</p>
+              <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-3">
+                <p className="text-xs text-yellow-700 dark:text-yellow-400">{chatError}</p>
               </div>
               <button
                 onClick={() => setPhase('idle')}
@@ -502,7 +502,7 @@ function ReadyToUseCard({
       <div className="text-center">
         <button
           onClick={onSetupBots}
-          className="text-sm text-green-700 hover:text-green-900 underline transition-colors"
+          className="text-sm text-green-700 dark:text-green-400 hover:text-green-900 underline transition-colors"
         >
           {t('dashboard.ready.setupBotsHint')}
         </button>
@@ -531,8 +531,8 @@ function InfoCard({
       className={`rounded-xl border p-4 ${color} ${onClick ? 'cursor-pointer hover:shadow-sm transition-all' : ''}`}
     >
       <div className="text-2xl mb-1">{icon}</div>
-      <div className="text-xs text-gray-500">{label}</div>
-      <div className="text-sm font-semibold text-gray-800 mt-0.5">{value}</div>
+      <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
+      <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{value}</div>
     </Tag>
   );
 }
@@ -624,20 +624,20 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
   };
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-yellow-300 bg-yellow-50 p-6">
+    <div className="rounded-xl border-2 border-dashed border-yellow-300 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 p-6">
       <div className="text-center mb-4">
         <div className="text-4xl mb-3">🦞</div>
         <h3 className="text-base font-semibold text-yellow-800 mb-1">{t('dashboard.notInstalled')}</h3>
-        <p className="text-sm text-yellow-700">
+        <p className="text-sm text-yellow-700 dark:text-yellow-400">
           {t('dashboard.install.desc')}
         </p>
       </div>
 
       {phase === 'idle' && !nodeInstalled && (
         <div className="text-center">
-          <div className="bg-red-100 rounded-lg p-4 text-left">
-            <p className="text-sm font-medium text-red-800 mb-2">{t('dashboard.install.npmRequired')}</p>
-            <p className="text-xs text-red-700 mb-3">{t('dashboard.install.npmRequiredDesc')}</p>
+          <div className="bg-red-100 dark:bg-red-900/40 rounded-lg p-4 text-left">
+            <p className="text-sm font-medium text-red-800 dark:text-red-400 mb-2">{t('dashboard.install.npmRequired')}</p>
+            <p className="text-xs text-red-700 dark:text-red-400 mb-3">{t('dashboard.install.npmRequiredDesc')}</p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleInstallNode}
@@ -649,7 +649,7 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
                 href="https://nodejs.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 text-xs text-red-600 hover:text-red-800 transition-all underline"
+                className="inline-flex items-center justify-center gap-1.5 text-xs text-red-600 hover:text-red-800 dark:text-red-400 transition-all underline"
               >
                 {t('dashboard.install.orDownloadManually')}
                 <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
@@ -665,19 +665,19 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
       {phase === 'installing-node' && (
         <div className="space-y-3">
           <div className="bg-gray-900 rounded-lg p-4 font-mono text-xs">
-            <div className="text-gray-500 mb-2">{t('dashboard.install.nodeInstalling')}</div>
+            <div className="text-gray-500 dark:text-gray-400 mb-2">{t('dashboard.install.nodeInstalling')}</div>
             <div className="flex items-center gap-2 text-gray-300">
               <span className="text-yellow-400 animate-pulse">●</span>
               <span className="text-white">{t('dashboard.install.nodeDownloading')}</span>
             </div>
-            <div className="mt-2 text-gray-600 border-t border-gray-700 pt-2">
+            <div className="mt-2 text-gray-600 dark:text-gray-400 border-t border-gray-700 pt-2">
               {t('dashboard.install.elapsed')}: {formatElapsed(elapsed)}
             </div>
           </div>
           <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
             <div className="h-full bg-green-500 rounded-full animate-pulse" style={{ width: '60%' }} />
           </div>
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
             {t('dashboard.install.nodeInstallHint')}
           </p>
         </div>
@@ -685,9 +685,9 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
 
       {phase === 'idle' && nodeInstalled && (
         <div className="text-center">
-          <div className="bg-yellow-100 rounded-lg p-3 mb-4 text-left">
+          <div className="bg-yellow-100 dark:bg-yellow-900/40 rounded-lg p-3 mb-4 text-left">
             <p className="text-xs font-medium text-yellow-800 mb-2">{t('dashboard.install.whatWillHappen')}</p>
-            <ul className="text-xs text-yellow-700 space-y-1">
+            <ul className="text-xs text-yellow-700 dark:text-yellow-400 space-y-1">
               <li>• {t('dashboard.install.downloadFromNpm')}</li>
               <li>• {t('dashboard.install.installPackages')}</li>
               <li>• {t('dashboard.install.takeMinutes')}</li>
@@ -707,7 +707,7 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
       {phase === 'installing' && (
         <div className="space-y-3">
           <div className="bg-gray-900 rounded-lg p-4 font-mono text-xs">
-            <div className="text-gray-500 mb-2">$ npm install -g openclaw@latest</div>
+            <div className="text-gray-500 dark:text-gray-400 mb-2">$ npm install -g openclaw@latest</div>
             {INSTALL_STEP_KEYS.slice(0, currentStep + 1).map((key, idx) => (
               <div key={key} className="flex items-center gap-2 text-gray-300">
                 {idx < currentStep ? (
@@ -715,12 +715,12 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
                 ) : (
                   <span className="text-yellow-400 animate-pulse">●</span>
                 )}
-                <span className={idx === currentStep ? 'text-white' : 'text-gray-500'}>
+                <span className={idx === currentStep ? 'text-white' : 'text-gray-500 dark:text-gray-400'}>
                   {t(`dashboard.install.steps.${key}`)}
                 </span>
               </div>
             ))}
-            <div className="mt-2 text-gray-600 border-t border-gray-700 pt-2">
+            <div className="mt-2 text-gray-600 dark:text-gray-400 border-t border-gray-700 pt-2">
               {t('dashboard.install.elapsed')}: {formatElapsed(elapsed)}
             </div>
           </div>
@@ -730,7 +730,7 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
               style={{ width: `${Math.min(((currentStep + 1) / INSTALL_STEP_KEYS.length) * 100, 95)}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
             {t('dashboard.install.appResponsive')}
           </p>
         </div>
@@ -738,7 +738,7 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
 
       {phase === 'done' && result?.success && (
         <div className="text-center">
-          <div className="rounded-lg bg-green-100 border border-green-200 p-4 text-sm text-green-800">
+          <div className="rounded-lg bg-green-100 dark:bg-green-900/40 border border-green-200 dark:border-green-800 p-4 text-sm text-green-800 dark:text-green-400">
             <div className="text-2xl mb-2">✅</div>
             <p className="font-semibold">{t('dashboard.install.success', { version: result.version })}</p>
             <p className="text-xs text-green-600 mt-1">{t('dashboard.install.refreshing')}</p>
@@ -748,15 +748,15 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
 
       {phase === 'error' && (
         <div className="text-center">
-          <div className="rounded-lg bg-red-100 border border-red-200 p-4 text-sm text-red-800">
+          <div className="rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 p-4 text-sm text-red-800 dark:text-red-400">
             <p className="font-semibold mb-2">{t('dashboard.install.failed')}</p>
-            <pre className="text-xs text-red-600 bg-red-50 rounded p-2 mt-2 overflow-auto max-h-32 text-left">
+            <pre className="text-xs text-red-600 bg-red-50 dark:bg-red-950/30 rounded p-2 mt-2 overflow-auto max-h-32 text-left">
               {result?.error}
             </pre>
           </div>
           <button
             onClick={() => { setPhase('idle'); setResult(null); }}
-            className="mt-3 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-all"
+            className="mt-3 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-all"
           >
             {t('dashboard.install.tryAgain')}
           </button>
@@ -781,11 +781,11 @@ function ActionCard({
     <button
       onClick={onClick}
       disabled={loading}
-      className="flex flex-col items-center gap-2 bg-white rounded-xl shadow-sm border border-gray-200 p-4
+      className="flex flex-col items-center gap-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4
                  hover:border-claw-300 hover:shadow-md transition-all group disabled:opacity-50"
     >
       <span className="text-claw-600 group-hover:text-claw-700">{icon}</span>
-      <span className="text-sm font-medium text-gray-700">{loading ? '...' : label}</span>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{loading ? '...' : label}</span>
     </button>
   );
 }

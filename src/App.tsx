@@ -24,11 +24,11 @@ function AppShell() {
 
   return (
     <BrowserRouter>
-      <div className="flex h-screen bg-gray-50">
+        <div className="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0">
           <TopBar />
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex-1 overflow-y-auto p-6 text-gray-900 dark:text-gray-100">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/onboard" element={<Onboard />} />

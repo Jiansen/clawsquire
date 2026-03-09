@@ -128,7 +128,7 @@ export default function CommunitySearch({ initialQuery }: { initialQuery?: strin
   return (
     <div className="space-y-3">
       {/* Mode selector */}
-      <div className="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
+      <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-800">
         <button
           onClick={() => setSmartMode(true)}
           className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
@@ -162,8 +162,8 @@ export default function CommunitySearch({ initialQuery }: { initialQuery?: strin
             value={query}
             onChange={(e) => handleInput(e.target.value)}
             placeholder={t('doctor.search.placeholder')}
-            className="w-full rounded-lg border border-gray-300 bg-white pl-9 pr-4 py-3
-                       text-sm text-gray-900 placeholder-gray-400
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-9 pr-4 py-3
+                       text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500
                        focus:border-claw-500 focus:ring-2 focus:ring-claw-500/20 transition"
           />
         </div>
@@ -189,7 +189,7 @@ export default function CommunitySearch({ initialQuery }: { initialQuery?: strin
       )}
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+        <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-xs text-red-600 dark:text-red-400">
           {error}
         </div>
       )}
@@ -201,8 +201,8 @@ export default function CommunitySearch({ initialQuery }: { initialQuery?: strin
       )}
 
       {summary && (
-        <div className="rounded-lg border border-purple-200 bg-purple-50 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-purple-700 mb-2">
+        <div className="rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 p-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-purple-700 dark:text-purple-400 mb-2">
             ✨ {t('doctor.search.aiSummary')}
           </div>
           <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{summary}</p>
@@ -224,8 +224,8 @@ export default function CommunitySearch({ initialQuery }: { initialQuery?: strin
             <button
               key={r.number}
               onClick={() => openUrl(r.html_url)}
-              className="w-full text-left rounded-lg border border-gray-200 bg-white p-3
-                         hover:border-claw-300 hover:bg-claw-50/30 transition group"
+              className="w-full text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3
+                         hover:border-claw-300 dark:hover:border-claw-600 hover:bg-claw-50/30 dark:hover:bg-claw-900/20 transition group"
             >
               <div className="flex items-start gap-2">
                 <span

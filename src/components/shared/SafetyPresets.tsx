@@ -30,16 +30,16 @@ const PRESET_ICONS: Record<SafetyLevel, string> = {
 };
 
 const PRESET_COLORS: Record<SafetyLevel, string> = {
-  conservative: 'border-green-300 bg-green-50',
-  standard: 'border-yellow-300 bg-yellow-50',
-  full: 'border-red-300 bg-red-50',
-  custom: 'border-gray-300 bg-gray-50',
+  conservative: 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/30',
+  standard: 'border-yellow-300 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30',
+  full: 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30',
+  custom: 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
 };
 
 const PRESET_ACTIVE_COLORS: Record<SafetyLevel, string> = {
-  conservative: 'border-green-500 bg-green-100 ring-2 ring-green-400',
-  standard: 'border-yellow-500 bg-yellow-100 ring-2 ring-yellow-400',
-  full: 'border-red-500 bg-red-100 ring-2 ring-red-400',
+  conservative: 'border-green-500 bg-green-100 dark:bg-green-900/40 ring-2 ring-green-400',
+  standard: 'border-yellow-500 bg-yellow-100 dark:bg-yellow-900/40 ring-2 ring-yellow-400',
+  full: 'border-red-500 bg-red-100 dark:bg-red-900/40 ring-2 ring-red-400',
   custom: 'border-claw-500 bg-claw-100 ring-2 ring-claw-400',
 };
 
@@ -71,10 +71,10 @@ export default function SafetyPresets({ value, onChange, showDetails = false }: 
           >
             <span className="text-xl mt-0.5">{PRESET_ICONS[level]}</span>
             <div className="min-w-0">
-              <div className="font-semibold text-sm text-gray-900">
+              <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
                 {t(`settings.safetyPresets.${level}.name`)}
               </div>
-              <div className="text-xs text-gray-600 mt-1 leading-relaxed">
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
                 {t(`settings.safetyPresets.${level}.description`)}
               </div>
             </div>
@@ -106,7 +106,7 @@ function PermissionsList({ level }: { level: SafetyLevel }) {
   ];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 divide-y divide-gray-100">
       {groups.map((group) => {
         const perms = PERMISSIONS.filter((p) => p.level === group.filter);
         return (
@@ -119,13 +119,13 @@ function PermissionsList({ level }: { level: SafetyLevel }) {
                 const enabled = perm.default[level];
                 return (
                   <div key={perm.key} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
                       {t(`settings.permissions.${perm.key}`)}
                     </span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       enabled
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
+                        ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400'
+                        : 'bg-gray-100 text-gray-500 dark:text-gray-400'
                     }`}>
                       {enabled ? t('common.enabled') : t('common.disabled')}
                     </span>

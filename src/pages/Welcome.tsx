@@ -24,11 +24,11 @@ export default function Welcome({ onLanguageSelected }: WelcomeProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 px-4">
       <div className="mb-10 text-center">
         <div className="mb-3 text-5xl">🛡️</div>
-        <h1 className="text-3xl font-bold text-gray-900">ClawSquire</h1>
-        <p className="mt-1 text-sm text-gray-500">{t('app.tagline')}</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">ClawSquire</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('app.tagline')}</p>
       </div>
 
       <div className="grid w-full max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">
@@ -36,12 +36,12 @@ export default function Welcome({ onLanguageSelected }: WelcomeProps) {
           <button
             key={locale.code}
             onClick={() => handleSelect(locale.code)}
-            className="group flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-5 shadow-sm transition-all hover:border-claw-400 hover:shadow-md"
+            className="group flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-5 shadow-sm transition-all hover:border-claw-400 hover:shadow-md"
           >
-            <span className="text-lg font-semibold text-gray-900 group-hover:text-claw-600">
+            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-claw-600">
               {GREETINGS[locale.code]}
             </span>
-            <span className="text-xs text-gray-500">{locale.name}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{locale.name}</span>
           </button>
         ))}
       </div>

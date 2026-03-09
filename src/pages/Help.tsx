@@ -26,7 +26,7 @@ export default function Help() {
 
   return (
     <div className="space-y-8 max-w-2xl">
-      <h2 className="text-2xl font-bold text-gray-900">{t('help.title')}</h2>
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('help.title')}</h2>
 
       <div className="relative">
         <input
@@ -34,7 +34,7 @@ export default function Help() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t('help.searchPlaceholder')}
-          className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pl-10
+          className="w-full rounded-xl border border-gray-300 bg-white dark:bg-gray-900 px-4 py-3 pl-10
                      text-sm focus:outline-none focus:ring-2 focus:ring-claw-400 focus:border-claw-400"
         />
         <svg
@@ -46,9 +46,9 @@ export default function Help() {
         </svg>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 divide-y divide-gray-100">
         <div className="p-4">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             {t('help.commonQuestions')}
           </h3>
         </div>
@@ -57,9 +57,9 @@ export default function Help() {
             <button
               onClick={() => setExpandedFaq(expandedFaq === key ? null : key)}
               className="w-full flex items-center justify-between px-4 py-3.5 text-left
-                         hover:bg-gray-50 transition-colors"
+                         hover:bg-gray-50 dark:bg-gray-800/50 dark:hover:bg-gray-800 transition-colors"
             >
-              <span className="text-sm font-medium text-gray-900 pr-4">
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100 pr-4">
                 {t(`help.faq.${key}.question`)}
               </span>
               <svg
@@ -73,7 +73,7 @@ export default function Help() {
             </button>
             {expandedFaq === key && (
               <div className="px-4 pb-4">
-                <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 rounded-lg p-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
                   {t(`help.faq.${key}.answer`)}
                 </p>
               </div>
@@ -81,7 +81,7 @@ export default function Help() {
           </div>
         ))}
         {filteredFaqs.length === 0 && (
-          <div className="px-4 py-8 text-center text-sm text-gray-500">
+          <div className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             {t('help.noResults')}
           </div>
         )}

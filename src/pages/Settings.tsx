@@ -1,13 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { SUPPORTED_LOCALES, changeLocale } from '../i18n';
 import SafetyPresets, { type SafetyLevel } from '../components/shared/SafetyPresets';
 import InfoTooltip from '../components/shared/InfoTooltip';
 
 const SAFETY_KEY = 'clawsquire.safetyLevel';
-
-type Theme = 'light' | 'dark' | 'system';
 
 interface UninstallResult {
   daemon_stopped: boolean;
@@ -17,8 +14,7 @@ interface UninstallResult {
 }
 
 export default function Settings() {
-  const { t, i18n } = useTranslation();
-  const [theme] = useState<Theme>('system');
+  const { t } = useTranslation();
   const [safetyLevel, setSafetyLevel] = useState<SafetyLevel>(() => {
     return (localStorage.getItem(SAFETY_KEY) as SafetyLevel) || 'conservative';
   });
@@ -115,22 +111,22 @@ export default function Settings() {
 
   return (
     <div className="space-y-8 max-w-2xl">
-      <h2 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h2>
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('settings.title')}</h2>
 
       {/* Safety Level */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-500">{t('settings.safety')}</h3>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('settings.safety')}</h3>
           <InfoTooltip conceptKey="sandbox" />
         </div>
         <SafetyPresets value={safetyLevel} onChange={handleSafetyChange} showDetails />
         {safetyApplying && (
-          <p className="mt-3 text-xs text-gray-500 flex items-center gap-1.5">
+          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
             <span className="animate-spin">⏳</span> {t('settings.safetyApplying')}
           </p>
         )}
         {safetyError && (
-          <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-2.5 text-xs text-red-700">
+          <div className="mt-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-2.5 text-xs text-red-700 dark:text-red-400">
             {safetyError}
           </div>
         )}
@@ -139,62 +135,18 @@ export default function Settings() {
         )}
       </div>
 
-      {/* Language */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-500 mb-4">{t('settings.language')}</h3>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {SUPPORTED_LOCALES.map((locale) => (
-            <button
-              key={locale.code}
-              onClick={() => changeLocale(locale.code)}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-                i18n.language === locale.code
-                  ? 'bg-claw-600 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <span className="text-base">{locale.flag}</span>
-              <span>{locale.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Theme — Coming Soon */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 opacity-60">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-500">{t('settings.theme')}</h3>
-          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{t('common.comingSoon')}</span>
-        </div>
-        <div className="flex gap-2">
-          {(['light', 'dark', 'system'] as const).map((opt) => (
-            <button
-              key={opt}
-              disabled
-              className={`rounded-lg px-4 py-2 text-sm font-medium cursor-not-allowed ${
-                theme === opt
-                  ? 'bg-gray-300 text-white'
-                  : 'bg-gray-100 text-gray-400'
-              }`}
-            >
-              {t(`settings.${opt}`)}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Danger Zone */}
-      <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-red-200 dark:border-red-800 p-6">
         <h3 className="text-sm font-medium text-red-500 mb-4">{t('settings.dangerZone')}</h3>
 
         {uninstallStep === 'idle' && (
           <>
-            <p className="text-sm text-gray-500 mb-3">{t('settings.uninstallDescription')}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('settings.uninstallDescription')}</p>
             <button
               onClick={() => setUninstallStep('confirm')}
               disabled={!env?.openclaw_installed}
-              className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600
-                         hover:bg-red-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="rounded-lg border border-red-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-red-600
+                         hover:bg-red-50 dark:bg-red-950/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {t('settings.uninstallOpenClaw')}
             </button>
@@ -206,11 +158,11 @@ export default function Settings() {
 
         {uninstallStep === 'confirm' && (
           <div className="space-y-4">
-            <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-              <p className="text-sm font-medium text-red-800 mb-3">{t('settings.uninstall.confirmTitle')}</p>
-              <p className="text-sm text-red-700 mb-4">{t('settings.uninstall.confirmDesc')}</p>
+            <div className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4">
+              <p className="text-sm font-medium text-red-800 dark:text-red-400 mb-3">{t('settings.uninstall.confirmTitle')}</p>
+              <p className="text-sm text-red-700 dark:text-red-400 mb-4">{t('settings.uninstall.confirmDesc')}</p>
 
-              <label className="flex items-center gap-2 text-sm text-red-700 mb-4 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-red-700 dark:text-red-400 mb-4 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={removeConfig}
@@ -233,7 +185,7 @@ export default function Settings() {
                 </button>
                 <button
                   onClick={() => setUninstallStep('idle')}
-                  className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-all"
+                  className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all"
                 >
                   {t('common.cancel')}
                 </button>
@@ -245,7 +197,7 @@ export default function Settings() {
         {uninstallStep === 'running' && (
           <div className="space-y-3">
             <div className="bg-gray-900 rounded-lg p-4 font-mono text-xs">
-              <div className="text-gray-500 mb-2">$ npm uninstall -g openclaw</div>
+              <div className="text-gray-500 dark:text-gray-400 mb-2">$ npm uninstall -g openclaw</div>
               {UNINSTALL_STEP_KEYS.slice(0, uninstallCurrentStep + 1).map((key, idx) => (
                 <div key={key} className="flex items-center gap-2 text-gray-300">
                   {idx < uninstallCurrentStep ? (
@@ -253,7 +205,7 @@ export default function Settings() {
                   ) : (
                     <span className="text-yellow-400 animate-pulse">●</span>
                   )}
-                  <span className={idx === uninstallCurrentStep ? 'text-white' : 'text-gray-500'}>
+                  <span className={idx === uninstallCurrentStep ? 'text-white' : 'text-gray-500 dark:text-gray-400'}>
                     {t(`settings.uninstall.steps.${key}`)}
                   </span>
                 </div>
@@ -264,11 +216,11 @@ export default function Settings() {
           </div>
             <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-red-500 rounded-full transition-all duration-500"
+                className="h-full bg-red-50 dark:bg-red-950/300 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(((uninstallCurrentStep + 1) / UNINSTALL_STEP_KEYS.length) * 100, 95)}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               {t('settings.uninstall.appResponsive')}
             </p>
           </div>
@@ -282,16 +234,16 @@ export default function Settings() {
               {removeConfig && <StatusLine ok={uninstallResult.config_removed} label={t('settings.uninstall.result.config')} />}
             </div>
             {uninstallResult.errors.length > 0 && (
-              <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3">
-                <p className="text-xs font-medium text-yellow-800 mb-1">{t('settings.uninstall.notes')}</p>
+              <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-3">
+                <p className="text-xs font-medium text-yellow-800 dark:text-yellow-400 mb-1">{t('settings.uninstall.notes')}</p>
                 {uninstallResult.errors.map((err, i) => (
-                  <p key={i} className="text-xs text-yellow-700">{err}</p>
+                  <p key={i} className="text-xs text-yellow-700 dark:text-yellow-400">{err}</p>
                 ))}
               </div>
             )}
             <button
               onClick={() => { setUninstallStep('idle'); setUninstallResult(null); }}
-              className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-all"
+              className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all"
             >
               {t('common.close')}
             </button>
@@ -300,8 +252,8 @@ export default function Settings() {
       </div>
 
       {/* About */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-500 mb-4">{t('settings.about')}</h3>
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">{t('settings.about')}</h3>
         <div className="space-y-2 text-sm">
           <AboutRow label={t('settings.version')} value="0.1.0" />
           <AboutRow label="OpenClaw" value={env?.openclaw_version ?? '—'} />
@@ -317,7 +269,7 @@ function StatusLine({ ok, label }: { ok: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className={ok ? 'text-green-600' : 'text-red-600'}>{ok ? '✓' : '✗'}</span>
-      <span className={ok ? 'text-gray-700' : 'text-red-700'}>{label}</span>
+      <span className={ok ? 'text-gray-700 dark:text-gray-300' : 'text-red-700 dark:text-red-400'}>{label}</span>
     </div>
   );
 }
@@ -325,8 +277,8 @@ function StatusLine({ ok, label }: { ok: boolean; label: string }) {
 function AboutRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-mono text-gray-900">{value}</span>
+      <span className="text-gray-500 dark:text-gray-400">{label}</span>
+      <span className="font-mono text-gray-900 dark:text-gray-100">{value}</span>
     </div>
   );
 }
