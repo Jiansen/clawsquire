@@ -29,20 +29,26 @@
 - **Auto-Update** — Detects new releases from GitHub and shows a one-click download banner
 - **Error Recovery** — Global error boundary with one-click recovery and bug reporting
 
-## Status
+## Download
 
-🚀 **Pre-release (v0.1.0)** — Core features complete. Pre-built binaries for macOS, Windows, and Linux available on [Releases](https://github.com/Jiansen/clawsquire/releases).
+🚀 **v0.1.0** — [Download for macOS, Windows, or Linux →](https://github.com/Jiansen/clawsquire/releases/latest)
+
+| Platform | Format |
+|----------|--------|
+| macOS (Apple Silicon) | `.dmg` |
+| macOS (Intel) | `.dmg` |
+| Windows | `.msi` |
+| Linux (Debian/Ubuntu) | `.deb` |
+| Linux (universal) | `.AppImage` |
 
 ### macOS: First Launch
 
-The pre-release is not code-signed. Run this once after installing:
+This release is not code-signed. Run this once after installing:
 
 ```bash
 xattr -rd com.apple.quarantine /Applications/ClawSquire.app
 open /Applications/ClawSquire.app
 ```
-
-Code signing will be added in a future release.
 
 ## Quick Start (Development)
 

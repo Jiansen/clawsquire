@@ -58,7 +58,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'ClawSquire ${{ github.ref_name }}'
-          releaseBody: 'Download the installer for your platform below.'
-          releaseDraft: true
-          prerelease: false
+          releaseBody: 'See [CHANGELOG.md](https://github.com/Jiansen/clawsquire/blob/main/CHANGELOG.md) for full release notes.'
+          releaseDraft: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
           args: ${{ matrix.args }}
