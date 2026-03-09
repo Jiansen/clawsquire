@@ -48,7 +48,7 @@ export const config = {
     });
   },
 
-  beforeSession: () => {
+  beforeSession: async () => {
     const driverBin = path.resolve(
       os.homedir(),
       ".cargo",
@@ -70,6 +70,9 @@ export const config = {
         process.exit(1);
       }
     });
+
+    // Wait for tauri-driver to start listening on port 4444
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   },
 
   afterSession: () => {

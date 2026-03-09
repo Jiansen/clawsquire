@@ -100,10 +100,21 @@ fn newest_subdir(parent: &PathBuf) -> Option<PathBuf> {
 }
 
 /// Create a Command with the expanded PATH set.
+/// On Windows, wraps through `cmd /C` so that `.cmd` scripts (npm, npx) are resolved.
 pub fn cmd_with_path(program: &str) -> Command {
-    let mut c = Command::new(program);
-    c.env("PATH", expanded_path());
-    c
+    #[cfg(target_os = "windows")]
+    {
+        let mut c = Command::new("cmd");
+        c.args(["/C", program]);
+        c.env("PATH", expanded_path());
+        c
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let mut c = Command::new(program);
+        c.env("PATH", expanded_path());
+        c
+    }
 }
 
 pub fn detect_environment() -> Environment {
