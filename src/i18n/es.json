@@ -88,6 +88,7 @@
   "doctor": {
     "title": "Diagnóstico",
     "description": "Verifica la instalación, configuración y seguridad de OpenClaw.",
+    "checking": "Ejecutando comprobaciones...",
     "runCheck": "Iniciar verificación",
     "rerun": "Verificar de nuevo",
     "pass": "Correcto",
@@ -112,6 +113,10 @@
       "searchFor": "Buscar en la comunidad \"{{name}}\"",
       "cta": "Buscar soluciones en la comunidad para las comprobaciones fallidas",
       "toggleOpen": "Buscar issues de OpenClaw en la comunidad",
+      "subtitle": "Busca en 11,000+ issues de OpenClaw para encontrar soluciones a problemas comunes.",
+      "modeAI": "Búsqueda IA",
+      "modeBasic": "Básica",
+      "searchBtn": "Buscar",
       "smartToggle": "Alternar búsqueda con IA",
       "phaseKeywords": "IA extrayendo palabras clave...",
       "aiSummary": "Resumen IA",

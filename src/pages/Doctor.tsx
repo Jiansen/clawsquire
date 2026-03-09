@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import InfoTooltip from '../components/shared/InfoTooltip';
@@ -31,8 +31,11 @@ export default function Doctor() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedCheck, setExpandedCheck] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string | null>(null);
-  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    runDoctor();
+  }, []);
 
   const runDoctor = async () => {
     setLoading(true);
@@ -56,163 +59,129 @@ export default function Doctor() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-gray-900">{t('doctor.title')}</h2>
-          <InfoTooltip conceptKey="gateway" inline />
-        </div>
-        <button
-          onClick={runDoctor}
-          disabled={loading}
-          className="rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white
-                     hover:bg-claw-700 disabled:opacity-50 transition-all shadow-sm"
-        >
-          {loading ? t('common.loading') : report ? t('doctor.rerun') : t('doctor.runCheck')}
-        </button>
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {!report && !loading && !error && (
-        <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-          <div className="text-4xl mb-4">🩺</div>
-          <p className="text-sm text-gray-500 mb-4">
-            {t('doctor.description')}
-          </p>
+      {/* Health Check Section */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-gray-900">🩺 {t('doctor.title')}</h2>
+            <InfoTooltip conceptKey="gateway" inline />
+          </div>
           <button
             onClick={runDoctor}
-            className="rounded-lg bg-claw-600 px-6 py-2.5 text-sm font-medium text-white
-                       hover:bg-claw-700 transition-all shadow-sm"
+            disabled={loading}
+            className="rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white
+                       hover:bg-claw-700 disabled:opacity-50 transition-all shadow-sm"
           >
-            {t('doctor.runCheck')}
+            {loading ? t('common.loading') : report ? t('doctor.rerun') : t('doctor.runCheck')}
           </button>
         </div>
-      )}
 
-      {report && (
-        <>
-          <div className="grid grid-cols-4 gap-3">
-            <SummaryCard label={t('doctor.total')} value={report.summary.total} color="bg-gray-100 text-gray-700" />
-            <SummaryCard label={t('doctor.pass')} value={report.summary.passed} color="bg-green-100 text-green-700" />
-            <SummaryCard label={t('doctor.warn')} value={report.summary.warnings} color="bg-yellow-100 text-yellow-700" />
-            <SummaryCard label={t('doctor.fail')} value={report.summary.failures} color="bg-red-100 text-red-700" />
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
           </div>
+        )}
 
-          {report.summary.failures > 0 && !showSearch && (
-            <button
-              onClick={() => setShowSearch(true)}
-              className="w-full rounded-xl border-2 border-dashed border-claw-200 bg-claw-50/50 p-4
-                         text-center hover:border-claw-300 transition"
-            >
-              <span className="text-sm font-medium text-claw-700">
-                🔍 {t('doctor.search.cta')}
-              </span>
-            </button>
-          )}
-
-          {groupedChecks.map(({ category, checks }) => {
-            const catPassed = checks.filter((c) => c.status === 'pass').length;
-            const catTotal = checks.length;
-            const catHasIssues = checks.some((c) => c.status !== 'pass');
-            return (
-              <div key={category} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    {t(`doctor.categories.${category}`)}
-                  </h3>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    catHasIssues ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                  }`}>
-                    {catPassed}/{catTotal}
-                  </span>
-                </div>
-                <div className="divide-y divide-gray-50">
-                  {checks.map((check, idx) => {
-                    const style = STATUS_STYLES[check.status];
-                    const key = `${category}-${idx}`;
-                    const isExpanded = expandedCheck === key;
-                    return (
-                      <div key={key}>
-                        <button
-                          onClick={() => setExpandedCheck(isExpanded ? null : key)}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left
-                                     hover:bg-gray-50 transition-colors ${style.bg}`}
-                        >
-                          <span className="text-base flex-shrink-0">{style.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900">{check.name}</div>
-                            {check.message && (
-                              <div className="text-xs text-gray-500 truncate">{check.message}</div>
-                            )}
-                          </div>
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${style.badge}`}>
-                            {t(`doctor.${check.status}`)}
-                          </span>
-                        </button>
-                        {isExpanded && (check.fix_hint || check.message) && (
-                          <div className="px-4 pb-3 pt-1 bg-gray-50">
-                            {check.message && (
-                              <p className="text-sm text-gray-600 mb-2">{check.message}</p>
-                            )}
-                            {check.fix_hint && (
-                              <div className="flex items-start gap-2 bg-claw-50 rounded-lg p-3">
-                                <span className="text-xs">💡</span>
-                                <p className="text-xs text-claw-700">{check.fix_hint}</p>
-                              </div>
-                            )}
-                            {check.status !== 'pass' && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSearchQuery(check.name);
-                                  setShowSearch(true);
-                                }}
-                                className="mt-2 text-xs text-claw-600 hover:text-claw-700 hover:underline transition"
-                              >
-                                🔍 {t('doctor.search.searchFor', { name: check.name })}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </>
-      )}
-
-      {showSearch && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-700">
-              🔍 {t('doctor.search.title')}
-            </h3>
-            <button
-              onClick={() => { setShowSearch(false); setSearchQuery(null); }}
-              className="text-xs text-gray-400 hover:text-gray-600 transition"
-            >
-              {t('common.close')}
-            </button>
+        {loading && !report && (
+          <div className="rounded-xl bg-gray-50 border border-gray-200 p-8 text-center">
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-claw-500 rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-gray-500">{t('doctor.checking')}</p>
           </div>
-          <CommunitySearch initialQuery={searchQuery ?? undefined} />
+        )}
+
+        {report && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-4 gap-3">
+              <SummaryCard label={t('doctor.total')} value={report.summary.total} color="bg-gray-100 text-gray-700" />
+              <SummaryCard label={t('doctor.pass')} value={report.summary.passed} color="bg-green-100 text-green-700" />
+              <SummaryCard label={t('doctor.warn')} value={report.summary.warnings} color="bg-yellow-100 text-yellow-700" />
+              <SummaryCard label={t('doctor.fail')} value={report.summary.failures} color="bg-red-100 text-red-700" />
+            </div>
+
+            {groupedChecks.map(({ category, checks }) => {
+              const catPassed = checks.filter((c) => c.status === 'pass').length;
+              const catTotal = checks.length;
+              const catHasIssues = checks.some((c) => c.status !== 'pass');
+              return (
+                <div key={category} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700">
+                      {t(`doctor.categories.${category}`)}
+                    </h3>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      catHasIssues ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {catPassed}/{catTotal}
+                    </span>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {checks.map((check, idx) => {
+                      const style = STATUS_STYLES[check.status];
+                      const key = `${category}-${idx}`;
+                      const isExpanded = expandedCheck === key;
+                      return (
+                        <div key={key}>
+                          <button
+                            onClick={() => setExpandedCheck(isExpanded ? null : key)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-left
+                                       hover:bg-gray-50 transition-colors ${style.bg}`}
+                          >
+                            <span className="text-base flex-shrink-0">{style.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-900">{check.name}</div>
+                              {check.message && (
+                                <div className="text-xs text-gray-500 truncate">{check.message}</div>
+                              )}
+                            </div>
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${style.badge}`}>
+                              {t(`doctor.${check.status}`)}
+                            </span>
+                          </button>
+                          {isExpanded && (check.fix_hint || check.message) && (
+                            <div className="px-4 pb-3 pt-1 bg-gray-50">
+                              {check.message && (
+                                <p className="text-sm text-gray-600 mb-2">{check.message}</p>
+                              )}
+                              {check.fix_hint && (
+                                <div className="flex items-start gap-2 bg-claw-50 rounded-lg p-3">
+                                  <span className="text-xs">💡</span>
+                                  <p className="text-xs text-claw-700">{check.fix_hint}</p>
+                                </div>
+                              )}
+                              {check.status !== 'pass' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSearchQuery(check.name);
+                                  }}
+                                  className="mt-2 text-xs text-claw-600 hover:text-claw-700 hover:underline transition"
+                                >
+                                  🔍 {t('doctor.search.searchFor', { name: check.name })}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Community Search Section — always visible */}
+      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            🔍 {t('doctor.search.title')}
+          </h3>
+          <p className="text-xs text-gray-500">{t('doctor.search.subtitle')}</p>
         </div>
-      )}
-
-      {!showSearch && !loading && (
-        <button
-          onClick={() => setShowSearch(true)}
-          className="text-xs text-gray-400 hover:text-claw-600 transition"
-        >
-          🔍 {t('doctor.search.toggleOpen')}
-        </button>
-      )}
+        <CommunitySearch initialQuery={searchQuery || undefined} key={searchQuery} />
+      </section>
     </div>
   );
 }

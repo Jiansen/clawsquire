@@ -88,6 +88,7 @@
   "doctor": {
     "title": "Systemprüfung",
     "description": "Überprüfe Installation, Konfiguration und Sicherheit von OpenClaw.",
+    "checking": "Gesundheitsprüfungen werden ausgeführt...",
     "runCheck": "Prüfung starten",
     "rerun": "Erneut prüfen",
     "pass": "Bestanden",
@@ -112,6 +113,10 @@
       "searchFor": "Community nach \"{{name}}\" durchsuchen",
       "cta": "Community nach Lösungen für fehlgeschlagene Prüfungen durchsuchen",
       "toggleOpen": "OpenClaw Community-Issues durchsuchen",
+      "subtitle": "Durchsuchen Sie 11.000+ OpenClaw Issues nach Lösungen für häufige Probleme.",
+      "modeAI": "KI-Suche",
+      "modeBasic": "Einfach",
+      "searchBtn": "Suchen",
       "smartToggle": "KI-Suche umschalten",
       "phaseKeywords": "KI extrahiert Schlüsselwörter...",
       "aiSummary": "KI-Zusammenfassung",

@@ -88,6 +88,7 @@
   "doctor": {
     "title": "ヘルスチェック",
     "description": "OpenClaw のインストール、設定、セキュリティをチェックします。",
+    "checking": "ヘルスチェックを実行中...",
     "runCheck": "チェック開始",
     "rerun": "再チェック",
     "pass": "合格",
@@ -112,6 +113,10 @@
       "searchFor": "\"{{name}}\" についてコミュニティを検索",
       "cta": "失敗した項目の解決策をコミュニティで検索",
       "toggleOpen": "OpenClaw コミュニティの Issue を検索",
+      "subtitle": "11,000 件以上の OpenClaw Issue からよくある問題の解決策を検索します。",
+      "modeAI": "AI 検索",
+      "modeBasic": "基本検索",
+      "searchBtn": "検索",
       "smartToggle": "AI 検索に切り替え",
       "phaseKeywords": "AI がキーワードを抽出中...",
       "aiSummary": "AI サマリー",

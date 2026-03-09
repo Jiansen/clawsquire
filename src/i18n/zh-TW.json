@@ -88,6 +88,7 @@
   "doctor": {
     "title": "健康檢查",
     "description": "檢查 OpenClaw 的安裝、設定和安全狀況。",
+    "checking": "正在執行健康檢查...",
     "runCheck": "開始檢查",
     "rerun": "重新檢查",
     "pass": "通過",
@@ -112,6 +113,10 @@
       "searchFor": "搜尋社群中關於 \"{{name}}\" 的方案",
       "cta": "搜尋社群方案解決失敗的檢查項",
       "toggleOpen": "搜尋 OpenClaw 社群 Issue",
+      "subtitle": "搜尋 11,000+ 個 OpenClaw Issue，查找常見問題的解決方案。",
+      "modeAI": "AI 搜尋",
+      "modeBasic": "基礎搜尋",
+      "searchBtn": "搜尋",
       "smartToggle": "切換 AI 智慧搜尋",
       "phaseKeywords": "AI 正在擷取關鍵字...",
       "aiSummary": "AI 摘要",

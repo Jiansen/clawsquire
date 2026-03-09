@@ -126,36 +126,60 @@ export default function CommunitySearch({ initialQuery }: { initialQuery?: strin
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <form onSubmit={handleSubmit} className="relative flex-1">
+    <div className="space-y-3">
+      {/* Mode selector */}
+      <div className="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
+        <button
+          onClick={() => setSmartMode(true)}
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
+            smartMode
+              ? 'bg-purple-600 text-white shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          ✨ {t('doctor.search.modeAI')}
+        </button>
+        <button
+          onClick={() => setSmartMode(false)}
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
+            !smartMode
+              ? 'bg-gray-700 text-white shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          🔍 {t('doctor.search.modeBasic')}
+        </button>
+      </div>
+
+      {/* Search input */}
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="relative flex-1">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            {smartMode ? '✨' : '🔍'}
+          </div>
           <input
             type="text"
             value={query}
             onChange={(e) => handleInput(e.target.value)}
             placeholder={t('doctor.search.placeholder')}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-10
+            className="w-full rounded-lg border border-gray-300 bg-white pl-9 pr-4 py-3
                        text-sm text-gray-900 placeholder-gray-400
-                       focus:border-claw-500 focus:ring-1 focus:ring-claw-500 transition"
+                       focus:border-claw-500 focus:ring-2 focus:ring-claw-500/20 transition"
           />
-          {loading && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <div className="w-4 h-4 border-2 border-gray-300 border-t-claw-500 rounded-full animate-spin" />
-            </div>
-          )}
-        </form>
+        </div>
         <button
-          onClick={() => setSmartMode(!smartMode)}
-          className={`ml-2 flex-shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition ${
-            smartMode
-              ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-          }`}
-          title={t('doctor.search.smartToggle')}
+          type="submit"
+          disabled={loading || !query.trim()}
+          className="rounded-lg bg-claw-600 px-4 py-3 text-sm font-medium text-white
+                     hover:bg-claw-700 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm"
         >
-          {smartMode ? '✨ AI' : '🔍'}
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+          ) : (
+            t('doctor.search.searchBtn')
+          )}
         </button>
-      </div>
+      </form>
 
       {loading && searchPhase && (
         <div className="flex items-center gap-2 text-xs text-purple-600">
