@@ -58,7 +58,24 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'ClawSquire ${{ github.ref_name }}'
-          releaseBody: 'See [CHANGELOG.md](https://github.com/Jiansen/clawsquire/blob/main/CHANGELOG.md) for full release notes.'
+          releaseBody: |
+            ## Quick Download Guide
+
+            Pick **one** file based on your system:
+
+            - **Mac Apple Silicon (M1/M2/M3)** → `ClawSquire_*_aarch64.dmg`
+            - **Mac Intel** → `ClawSquire_*_x64.dmg`
+            - **Windows 10+** → `ClawSquire_*_x64_en-US.msi` (recommended)
+            - **Linux Debian/Ubuntu** → `ClawSquire_*_amd64.deb`
+            - **Linux (portable)** → `ClawSquire_*_amd64.AppImage`
+
+            If you are not sure on macOS:
+            - Click Apple menu → **About This Mac**
+            - If chip says **Apple M1/M2/M3**, choose `aarch64.dmg`
+            - If chip says **Intel**, choose `x64.dmg`
+
+            ---
+            Full release notes: [CHANGELOG.md](https://github.com/Jiansen/clawsquire/blob/main/CHANGELOG.md)
           releaseDraft: ${{ contains(github.ref_name, '-') }}
           prerelease: ${{ contains(github.ref_name, '-') }}
           args: ${{ matrix.args }}
