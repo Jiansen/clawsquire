@@ -33,64 +33,6 @@ use tauri::{
 };
 
 
-#[derive(Debug)]
-struct TargetOutput {
-    success: bool,
-    stdout: String,
-    stderr: String,
-}
-
-async fn run_on_target(
-    state: &active_target::ActiveTargetState,
-    args: &[&str],
-) -> Result<TargetOutput, String> {
-    use active_target::Target;
-    match state.get() {
-        Target::Local => {
-            let args_owned: Vec<String> = args.iter().map(|s| s.to_string()).collect();
-            let result = tauri::async_runtime::spawn_blocking(move || {
-                let refs: Vec<&str> = args_owned.iter().map(|s| s.as_str()).collect();
-                cli_runner::default_runner().run(&refs)
-            })
-            .await
-            .map_err(|e| e.to_string())??;
-            Ok(TargetOutput {
-                success: result.success,
-                stdout: result.stdout,
-                stderr: result.stderr,
-            })
-        }
-        Target::Vps(conn) => {
-            let cmd = format!(
-                "openclaw {}",
-                args.iter()
-                    .map(|a| util::shell_escape(a))
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            );
-            let r = ssh::ssh_exec(
-                &conn.host,
-                conn.port,
-                &conn.username,
-                conn.password.as_deref(),
-                conn.key_path.as_deref(),
-                &cmd,
-            )
-            .await;
-            if let Some(err) = r.error {
-                Err(format!("SSH error: {}", err))
-            } else {
-                Ok(TargetOutput {
-                    success: r.success,
-                    stdout: r.stdout,
-                    stderr: r.stderr,
-                })
-            }
-        }
-    }
-}
-
-
 #[tauri::command]
 async fn get_environment() -> Environment {
     tauri::async_runtime::spawn_blocking(detect::detect_environment)
@@ -99,17 +41,23 @@ async fn get_environment() -> Environment {
 }
 
 #[tauri::command]
-async fn config_get(path: String) -> Result<String, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::config_get(&path))
-        .await
-        .map_err(|e| e.to_string())?
+async fn config_get(state: tauri::State<'_, ActiveTargetState>, path: String) -> Result<String, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::config_get_with(target.runner().as_ref(), &path)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn config_set(path: String, value: String) -> Result<(), String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::config_set(&path, &value))
-        .await
-        .map_err(|e| e.to_string())?
+async fn config_set(state: tauri::State<'_, ActiveTargetState>, path: String, value: String) -> Result<(), String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::config_set_with(target.runner().as_ref(), &path, &value)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -120,10 +68,13 @@ async fn run_doctor() -> Result<DoctorReport, String> {
 }
 
 #[tauri::command]
-async fn daemon_status() -> Result<openclaw::DaemonStatus, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::daemon_status)
-        .await
-        .map_err(|e| e.to_string())?
+async fn daemon_status(state: tauri::State<'_, ActiveTargetState>) -> Result<openclaw::DaemonStatus, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::daemon_status_with(target.runner().as_ref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -155,45 +106,63 @@ async fn diff_backups(id1: String, id2: Option<String>) -> Result<Vec<DiffEntry>
 }
 
 #[tauri::command]
-async fn daemon_stop() -> Result<String, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::daemon_stop)
-        .await
-        .map_err(|e| e.to_string())?
+async fn daemon_stop(state: tauri::State<'_, ActiveTargetState>) -> Result<String, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::daemon_stop_with(target.runner().as_ref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn daemon_start() -> Result<String, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::daemon_start)
-        .await
-        .map_err(|e| e.to_string())?
+async fn daemon_start(state: tauri::State<'_, ActiveTargetState>) -> Result<String, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::daemon_start_with(target.runner().as_ref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn setup_provider(provider: String, api_key: String) -> Result<(), String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::setup_provider(&provider, &api_key))
-        .await
-        .map_err(|e| e.to_string())?
+async fn setup_provider(state: tauri::State<'_, ActiveTargetState>, provider: String, api_key: String) -> Result<(), String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::setup_provider_with(target.runner().as_ref(), &provider, &api_key)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn list_providers() -> Result<Vec<ProviderInfo>, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::list_providers)
-        .await
-        .map_err(|e| e.to_string())?
+async fn list_providers(state: tauri::State<'_, ActiveTargetState>) -> Result<Vec<ProviderInfo>, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::list_providers_with(target.runner().as_ref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn list_models(provider: String) -> Result<Vec<ModelInfo>, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::list_models(&provider))
-        .await
-        .map_err(|e| e.to_string())?
+async fn list_models(state: tauri::State<'_, ActiveTargetState>, provider: String) -> Result<Vec<ModelInfo>, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::list_models_with(target.runner().as_ref(), &provider)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn check_llm_config() -> Result<LlmConfigStatus, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::check_llm_config)
-        .await
-        .map_err(|e| e.to_string())
+async fn check_llm_config(state: tauri::State<'_, ActiveTargetState>) -> Result<LlmConfigStatus, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(openclaw::check_llm_config_with(target.runner().as_ref()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -204,10 +173,13 @@ async fn test_llm(provider: String, api_key: String) -> Result<LlmTestResult, St
 }
 
 #[tauri::command]
-async fn test_llm_gateway() -> Result<openclaw::LlmTestResult, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::test_llm_via_gateway)
-        .await
-        .map_err(|e| e.to_string())
+async fn test_llm_gateway(state: tauri::State<'_, ActiveTargetState>) -> Result<openclaw::LlmTestResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(openclaw::test_llm_via_gateway_with(target.runner().as_ref()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -232,88 +204,121 @@ async fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, Stri
 }
 
 #[tauri::command]
-async fn add_channel(channel: String, token: String) -> Result<ChannelAddResult, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::add_channel(&channel, &token))
-        .await
-        .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
-async fn get_full_config() -> Result<String, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::get_full_config)
-        .await
-        .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
-async fn list_channels() -> Result<Vec<ChannelInfo>, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::list_channels)
-        .await
-        .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
-async fn remove_channel(channel: String) -> Result<ChannelRemoveResult, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::remove_channel(&channel))
-        .await
-        .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
-async fn cron_list() -> Result<Vec<CronJob>, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::cron_list)
-        .await
-        .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
-async fn cron_remove(name: String) -> Result<CronRemoveResult, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::cron_remove(&name))
-        .await
-        .map_err(|e| e.to_string())?
-}
-
-#[tauri::command]
-async fn cron_add(
-    name: String,
-    every: String,
-    message: String,
-    channel: String,
-    announce: bool,
-) -> Result<CronAddResult, String> {
+async fn add_channel(state: tauri::State<'_, ActiveTargetState>, channel: String, token: String) -> Result<ChannelAddResult, String> {
+    let target = state.get();
     tauri::async_runtime::spawn_blocking(move || {
-        openclaw::cron_add(&name, &every, &message, &channel, announce)
+        openclaw::add_channel_with(target.runner().as_ref(), &channel, &token)
     })
     .await
     .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn run_openclaw_cli(args: Vec<String>) -> Result<CliOutput, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::run_cli(args))
-        .await
-        .map_err(|e| e.to_string())?
+async fn get_full_config(state: tauri::State<'_, ActiveTargetState>) -> Result<String, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::get_full_config_with(target.runner().as_ref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn apply_safety_preset(level: String) -> Result<SafetyApplyResult, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::apply_safety_preset(&level))
-        .await
-        .map_err(|e| e.to_string())
+async fn list_channels(state: tauri::State<'_, ActiveTargetState>) -> Result<Vec<ChannelInfo>, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::list_channels_with(target.runner().as_ref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn agent_chat(message: String) -> Result<AgentChatResult, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::agent_chat(&message))
-        .await
-        .map_err(|e| e.to_string())
+async fn remove_channel(state: tauri::State<'_, ActiveTargetState>, channel: String) -> Result<ChannelRemoveResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::remove_channel_with(target.runner().as_ref(), &channel)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn collect_feedback_info() -> Result<FeedbackInfo, String> {
-    tauri::async_runtime::spawn_blocking(openclaw::collect_feedback_info)
-        .await
-        .map_err(|e| e.to_string())
+async fn cron_list(state: tauri::State<'_, ActiveTargetState>) -> Result<Vec<CronJob>, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::cron_list_with(target.runner().as_ref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn cron_remove(state: tauri::State<'_, ActiveTargetState>, name: String) -> Result<CronRemoveResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::cron_remove_with(target.runner().as_ref(), &name)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn cron_add(
+    state: tauri::State<'_, ActiveTargetState>,
+    name: String,
+    every: String,
+    message: String,
+    channel: String,
+    announce: bool,
+) -> Result<CronAddResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::cron_add_with(target.runner().as_ref(), &name, &every, &message, &channel, announce)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn run_openclaw_cli(state: tauri::State<'_, ActiveTargetState>, args: Vec<String>) -> Result<CliOutput, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        let refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+        openclaw::run_cli_with(target.runner().as_ref(), &refs)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn apply_safety_preset(state: tauri::State<'_, ActiveTargetState>, level: String) -> Result<SafetyApplyResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(openclaw::apply_safety_preset_with(target.runner().as_ref(), &level))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn agent_chat(state: tauri::State<'_, ActiveTargetState>, message: String) -> Result<AgentChatResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(openclaw::agent_chat_with(target.runner().as_ref(), &message))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn collect_feedback_info(state: tauri::State<'_, ActiveTargetState>) -> Result<FeedbackInfo, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(openclaw::collect_feedback_info_with(target.runner().as_ref()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -339,13 +344,15 @@ async fn smart_search(query: String, lang: String) -> Result<SmartSearchResponse
 
 #[tauri::command]
 async fn setup_email_monitor(
+    state: tauri::State<'_, ActiveTargetState>,
     telegram_token: String,
     email_address: String,
     check_interval: Option<String>,
-) -> EmailMonitorResult {
+) -> Result<EmailMonitorResult, String> {
+    let target = state.get();
     let interval = check_interval.unwrap_or_else(|| "5m".to_string());
-    tauri::async_runtime::spawn_blocking(move || {
-        openclaw::setup_email_monitor(&telegram_token, &email_address, &interval)
+    Ok(tauri::async_runtime::spawn_blocking(move || {
+        openclaw::setup_email_monitor_with(target.runner().as_ref(), &telegram_token, &email_address, &interval)
     })
     .await
     .unwrap_or_else(|e| EmailMonitorResult {
@@ -353,7 +360,7 @@ async fn setup_email_monitor(
         cron_ok: false,
         cron_id: None,
         errors: vec![format!("Task failed: {}", e)],
-    })
+    }))
 }
 
 #[tauri::command]

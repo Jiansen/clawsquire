@@ -76,7 +76,7 @@ fn provider_default_models(provider: &str) -> Vec<serde_json::Value> {
         .collect()
 }
 
-pub fn setup_provider(provider: &str, api_key: &str) -> Result<(), String> {
+pub fn setup_provider_with(runner: &dyn CliRunner, provider: &str, api_key: &str) -> Result<(), String> {
     let base_url = provider_base_url(provider)
         .ok_or_else(|| format!("Unknown provider: {}", provider))?;
     let models = provider_default_models(provider);
@@ -86,7 +86,11 @@ pub fn setup_provider(provider: &str, api_key: &str) -> Result<(), String> {
         "models": models,
     });
     let path = format!("models.providers.{}", provider);
-    config_set_raw_json(&path, &config.to_string())
+    config_set_raw_json_with(runner, &path, &config.to_string())
+}
+
+pub fn setup_provider(provider: &str, api_key: &str) -> Result<(), String> {
+    setup_provider_with(cli_runner::default_runner(), provider, api_key)
 }
 
 pub fn daemon_status_with(runner: &dyn CliRunner) -> Result<DaemonStatus, String> {
@@ -657,6 +661,11 @@ pub fn add_channel(channel: &str, token: &str) -> Result<ChannelAddResult, Strin
     add_channel_with(cli_runner::default_runner(), channel, token)
 }
 
+pub fn get_full_config_with(runner: &dyn CliRunner) -> Result<String, String> {
+    let out = runner.run(&["config", "get", "--json"])?;
+    if out.success { Ok(out.stdout) } else { Err(out.stderr) }
+}
+
 pub fn get_full_config() -> Result<String, String> {
     let config_path = if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
         std::path::PathBuf::from(dir)
@@ -1034,7 +1043,7 @@ pub struct SafetyApplyResult {
     pub errors: Vec<String>,
 }
 
-pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
+pub fn apply_safety_preset_with(runner: &dyn CliRunner, level: &str) -> SafetyApplyResult {
     let settings: Vec<(&str, &str)> = match level {
         "conservative" => vec![
             ("commands.native", "false"),
@@ -1062,7 +1071,7 @@ pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
     let mut errors = Vec::new();
 
     for (path, value) in settings {
-        match config_set_raw_json(path, value) {
+        match config_set_raw_json_with(runner, path, value) {
             Ok(()) => applied.push(format!("{} = {}", path, value)),
             Err(e) => errors.push(format!("{}: {}", path, e)),
         }
@@ -1073,6 +1082,10 @@ pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
         applied,
         errors,
     }
+}
+
+pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
+    apply_safety_preset_with(cli_runner::default_runner(), level)
 }
 
 #[derive(Debug, Serialize)]

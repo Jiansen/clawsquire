@@ -38,6 +38,18 @@ impl Default for Target {
     }
 }
 
+
+impl Target {
+    /// Returns a CliRunner appropriate for the current target.
+    /// Local → RealCliRunner, VPS → SshCliRunner.
+    pub fn runner(&self) -> Box<dyn crate::cli_runner::CliRunner> {
+        match self {
+            Target::Local => Box::new(crate::cli_runner::RealCliRunner),
+            Target::Vps(conn) => Box::new(crate::cli_runner::SshCliRunner::new(conn.clone())),
+        }
+    }
+}
+
 pub struct ActiveTargetState {
     inner: RwLock<Target>,
 }
