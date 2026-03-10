@@ -37,6 +37,7 @@ interface LlmConfigStatus {
 
 export default function Dashboard() {
   const { target } = useActiveTarget();
+  const isRemote = target.mode === 'vps';
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -154,6 +155,20 @@ export default function Dashboard() {
           {loading ? '...' : '↻'}
         </button>
       </div>
+
+      {isRemote && (
+        <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-3 flex items-center gap-3">
+          <span className="text-lg">☁️</span>
+          <div>
+            <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+              Remote Mode — {target.host || 'VPS'}
+            </p>
+            <p className="text-xs text-blue-600 dark:text-blue-500">
+              Managing OpenClaw on remote server via SSH. Some local-only features are disabled.
+            </p>
+          </div>
+        </div>
+      )}
 
       {updateInfo?.update_available && (
         <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 flex items-center justify-between">
@@ -290,6 +305,8 @@ export default function Dashboard() {
             }
             onClick={handleBackupNow}
             loading={backingUp}
+            disabled={isRemote}
+            tooltip={isRemote ? 'Local only — backup is stored on this machine' : undefined}
           />
           <ActionCard
             label={t('dashboard.viewConfig')}
@@ -303,8 +320,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Web Dashboard */}
-      {installed && running && (
+      {/* Web Dashboard — local only (remote gateway not accessible via localhost) */}
+      {installed && running && !isRemote && (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🌐</span>
@@ -326,11 +343,11 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* CLI Terminal */}
-      {installed && <CliTerminal />}
+      {/* CLI Terminal — local only */}
+      {installed && !isRemote && <CliTerminal />}
 
-      {/* Not Installed → Install Card */}
-      {!installed && !loading && (
+      {/* Not Installed → Install Card — local only */}
+      {!installed && !loading && !isRemote && (
         <InstallCard onInstalled={refresh} npmInstalled={env?.npm_installed ?? false} />
       )}
 
@@ -878,18 +895,23 @@ function ActionCard({
   icon,
   onClick,
   loading,
+  disabled,
+  tooltip,
 }: {
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
   loading?: boolean;
+  disabled?: boolean;
+  tooltip?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      disabled={loading}
+      disabled={loading || disabled}
+      title={tooltip}
       className="flex flex-col items-center gap-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4
-                 hover:border-claw-300 hover:shadow-md transition-all group disabled:opacity-50"
+                 hover:border-claw-300 hover:shadow-md transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <span className="text-claw-600 group-hover:text-claw-700">{icon}</span>
       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{loading ? '...' : label}</span>
