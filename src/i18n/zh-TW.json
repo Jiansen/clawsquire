@@ -12,8 +12,7 @@
     "settings": "設定",
     "help": "說明",
     "config": "設定",
-    "remote": "遠端安裝",
-    "ssh": "SSH"
+    "vps": "VPS 管理"
   },
   "dashboard": {
     "title": "儀表板",
@@ -591,5 +590,53 @@
     "execute": "執行",
     "executing": "執行中...",
     "exitCode": "退出碼"
+  },
+  "vps": {
+    "instances": "實例",
+    "addInstance": "新增實例",
+    "addDesc": "連線到遠端 VPS。先測試連線，然後儲存。",
+    "instanceName": "名稱",
+    "namePlaceholder": "例如：生產 VPS",
+    "noInstances": "尚未儲存任何 VPS 實例。",
+    "addFirst": "新增第一個 VPS",
+    "save": "儲存實例",
+    "delete": "刪除",
+    "enterPassword": "輸入本次連線密碼",
+    "passwordSessionOnly": "密碼僅存在記憶體中，不會儲存到磁碟。",
+    "notDeployed": "未安裝",
+    "created": "建立時間",
+    "tab": {
+      "overview": "總覽",
+      "deploy": "部署 OpenClaw",
+      "terminal": "終端"
+    },
+    "deploying": "部署中...",
+    "deployNow": "部署 OpenClaw 到此 VPS",
+    "sshFailed": "SSH 連線失敗",
+    "deploySuccess": "OpenClaw 部署成功！",
+    "deployFailed": "部署失敗",
+    "emptyTitle": "管理您的 VPS 實例",
+    "emptyDesc": "新增 VPS 以部署 OpenClaw、執行指令並進行遠端監控。"
+  },
+  "imap": {
+    "title": "郵箱設定",
+    "subtitle": "設定 IMAP 存取，讓 OpenClaw 能讀取您的郵件。",
+    "step1Title": "輸入您的郵箱",
+    "step1Desc": "我們會自動偵測您的郵件服務商的 IMAP 伺服器設定。",
+    "emailPlaceholder": "you@example.com",
+    "providerHint": "Gmail、Outlook、QQ信箱、163、Yahoo、iCloud 等均可自動偵測。",
+    "step2Title": "伺服器設定",
+    "step2Desc": "確認或編輯 IMAP 伺服器設定。大多數服務商使用 993 埠和 TLS。",
+    "host": "IMAP 伺服器",
+    "port": "埠",
+    "useTls": "使用 TLS 加密",
+    "step3Title": "郵箱密碼",
+    "step3Desc": "輸入此郵箱帳戶的密碼或應用程式專用密碼。",
+    "appPasswordHint": "Gmail/Outlook 使用者：請使用應用程式專用密碼，而非一般密碼。前往帳戶安全設定產生。",
+    "password": "密碼 / 應用程式專用密碼",
+    "summary": "設定摘要：",
+    "saveAndTest": "儲存設定",
+    "doneTitle": "郵箱已設定！",
+    "doneDesc": "IMAP 憑證已儲存到 OpenClaw 設定。郵件→Telegram 排程任務現在可以存取您的收件匣了。"
   }
 }

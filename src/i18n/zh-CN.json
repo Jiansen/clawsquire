@@ -10,8 +10,7 @@
     "doctor": "健康检查",
     "backup": "备份管理",
     "config": "配置",
-    "remote": "远程安装",
-    "ssh": "SSH",
+    "vps": "VPS 管理",
     "settings": "设置",
     "help": "帮助"
   },
@@ -591,5 +590,53 @@
     "execute": "执行",
     "executing": "执行中...",
     "exitCode": "退出码"
+  },
+  "vps": {
+    "instances": "实例",
+    "addInstance": "添加实例",
+    "addDesc": "连接到远程 VPS。先测试连接，然后保存。",
+    "instanceName": "名称",
+    "namePlaceholder": "例如：生产 VPS",
+    "noInstances": "尚未保存任何 VPS 实例。",
+    "addFirst": "添加第一个 VPS",
+    "save": "保存实例",
+    "delete": "删除",
+    "enterPassword": "输入本次会话密码",
+    "passwordSessionOnly": "密码仅存在内存中，不会保存到磁盘。",
+    "notDeployed": "未安装",
+    "created": "创建时间",
+    "tab": {
+      "overview": "概览",
+      "deploy": "部署 OpenClaw",
+      "terminal": "终端"
+    },
+    "deploying": "部署中...",
+    "deployNow": "部署 OpenClaw 到此 VPS",
+    "sshFailed": "SSH 连接失败",
+    "deploySuccess": "OpenClaw 部署成功！",
+    "deployFailed": "部署失败",
+    "emptyTitle": "管理您的 VPS 实例",
+    "emptyDesc": "添加 VPS 以部署 OpenClaw、运行命令并进行远程监控。"
+  },
+  "imap": {
+    "title": "邮箱设置",
+    "subtitle": "配置 IMAP 访问，让 OpenClaw 能读取您的邮件。",
+    "step1Title": "输入您的邮箱",
+    "step1Desc": "我们会自动检测您的邮箱服务商的 IMAP 服务器设置。",
+    "emailPlaceholder": "you@example.com",
+    "providerHint": "Gmail、Outlook、QQ邮箱、163、Yahoo、iCloud 等均可自动检测。",
+    "step2Title": "服务器设置",
+    "step2Desc": "确认或编辑 IMAP 服务器设置。大多数服务商使用 993 端口和 TLS。",
+    "host": "IMAP 服务器",
+    "port": "端口",
+    "useTls": "使用 TLS 加密",
+    "step3Title": "邮箱密码",
+    "step3Desc": "输入此邮箱账户的密码或应用专用密码。",
+    "appPasswordHint": "Gmail/Outlook 用户：请使用应用专用密码，而非普通密码。前往账户安全设置生成。",
+    "password": "密码 / 应用专用密码",
+    "summary": "配置摘要：",
+    "saveAndTest": "保存配置",
+    "doneTitle": "邮箱已配置！",
+    "doneDesc": "IMAP 凭据已保存到 OpenClaw 配置。邮件→Telegram 定时任务现在可以访问您的收件箱了。"
   }
 }

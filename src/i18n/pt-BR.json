@@ -11,8 +11,7 @@
     "backup": "Backups",
     "help": "Ajuda",
     "config": "Configuração",
-    "remote": "Instalação remota",
-    "ssh": "SSH",
+    "vps": "VPS",
     "settings": "Configurações"
   },
   "dashboard": {
@@ -591,5 +590,53 @@
     "execute": "Executar",
     "executing": "Executando...",
     "exitCode": "Código de saída"
+  },
+  "vps": {
+    "instances": "Instâncias",
+    "addInstance": "Adicionar instância",
+    "addDesc": "Conecte-se a um VPS remoto. Teste a conexão primeiro, depois salve.",
+    "instanceName": "Nome",
+    "namePlaceholder": "ex. VPS de produção",
+    "noInstances": "Nenhuma instância VPS salva.",
+    "addFirst": "Adicione seu primeiro VPS",
+    "save": "Salvar instância",
+    "delete": "Excluir",
+    "enterPassword": "Digite a senha para esta sessão",
+    "passwordSessionOnly": "A senha é mantida apenas na memória — nunca salva no disco.",
+    "notDeployed": "Não instalado",
+    "created": "Criado",
+    "tab": {
+      "overview": "Visão geral",
+      "deploy": "Implantar OpenClaw",
+      "terminal": "Terminal"
+    },
+    "deploying": "Implantando...",
+    "deployNow": "Implantar OpenClaw neste VPS",
+    "sshFailed": "Conexão SSH falhou",
+    "deploySuccess": "OpenClaw implantado com sucesso!",
+    "deployFailed": "Implantação falhou",
+    "emptyTitle": "Gerencie suas instâncias VPS",
+    "emptyDesc": "Adicione um VPS para implantar OpenClaw, executar comandos e monitorar remotamente."
+  },
+  "imap": {
+    "title": "Configuração de e-mail",
+    "subtitle": "Configure o acesso IMAP para que o OpenClaw possa ler seus e-mails.",
+    "step1Title": "Digite seu e-mail",
+    "step1Desc": "Detectaremos automaticamente as configurações do servidor IMAP do seu provedor.",
+    "emailPlaceholder": "voce@exemplo.com",
+    "providerHint": "Gmail, Outlook, QQ Mail, 163, Yahoo, iCloud e muitos outros são detectados automaticamente.",
+    "step2Title": "Configurações do servidor",
+    "step2Desc": "Verifique ou edite as configurações do servidor IMAP. A maioria usa porta 993 com TLS.",
+    "host": "Servidor IMAP",
+    "port": "Porta",
+    "useTls": "Usar criptografia TLS",
+    "step3Title": "Senha do e-mail",
+    "step3Desc": "Digite a senha ou senha de aplicativo desta conta de e-mail.",
+    "appPasswordHint": "Para Gmail/Outlook: use uma senha de aplicativo, não sua senha comum. Acesse as configurações de segurança da sua conta para gerar uma.",
+    "password": "Senha / Senha de aplicativo",
+    "summary": "Resumo da configuração:",
+    "saveAndTest": "Salvar configuração",
+    "doneTitle": "E-mail configurado!",
+    "doneDesc": "As credenciais IMAP foram salvas na configuração do OpenClaw. O cron E-mail→Telegram agora pode acessar sua caixa de entrada."
   }
 }

@@ -12,8 +12,7 @@
     "settings": "設定",
     "help": "ヘルプ",
     "config": "設定",
-    "remote": "リモートインストール",
-    "ssh": "SSH"
+    "vps": "VPS管理"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -591,5 +590,53 @@
     "execute": "実行",
     "executing": "実行中...",
     "exitCode": "終了コード"
+  },
+  "vps": {
+    "instances": "インスタンス",
+    "addInstance": "インスタンスを追加",
+    "addDesc": "リモートVPSに接続します。まず接続テストを行い、保存します。",
+    "instanceName": "名前",
+    "namePlaceholder": "例：本番VPS",
+    "noInstances": "VPSインスタンスが保存されていません。",
+    "addFirst": "最初のVPSを追加",
+    "save": "インスタンスを保存",
+    "delete": "削除",
+    "enterPassword": "このセッションのパスワードを入力",
+    "passwordSessionOnly": "パスワードはメモリ内のみで保持され、ディスクには保存されません。",
+    "notDeployed": "未インストール",
+    "created": "作成日時",
+    "tab": {
+      "overview": "概要",
+      "deploy": "OpenClawをデプロイ",
+      "terminal": "ターミナル"
+    },
+    "deploying": "デプロイ中...",
+    "deployNow": "このVPSにOpenClawをデプロイ",
+    "sshFailed": "SSH接続に失敗しました",
+    "deploySuccess": "OpenClawのデプロイに成功しました！",
+    "deployFailed": "デプロイに失敗しました",
+    "emptyTitle": "VPSインスタンスを管理",
+    "emptyDesc": "VPSを追加してOpenClawのデプロイ、コマンド実行、リモート監視を行います。"
+  },
+  "imap": {
+    "title": "メール設定",
+    "subtitle": "IMAP アクセスを設定して、OpenClaw がメールを読めるようにします。",
+    "step1Title": "メールアドレスを入力",
+    "step1Desc": "メールプロバイダーの IMAP サーバー設定を自動検出します。",
+    "emailPlaceholder": "you@example.com",
+    "providerHint": "Gmail、Outlook、QQメール、163、Yahoo、iCloud など多数に対応。",
+    "step2Title": "サーバー設定",
+    "step2Desc": "IMAP サーバー設定を確認または編集します。ほとんどのプロバイダーはポート993とTLSを使用します。",
+    "host": "IMAP サーバー",
+    "port": "ポート",
+    "useTls": "TLS 暗号化を使用",
+    "step3Title": "メールパスワード",
+    "step3Desc": "このメールアカウントのパスワードまたはアプリパスワードを入力します。",
+    "appPasswordHint": "Gmail/Outlook の場合：通常のパスワードではなくアプリパスワードを使用してください。アカウントのセキュリティ設定から生成できます。",
+    "password": "パスワード / アプリパスワード",
+    "summary": "設定の概要：",
+    "saveAndTest": "設定を保存",
+    "doneTitle": "メール設定完了！",
+    "doneDesc": "IMAP 認証情報が OpenClaw 設定に保存されました。メール→Telegram のcronジョブが受信トレイにアクセスできるようになりました。"
   }
 }

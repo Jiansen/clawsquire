@@ -10,8 +10,7 @@
     "doctor": "Health Check",
     "backup": "Backups",
     "config": "Config",
-    "remote": "Remote",
-    "ssh": "SSH",
+    "vps": "VPS",
     "settings": "Settings",
     "help": "Help"
   },
@@ -587,5 +586,53 @@
     "execute": "Run",
     "executing": "Running...",
     "exitCode": "Exit code"
+  },
+  "vps": {
+    "instances": "Instances",
+    "addInstance": "Add Instance",
+    "addDesc": "Connect to a remote VPS. Test the connection first, then save.",
+    "instanceName": "Name",
+    "namePlaceholder": "e.g. Production VPS",
+    "noInstances": "No VPS instances saved yet.",
+    "addFirst": "Add your first VPS",
+    "save": "Save Instance",
+    "delete": "Delete",
+    "enterPassword": "Enter password for this session",
+    "passwordSessionOnly": "Password is kept in memory only — never saved to disk.",
+    "notDeployed": "Not installed",
+    "created": "Created",
+    "tab": {
+      "overview": "Overview",
+      "deploy": "Deploy OpenClaw",
+      "terminal": "Terminal"
+    },
+    "deploying": "Deploying...",
+    "deployNow": "Deploy OpenClaw to this VPS",
+    "sshFailed": "SSH connection failed",
+    "deploySuccess": "OpenClaw deployed successfully!",
+    "deployFailed": "Deployment failed",
+    "emptyTitle": "Manage your VPS instances",
+    "emptyDesc": "Add a VPS to deploy OpenClaw, run commands, and monitor remotely."
+  },
+  "imap": {
+    "title": "Email Setup",
+    "subtitle": "Configure IMAP access so OpenClaw can read your emails.",
+    "step1Title": "Enter Your Email",
+    "step1Desc": "We'll auto-detect the IMAP server settings for your email provider.",
+    "emailPlaceholder": "you@example.com",
+    "providerHint": "Gmail, Outlook, QQ Mail, 163, Yahoo, iCloud and many more are auto-detected.",
+    "step2Title": "Server Settings",
+    "step2Desc": "Verify or edit the IMAP server settings. Most providers use port 993 with TLS.",
+    "host": "IMAP Server",
+    "port": "Port",
+    "useTls": "Use TLS encryption",
+    "step3Title": "Email Password",
+    "step3Desc": "Enter the password or app-specific password for this email account.",
+    "appPasswordHint": "For Gmail/Outlook: use an App Password, not your regular password. Go to your account security settings to generate one.",
+    "password": "Password / App Password",
+    "summary": "Configuration summary:",
+    "saveAndTest": "Save Configuration",
+    "doneTitle": "Email Configured!",
+    "doneDesc": "IMAP credentials saved to OpenClaw config. The Email→Telegram cron job can now access your inbox."
   }
 }

@@ -1,3 +1,4 @@
+use crate::cli_runner::{self, CliRunner};
 use crate::constants::{OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
 use crate::detect::{cmd_with_path, hidden_cmd};
 use serde::{Deserialize, Serialize};
@@ -9,45 +10,36 @@ pub struct DaemonStatus {
     pub pid: Option<u32>,
 }
 
-pub fn config_get(path: &str) -> Result<String, String> {
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["config", "get", path, "--json"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
+// --- CLI-abstracted core functions ---
 
-    if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-    } else {
-        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
-    }
+pub fn config_get_with(runner: &dyn CliRunner, path: &str) -> Result<String, String> {
+    let out = runner.run(&["config", "get", path, "--json"])?;
+    if out.success { Ok(out.stdout) } else { Err(out.stderr) }
+}
+
+pub fn config_set_with(runner: &dyn CliRunner, path: &str, value: &str) -> Result<(), String> {
+    let json_value = serde_json::to_string(value).unwrap_or_else(|_| format!("\"{}\"", value));
+    let out = runner.run(&["config", "set", path, &json_value, "--json"])?;
+    if out.success { Ok(()) } else { Err(out.stderr) }
+}
+
+fn config_set_raw_json_with(runner: &dyn CliRunner, path: &str, json_value: &str) -> Result<(), String> {
+    let out = runner.run(&["config", "set", path, json_value, "--json"])?;
+    if out.success { Ok(()) } else { Err(out.stderr) }
+}
+
+// --- Backward-compatible wrappers (use default runner) ---
+
+pub fn config_get(path: &str) -> Result<String, String> {
+    config_get_with(cli_runner::default_runner(), path)
 }
 
 pub fn config_set(path: &str, value: &str) -> Result<(), String> {
-    let json_value =
-        serde_json::to_string(value).unwrap_or_else(|_| format!("\"{}\"", value));
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["config", "set", path, &json_value, "--json"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
-
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
-    }
+    config_set_with(cli_runner::default_runner(), path, value)
 }
 
 fn config_set_raw_json(path: &str, json_value: &str) -> Result<(), String> {
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["config", "set", path, json_value, "--json"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
-
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
-    }
+    config_set_raw_json_with(cli_runner::default_runner(), path, json_value)
 }
 
 fn provider_base_url(provider: &str) -> Option<&'static str> {

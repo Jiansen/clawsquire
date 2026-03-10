@@ -1,22 +1,27 @@
 mod backup;
+mod cli_runner;
 mod community_search;
 mod compat;
 mod constants;
 mod detect;
 mod doctor;
+mod imap;
+mod instances;
 mod node_install;
 mod openclaw;
 mod remote;
+mod secure_store;
 mod ssh;
 
 use backup::{BackupEntry, DiffEntry};
 use community_search::{SearchResponse, SmartSearchResponse};
 use compat::VersionInfo;
 use detect::{Environment, UpdateCheck};
-use remote::RemoteInstallCommand;
 use doctor::DoctorReport;
+use instances::VpsInstance;
 use node_install::NodeInstallResult;
 use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, EmailMonitorResult, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
+use remote::RemoteInstallCommand;
 
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
@@ -301,6 +306,134 @@ async fn ssh_run_command(
 }
 
 #[tauri::command]
+async fn list_instances() -> Vec<VpsInstance> {
+    instances::list_instances()
+}
+
+#[tauri::command]
+async fn add_instance(instance: VpsInstance) -> Result<VpsInstance, String> {
+    instances::add_instance(instance)
+}
+
+#[tauri::command]
+async fn update_instance(instance: VpsInstance) -> Result<VpsInstance, String> {
+    instances::update_instance(instance)
+}
+
+#[tauri::command]
+async fn delete_instance(id: String) -> Result<(), String> {
+    instances::delete_instance(&id)
+}
+
+#[derive(serde::Serialize)]
+pub struct DeployResult {
+    pub test_ok: bool,
+    pub install_output: Option<ssh::SshExecResult>,
+    pub errors: Vec<String>,
+}
+
+#[tauri::command]
+async fn deploy_to_vps(
+    host: String,
+    port: Option<u16>,
+    username: String,
+    password: Option<String>,
+    key_path: Option<String>,
+    provider: Option<String>,
+    channel: Option<String>,
+    safety: Option<String>,
+) -> DeployResult {
+    let p = port.unwrap_or(22);
+
+    let test = ssh::ssh_exec(
+        &host, p, &username,
+        password.as_deref(), key_path.as_deref(),
+        "echo ok",
+    ).await;
+
+    if !test.success {
+        return DeployResult {
+            test_ok: false,
+            install_output: None,
+            errors: vec![test.error.unwrap_or_else(|| "SSH connection failed".into())],
+        };
+    }
+
+    let cmd = remote::generate_install_command(
+        provider.as_deref(),
+        channel.as_deref(),
+        safety.as_deref(),
+        false,
+    );
+
+    let install = ssh::ssh_exec(
+        &host, p, &username,
+        password.as_deref(), key_path.as_deref(),
+        &cmd.command,
+    ).await;
+
+    let mut errors = Vec::new();
+    if !install.success {
+        if let Some(ref e) = install.error {
+            errors.push(e.clone());
+        }
+    }
+
+    DeployResult {
+        test_ok: true,
+        install_output: Some(install),
+        errors,
+    }
+}
+
+#[tauri::command]
+async fn store_secret(key: String, value: String) -> secure_store::SecureStoreResult {
+    tauri::async_runtime::spawn_blocking(move || secure_store::store_secret(&key, &value))
+        .await
+        .unwrap_or(secure_store::SecureStoreResult {
+            success: false,
+            error: Some("Task panicked".into()),
+        })
+}
+
+#[tauri::command]
+async fn get_secret(key: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || secure_store::get_secret(&key))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn delete_secret(key: String) -> secure_store::SecureStoreResult {
+    tauri::async_runtime::spawn_blocking(move || secure_store::delete_secret(&key))
+        .await
+        .unwrap_or(secure_store::SecureStoreResult {
+            success: false,
+            error: Some("Task panicked".into()),
+        })
+}
+
+#[tauri::command]
+async fn detect_imap_preset(email: String) -> Option<imap::ImapPreset> {
+    imap::detect_imap_preset(&email)
+}
+
+#[tauri::command]
+async fn save_imap_config(
+    email: String,
+    host: String,
+    port: u16,
+    tls: bool,
+    password: String,
+) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        imap::save_imap_config(&email, &host, port, tls, &password)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 async fn get_version_info() -> VersionInfo {
     tauri::async_runtime::spawn_blocking(compat::get_version_info)
         .await
@@ -400,6 +533,16 @@ pub fn run() {
             setup_email_monitor,
             ssh_test_connection,
             ssh_run_command,
+            list_instances,
+            add_instance,
+            update_instance,
+            delete_instance,
+            deploy_to_vps,
+            detect_imap_preset,
+            save_imap_config,
+            store_secret,
+            get_secret,
+            delete_secret,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
