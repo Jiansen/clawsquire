@@ -11,7 +11,8 @@
     "backup": "バックアップ",
     "settings": "設定",
     "help": "ヘルプ",
-    "config": "設定"
+    "config": "設定",
+    "remote": "リモートインストール"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -520,5 +521,23 @@
     "expert": "エキスパート",
     "comingSoon": "近日公開",
     "optional": "オプション"
+  },
+  "remote": {
+    "title": "リモートインストール",
+    "subtitle": "VPSにOpenClawをインストールするワンライナーコマンドを生成",
+    "securityNote": "インストールコマンドにAPIキーは含まれません。インストール完了後、サーバー上で安全に設定します。",
+    "provider": "LLMプロバイダー（任意）",
+    "providerHint": "プロバイダーを事前選択。APIキーはインストール後にサーバーで入力します。",
+    "channel": "チャンネル（任意）",
+    "channelHint": "メッセージチャンネルを事前選択。トークンはインストール後に設定します。",
+    "safety": "セキュリティレベル",
+    "safetyConservative": "保守的",
+    "safetyStandard": "標準",
+    "safetyFull": "フルアクセス",
+    "noStart": "インストール後にGatewayを自動起動しない",
+    "generate": "インストールコマンドを生成",
+    "copy": "コピー",
+    "copied": "コピー済み！",
+    "postInstall": "インストール後、サーバーで以下を実行："
   }
 }

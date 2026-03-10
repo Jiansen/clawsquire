@@ -11,7 +11,8 @@
     "backup": "配置備份",
     "settings": "設定",
     "help": "說明",
-    "config": "設定"
+    "config": "設定",
+    "remote": "遠端安裝"
   },
   "dashboard": {
     "title": "儀表板",
@@ -520,5 +521,23 @@
     "expert": "高級",
     "comingSoon": "即將推出",
     "optional": "可選"
+  },
+  "remote": {
+    "title": "遠端安裝",
+    "subtitle": "產生一行指令，在 VPS 上安裝 OpenClaw",
+    "securityNote": "安裝指令中不包含 API 金鑰。安裝完成後，您將在伺服器上安全地設定金鑰。",
+    "provider": "LLM 提供商（選填）",
+    "providerHint": "預選一個提供商。安裝後在伺服器上輸入 API Key。",
+    "channel": "訊息頻道（選填）",
+    "channelHint": "預選訊息頻道。Token 在安裝後設定。",
+    "safety": "安全等級",
+    "safetyConservative": "保守",
+    "safetyStandard": "標準",
+    "safetyFull": "完全存取",
+    "noStart": "安裝後不自動啟動 Gateway",
+    "generate": "產生安裝指令",
+    "copy": "複製",
+    "copied": "已複製！",
+    "postInstall": "安裝完成後，在伺服器上執行："
   }
 }

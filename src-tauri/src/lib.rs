@@ -6,11 +6,13 @@ mod detect;
 mod doctor;
 mod node_install;
 mod openclaw;
+mod remote;
 
 use backup::{BackupEntry, DiffEntry};
 use community_search::{SearchResponse, SmartSearchResponse};
 use compat::VersionInfo;
 use detect::{Environment, UpdateCheck};
+use remote::RemoteInstallCommand;
 use doctor::DoctorReport;
 use node_install::NodeInstallResult;
 use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
@@ -225,6 +227,21 @@ async fn smart_search(query: String, lang: String) -> Result<SmartSearchResponse
 }
 
 #[tauri::command]
+async fn generate_install_command(
+    provider: Option<String>,
+    channel: Option<String>,
+    safety: Option<String>,
+    no_start: Option<bool>,
+) -> RemoteInstallCommand {
+    remote::generate_install_command(
+        provider.as_deref(),
+        channel.as_deref(),
+        safety.as_deref(),
+        no_start.unwrap_or(false),
+    )
+}
+
+#[tauri::command]
 async fn get_version_info() -> VersionInfo {
     tauri::async_runtime::spawn_blocking(compat::get_version_info)
         .await
@@ -320,6 +337,7 @@ pub fn run() {
             smart_search,
             check_for_updates,
             get_version_info,
+            generate_install_command,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

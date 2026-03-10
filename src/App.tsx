@@ -14,6 +14,7 @@ import Backup from './pages/Backup';
 import Config from './pages/Config';
 import Settings from './pages/Settings';
 import Help from './pages/Help';
+import RemoteInstall from './pages/RemoteInstall';
 import Welcome from './pages/Welcome';
 import { useWindowTitle } from './lib/useWindowTitle';
 
@@ -36,6 +37,7 @@ function AppShell() {
               <Route path="/doctor" element={<Doctor />} />
               <Route path="/backup" element={<Backup />} />
               <Route path="/config" element={<Config />} />
+              <Route path="/remote" element={<RemoteInstall />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/help" element={<Help />} />
             </Routes>

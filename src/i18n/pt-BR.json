@@ -11,7 +11,8 @@
     "backup": "Backups",
     "settings": "Configurações",
     "help": "Ajuda",
-    "config": "Configuração"
+    "config": "Configuração",
+    "remote": "Instalação remota"
   },
   "dashboard": {
     "title": "Painel",
@@ -520,5 +521,23 @@
     "expert": "Especialista",
     "comingSoon": "Em breve",
     "optional": "Opcional"
+  },
+  "remote": {
+    "title": "Instalação remota",
+    "subtitle": "Gere um comando de uma linha para instalar o OpenClaw no seu VPS",
+    "securityNote": "Chaves de API NÃO são incluídas no comando de instalação. Você as configurará com segurança após a instalação no servidor.",
+    "provider": "Provedor LLM (opcional)",
+    "providerHint": "Pré-selecione um provedor. Você inserirá a chave API no servidor após a instalação.",
+    "channel": "Canal (opcional)",
+    "channelHint": "Pré-selecione um canal de mensagens. O token é configurado após a instalação.",
+    "safety": "Nível de segurança",
+    "safetyConservative": "Conservador",
+    "safetyStandard": "Padrão",
+    "safetyFull": "Acesso completo",
+    "noStart": "Não iniciar o Gateway automaticamente após a instalação",
+    "generate": "Gerar comando de instalação",
+    "copy": "Copiar",
+    "copied": "Copiado!",
+    "postInstall": "Após a instalação, execute no servidor:"
   }
 }

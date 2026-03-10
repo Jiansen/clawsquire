@@ -10,6 +10,7 @@
     "doctor": "Health Check",
     "backup": "Backups",
     "config": "Config",
+    "remote": "Remote",
     "settings": "Settings",
     "help": "Help"
   },
@@ -522,5 +523,23 @@
     "expert": "Expert",
     "comingSoon": "Coming Soon",
     "optional": "Optional"
+  },
+  "remote": {
+    "title": "Remote Install",
+    "subtitle": "Generate a one-line command to install OpenClaw on your VPS",
+    "securityNote": "API keys are NOT included in the install command. You will configure them securely after installation completes on the server.",
+    "provider": "LLM Provider (optional)",
+    "providerHint": "Pre-select a provider. You'll enter the API key on the server after install.",
+    "channel": "Channel (optional)",
+    "channelHint": "Pre-select a messaging channel. Token is configured after install.",
+    "safety": "Safety Level",
+    "safetyConservative": "Conservative",
+    "safetyStandard": "Standard",
+    "safetyFull": "Full Access",
+    "noStart": "Don't auto-start gateway after installation",
+    "generate": "Generate Install Command",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "postInstall": "After installation, run these on the server:"
   }
 }

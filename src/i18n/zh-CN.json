@@ -10,6 +10,7 @@
     "doctor": "健康检查",
     "backup": "备份管理",
     "config": "配置",
+    "remote": "远程安装",
     "settings": "设置",
     "help": "帮助"
   },
@@ -520,5 +521,23 @@
     "expert": "高级",
     "comingSoon": "即将推出",
     "optional": "可选"
+  },
+  "remote": {
+    "title": "远程安装",
+    "subtitle": "生成一行命令，在 VPS 上安装 OpenClaw",
+    "securityNote": "安装命令中不包含 API 密钥。安装完成后，您将在服务器上安全地配置密钥。",
+    "provider": "LLM 提供商（可选）",
+    "providerHint": "预选一个提供商。安装后在服务器上输入 API Key。",
+    "channel": "消息渠道（可选）",
+    "channelHint": "预选消息渠道。Token 在安装后配置。",
+    "safety": "安全级别",
+    "safetyConservative": "保守",
+    "safetyStandard": "标准",
+    "safetyFull": "完全访问",
+    "noStart": "安装后不自动启动 Gateway",
+    "generate": "生成安装命令",
+    "copy": "复制",
+    "copied": "已复制！",
+    "postInstall": "安装完成后，在服务器上运行："
   }
 }

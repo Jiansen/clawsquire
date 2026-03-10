@@ -52,6 +52,15 @@ const navItems = [
     ),
   },
   {
+    to: '/remote',
+    labelKey: 'nav.remote',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
+    ),
+  },
+  {
     to: '/help',
     labelKey: 'nav.help',
     icon: (
