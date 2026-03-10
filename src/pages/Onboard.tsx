@@ -5,14 +5,17 @@ import { invoke } from '@tauri-apps/api/core';
 import InfoTooltip from '../components/shared/InfoTooltip';
 import { OPENCLAW_GETTING_STARTED_URL } from '../constants';
 
-const TEMPLATES = [
+const WIZARD_TEMPLATES = [
   { id: 'llm-provider', icon: '🧠', est: '~2 min', badge: 'recommended' as const },
-  { id: 'email-telegram', icon: '📧', est: '~5 min', badge: null },
-  { id: 'telegram', icon: '💬', est: '~3 min', badge: 'optional' as const },
-  { id: 'whatsapp', icon: '📱', est: '~2 min', badge: 'optional' as const },
-  { id: 'discord', icon: '🤖', est: '~3 min', badge: 'optional' as const },
   { id: 'vps-headless', icon: '🖥️', est: '~5 min', badge: null },
 ] as const;
+
+const NAV_CARDS = [
+  { id: 'channels', icon: '📡', route: '/channels' },
+  { id: 'automations', icon: '⚡', route: '/automations' },
+  { id: 'sources', icon: '📧', route: '/sources' },
+] as const;
+
 
 interface StepDef {
   type: 'info' | 'input' | 'select' | 'model-select' | 'complete';
@@ -263,7 +266,7 @@ function TemplateList() {
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {TEMPLATES.map((tpl) => (
+        {WIZARD_TEMPLATES.map((tpl) => (
           <Link
             key={tpl.id}
             to={`/onboard/${tpl.id}`}
@@ -276,11 +279,6 @@ function TemplateList() {
             {tpl.badge === 'recommended' && (
               <span className="absolute -top-2.5 right-3 bg-claw-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                 {t('common.recommended')}
-              </span>
-            )}
-            {tpl.badge === 'optional' && (
-              <span className="absolute -top-2.5 right-3 bg-gray-400 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                {t('common.optional')}
               </span>
             )}
             <div className="flex items-start gap-4">
@@ -297,6 +295,29 @@ function TemplateList() {
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-300 group-hover:text-claw-500 transition-colors mt-1">
                 <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
               </svg>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-8">
+        {t('onboard.nextSteps')}
+      </h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {NAV_CARDS.map((card) => (
+          <Link
+            key={card.id}
+            to={card.route}
+            className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-claw-300 hover:shadow-sm transition-all group"
+          >
+            <span className="text-2xl">{card.icon}</span>
+            <div>
+              <div className="font-medium text-sm group-hover:text-claw-700 transition-colors">
+                {t(`onboard.navCards.${card.id}.name`)}
+              </div>
+              <div className="text-xs text-gray-400">
+                {t(`onboard.navCards.${card.id}.desc`)}
+              </div>
             </div>
           </Link>
         ))}

@@ -10,7 +10,10 @@
     "doctor": "Health Check",
     "backup": "Backups",
     "config": "Config",
+    "channels": "Channels",
+    "automations": "Automations",
     "vps": "VPS",
+    "sources": "Sources",
     "imap": "Email",
     "settings": "Settings",
     "help": "Help"
@@ -91,6 +94,17 @@
       "thinking": "OpenClaw is working...",
       "chatAgain": "Try another task",
       "setupBotsHint": "Optional: Set up Telegram/Discord bots for remote access →"
+    },
+    "webDashboard": {
+      "title": "OpenClaw Web Dashboard",
+      "desc": "Open OpenClaw's built-in 12-tab control panel in your browser.",
+      "open": "Open"
+    },
+    "cli": {
+      "title": "OpenClaw CLI",
+      "advanced": "Advanced",
+      "placeholder": "status, config list, channels list ...",
+      "hint": "Commands are passed to openclaw CLI. Example: status, config get gateway.auth.token, channels list"
     }
   },
   "doctor": {
@@ -148,6 +162,12 @@
   "onboard": {
     "title": "Setup Assistant",
     "chooseTemplate": "Choose a setup template",
+    "nextSteps": "Next Steps",
+    "navCards": {
+      "channels": { "name": "Add Channels", "desc": "Telegram, Discord, WhatsApp..." },
+      "automations": { "name": "Set Up Automations", "desc": "Email summaries, scheduled tasks..." },
+      "sources": { "name": "Configure Email", "desc": "IMAP settings for inbox monitoring" }
+    },
     "step": "Step {{current}} of {{total}}",
     "back": "Back",
     "next": "Next",
@@ -504,6 +524,14 @@
       }
     }
   },
+  "helpPanel": {
+    "title": "Help",
+    "searchPlaceholder": "Search FAQ or community issues…",
+    "tabFaq": "FAQ",
+    "tabCommunity": "Community Search",
+    "tryCommunity": "Try searching community issues →",
+    "footer": "Press Esc to close · Cmd+? for quick access"
+  },
   "config": {
     "title": "Configuration",
     "jsonView": "JSON View",
@@ -636,5 +664,118 @@
     "saveAndTest": "Save Configuration",
     "doneTitle": "Email Configured!",
     "doneDesc": "IMAP credentials saved to OpenClaw config. The Email→Telegram cron job can now access your inbox."
+  },
+  "channels": {
+    "title": "Channels",
+    "description": "Manage communication channels that connect OpenClaw to your messaging apps.",
+    "addChannel": "Add Channel",
+    "loading": "Loading channels...",
+    "emptyTitle": "No channels configured",
+    "emptyDesc": "Add a channel to let OpenClaw communicate through Telegram, Discord, and more.",
+    "addFirst": "Add Your First Channel",
+    "addSuccess": "{{channel}} channel added successfully!",
+    "addFailed": "Failed to add channel.",
+    "removeSuccess": "{{channel}} channel removed.",
+    "removeFailed": "Failed to remove channel.",
+    "remove": "Remove",
+    "statusConfigured": "Configured",
+    "alreadyAdded": "Already added",
+    "changeType": "Change",
+    "tokenLabel": "Token / API Key",
+    "tokenPlaceholder": "Paste your bot token here...",
+    "openGuide": "Open setup guide →",
+    "saving": "Saving...",
+    "save": "Add Channel",
+    "cancel": "Cancel",
+    "noTokenGeneric": "This channel requires manual setup via terminal.",
+    "types": {
+      "telegram": "Telegram",
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "slack": "Slack",
+      "webchat": "WebChat"
+    },
+    "setup": {
+      "telegram": "Create a bot via @BotFather on Telegram and paste the token below.",
+      "discord": "Create an app on the Discord Developer Portal. Copy the Bot Token.",
+      "whatsapp": "WhatsApp requires QR code pairing via terminal. Run: openclaw channels login --channel whatsapp",
+      "slack": "Create a Slack app and copy the Bot User OAuth Token.",
+      "webchat": "WebChat is built into the OpenClaw gateway. No extra setup needed."
+    },
+    "noToken": {
+      "whatsapp": "WhatsApp uses QR code pairing. Run this in your terminal: openclaw channels login --channel whatsapp",
+      "webchat": "WebChat is built into the gateway. Start the gateway and visit the WebChat URL."
+    }
+  },
+  "sources": {
+    "title": "Input Sources",
+    "description": "Configure data sources that OpenClaw can read from — email inboxes, RSS feeds, and more.",
+    "loading": "Loading...",
+    "configure": "Configure",
+    "edit": "Edit",
+    "comingSoon": "Coming soon",
+    "tipTitle": "How sources work with automations",
+    "tipDesc": "Once a source is configured, create an Automation to periodically check it and send summaries to your channels.",
+    "types": {
+      "imap": { "name": "Email (IMAP)", "desc": "Read emails from any IMAP-compatible inbox" },
+      "rss": { "name": "RSS Feeds", "desc": "Monitor blog posts, news, and website updates" },
+      "calendar": { "name": "Calendar", "desc": "Track events and scheduling changes" },
+      "webhook": { "name": "Webhooks", "desc": "Receive data from external services" }
+    }
+  },
+  "automations": {
+    "title": "Automations",
+    "description": "Schedule recurring tasks — the AI agent runs them automatically and sends results to your channels.",
+    "create": "New Automation",
+    "loading": "Loading automations...",
+    "emptyTitle": "No automations yet",
+    "emptyDesc": "Create an automation to have OpenClaw check your email, send reminders, or run custom tasks on a schedule.",
+    "createFirst": "Create Your First Automation",
+    "noChannelsHint": "Add a channel first (Channels page) so automations can send results.",
+    "createSuccess": "Automation \"{{name}}\" created!",
+    "createFailed": "Failed to create automation.",
+    "removeSuccess": "Automation \"{{name}}\" removed.",
+    "removeFailed": "Failed to remove automation.",
+    "remove": "Remove",
+    "choosePreset": "Choose a template to get started, or create a fully custom automation.",
+    "changePreset": "Change",
+    "nameLabel": "Automation Name",
+    "namePlaceholder": "e.g. Morning Email Summary",
+    "messageLabel": "Task Prompt",
+    "messagePlaceholder": "What should the AI agent do each time this runs?",
+    "intervalLabel": "Run Every",
+    "channelLabel": "Send Results To",
+    "announceLabel": "Announce results to channel",
+    "preview": "Preview",
+    "previewText": "\"{{name}}\" runs every {{every}} → results sent to {{channel}}",
+    "saving": "Creating...",
+    "save": "Create Automation",
+    "cancel": "Cancel",
+    "intervals": {
+      "5m": "5 minutes",
+      "15m": "15 minutes",
+      "30m": "30 minutes",
+      "1h": "1 hour",
+      "6h": "6 hours",
+      "24h": "24 hours"
+    },
+    "presets": {
+      "email-summary": {
+        "name": "Email Summary",
+        "desc": "Summarize new emails periodically",
+        "defaultName": "Email Summary",
+        "defaultMessage": "Check for new unread emails. Summarize any important ones briefly. If nothing new, stay silent."
+      },
+      "scheduled-reminder": {
+        "name": "Scheduled Reminder",
+        "desc": "Send periodic reminders or updates",
+        "defaultName": "Daily Reminder",
+        "defaultMessage": "Give me a brief summary of today's weather and any important news."
+      },
+      "custom": {
+        "name": "Custom",
+        "desc": "Define your own task from scratch"
+      }
+    }
   }
 }

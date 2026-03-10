@@ -39,8 +39,7 @@ describe("Config — initial render", () => {
 
   it("shows config tree by default", async () => {
     renderConfig();
-    await screen.findByText("config.title");
-    expect(screen.getByText("openclaw")).toBeDefined();
+    expect(await screen.findByText("openclaw")).toBeDefined();
     expect(screen.getByText("llm")).toBeDefined();
   });
 

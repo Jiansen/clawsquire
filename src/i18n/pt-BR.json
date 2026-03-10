@@ -11,7 +11,9 @@
     "backup": "Backups",
     "help": "Ajuda",
     "config": "Configuração",
+    "channels": "Canais",
     "vps": "VPS",
+    "sources": "Fontes",
     "imap": "E-mail",
     "settings": "Configurações"
   },
@@ -91,6 +93,17 @@
       "thinking": "OpenClaw está trabalhando...",
       "chatAgain": "Tentar outra tarefa",
       "setupBotsHint": "Opcional: Configure bots do Telegram/Discord para acesso remoto →"
+    },
+    "webDashboard": {
+      "title": "Painel Web do OpenClaw",
+      "desc": "Abra o painel de controle integrado de 12 abas do OpenClaw no seu navegador.",
+      "open": "Abrir"
+    },
+    "cli": {
+      "title": "OpenClaw CLI",
+      "advanced": "Avançado",
+      "placeholder": "status, config list, channels list ...",
+      "hint": "Comandos são passados para o CLI do openclaw. Exemplo: status, config get gateway.auth.token, channels list"
     }
   },
   "doctor": {
@@ -152,6 +165,12 @@
   "onboard": {
     "title": "Assistente de Configuração",
     "chooseTemplate": "Escolha um modelo de configuração",
+    "nextSteps": "Próximos passos",
+    "navCards": {
+      "channels": { "name": "Adicionar canais", "desc": "Telegram, Discord, WhatsApp..." },
+      "automations": { "name": "Configurar automações", "desc": "Resumos de email, tarefas agendadas..." },
+      "sources": { "name": "Configurar email", "desc": "Configuração IMAP para caixa de entrada" }
+    },
     "step": "Passo {{current}} de {{total}}",
     "back": "Voltar",
     "next": "Próximo",
@@ -512,6 +531,14 @@
       }
     }
   },
+  "helpPanel": {
+    "title": "Ajuda",
+    "searchPlaceholder": "Buscar perguntas frequentes ou comunidade…",
+    "tabFaq": "Perguntas frequentes",
+    "tabCommunity": "Busca na comunidade",
+    "tryCommunity": "Tente buscar na comunidade →",
+    "footer": "Pressione Esc para fechar · Cmd+? acesso rápido"
+  },
   "config": {
     "title": "Configuração",
     "jsonView": "Visualização JSON",
@@ -640,5 +667,92 @@
     "saveAndTest": "Salvar configuração",
     "doneTitle": "E-mail configurado!",
     "doneDesc": "As credenciais IMAP foram salvas na configuração do OpenClaw. O cron E-mail→Telegram agora pode acessar sua caixa de entrada."
+  },
+  "channels": {
+    "title": "Canais",
+    "description": "Gerencie os canais de comunicação que conectam o OpenClaw aos seus apps de mensagens.",
+    "addChannel": "Adicionar canal",
+    "loading": "Carregando...",
+    "emptyTitle": "Nenhum canal configurado",
+    "emptyDesc": "Adicione um canal para que o OpenClaw se comunique via Telegram, Discord e mais.",
+    "addFirst": "Adicionar seu primeiro canal",
+    "addSuccess": "Canal {{channel}} adicionado com sucesso!",
+    "addFailed": "Falha ao adicionar canal.",
+    "removeSuccess": "Canal {{channel}} removido.",
+    "removeFailed": "Falha ao remover canal.",
+    "remove": "Remover",
+    "statusConfigured": "Configurado",
+    "alreadyAdded": "Já adicionado",
+    "changeType": "Alterar",
+    "tokenLabel": "Token / Chave API",
+    "tokenPlaceholder": "Cole seu token de bot aqui...",
+    "openGuide": "Abrir guia de configuração →",
+    "saving": "Salvando...",
+    "save": "Adicionar canal",
+    "cancel": "Cancelar",
+    "noTokenGeneric": "Este canal requer configuração manual via terminal.",
+    "types": { "telegram": "Telegram", "discord": "Discord", "whatsapp": "WhatsApp", "slack": "Slack", "webchat": "WebChat" },
+    "setup": {
+      "telegram": "Crie um bot via @BotFather no Telegram e cole o token abaixo.",
+      "discord": "Crie um app no Portal do Desenvolvedor do Discord. Copie o Bot Token.",
+      "whatsapp": "WhatsApp requer pareamento por QR code via terminal. Execute: openclaw channels login --channel whatsapp",
+      "slack": "Crie um app Slack e copie o Bot User OAuth Token.",
+      "webchat": "WebChat é integrado ao gateway do OpenClaw. Nenhuma configuração adicional necessária."
+    },
+    "noToken": {
+      "whatsapp": "WhatsApp usa pareamento por QR code. Execute no terminal: openclaw channels login --channel whatsapp",
+      "webchat": "WebChat é integrado ao gateway. Inicie o gateway e acesse a URL do WebChat."
+    }
+  },
+  "sources": {
+    "title": "Fontes de entrada",
+    "description": "Configure as fontes de dados que o OpenClaw pode ler — caixas de email, feeds RSS e mais.",
+    "loading": "Carregando...",
+    "configure": "Configurar",
+    "edit": "Editar",
+    "comingSoon": "Em breve",
+    "tipTitle": "Como fontes funcionam com automações",
+    "tipDesc": "Após configurar uma fonte, crie uma automação para verificá-la periodicamente e enviar resumos aos seus canais.",
+    "types": {
+      "imap": { "name": "Email (IMAP)", "desc": "Leia emails de qualquer caixa compatível com IMAP" },
+      "rss": { "name": "Feeds RSS", "desc": "Monitore posts de blog, notícias e atualizações" },
+      "calendar": { "name": "Calendário", "desc": "Acompanhe eventos e mudanças de agenda" },
+      "webhook": { "name": "Webhooks", "desc": "Receba dados de serviços externos" }
+    }
+  },
+  "automations": {
+    "title": "Automações",
+    "description": "Agende tarefas recorrentes — o agente AI as executa automaticamente e envia os resultados aos seus canais.",
+    "create": "Nova automação",
+    "loading": "Carregando...",
+    "emptyTitle": "Nenhuma automação",
+    "emptyDesc": "Crie uma automação para que o OpenClaw verifique emails, envie lembretes ou execute tarefas personalizadas.",
+    "createFirst": "Criar sua primeira automação",
+    "noChannelsHint": "Primeiro adicione um canal (página Canais) para que automações possam enviar resultados.",
+    "createSuccess": "Automação \"{{name}}\" criada!",
+    "createFailed": "Falha ao criar automação.",
+    "removeSuccess": "Automação \"{{name}}\" removida.",
+    "removeFailed": "Falha ao remover automação.",
+    "remove": "Remover",
+    "choosePreset": "Escolha um modelo para começar ou crie uma automação totalmente personalizada.",
+    "changePreset": "Alterar",
+    "nameLabel": "Nome da tarefa",
+    "namePlaceholder": "ex. Resumo matinal de emails",
+    "messageLabel": "Prompt da tarefa",
+    "messagePlaceholder": "O que o agente AI deve fazer a cada execução?",
+    "intervalLabel": "Executar a cada",
+    "channelLabel": "Enviar resultados para",
+    "announceLabel": "Anunciar resultados no canal",
+    "preview": "Prévia",
+    "previewText": "\"{{name}}\" executa a cada {{every}} → resultados enviados para {{channel}}",
+    "saving": "Criando...",
+    "save": "Criar automação",
+    "cancel": "Cancelar",
+    "intervals": { "5m": "5 minutos", "15m": "15 minutos", "30m": "30 minutos", "1h": "1 hora", "6h": "6 horas", "24h": "24 horas" },
+    "presets": {
+      "email-summary": { "name": "Resumo de emails", "desc": "Resume novos emails periodicamente", "defaultName": "Resumo de emails", "defaultMessage": "Verifique novos emails não lidos. Resuma brevemente os importantes. Se não houver nada novo, fique em silêncio." },
+      "scheduled-reminder": { "name": "Lembrete agendado", "desc": "Envia lembretes ou atualizações periódicas", "defaultName": "Lembrete diário", "defaultMessage": "Me dê um breve resumo do clima de hoje e notícias importantes." },
+      "custom": { "name": "Personalizado", "desc": "Defina sua própria tarefa do zero" }
+    }
   }
 }

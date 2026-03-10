@@ -20,3 +20,12 @@
   --color-warn-500: #f59e0b;
   --color-fail-500: #ef4444;
 }
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out;
+}

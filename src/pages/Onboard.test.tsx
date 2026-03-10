@@ -22,18 +22,18 @@ function renderOnboard(path = "/onboard") {
 }
 
 describe("Onboard — TemplateList", () => {
-  it("renders all template cards", async () => {
+  it("renders wizard template cards and nav cards", async () => {
     renderOnboard();
     const links = await screen.findAllByRole("link");
-    expect(links.length).toBeGreaterThanOrEqual(6);
+    expect(links.length).toBeGreaterThanOrEqual(5);
   });
 
-  it("includes email-telegram template", async () => {
+  it("includes channels nav card", async () => {
     renderOnboard();
-    expect(await screen.findByText("onboard.templates.email-telegram.name")).toBeDefined();
+    expect(await screen.findByText("onboard.navCards.channels.name")).toBeDefined();
   });
 
-  it("includes ssh-related templates", async () => {
+  it("includes vps-headless template", async () => {
     renderOnboard();
     expect(await screen.findByText("onboard.templates.vps-headless.name")).toBeDefined();
   });

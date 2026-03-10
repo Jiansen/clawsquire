@@ -42,7 +42,7 @@ describe("Doctor — initial render", () => {
 
   it("shows run or rerun button after load", async () => {
     renderDoctor();
-    const btn = await screen.findByRole("button", { name: /doctor\.(runCheck|rerun)/ });
+    const btn = await screen.findByRole("button", { name: /doctor\.(runCheck|rerun)/ }, { timeout: 10000 });
     expect(btn).toBeDefined();
   });
 

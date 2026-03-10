@@ -864,6 +864,170 @@ pub fn list_channels() -> Result<Vec<ChannelInfo>, String> {
 }
 
 #[derive(Debug, Serialize)]
+pub struct ChannelRemoveResult {
+    pub success: bool,
+    pub error: Option<String>,
+}
+
+pub fn remove_channel_with(runner: &dyn CliRunner, channel: &str) -> Result<ChannelRemoveResult, String> {
+    let out = runner.run(&["channels", "remove", "--channel", channel])?;
+    if out.success {
+        Ok(ChannelRemoveResult { success: true, error: None })
+    } else {
+        let msg = if out.stderr.is_empty() { out.stdout } else { out.stderr };
+        Ok(ChannelRemoveResult { success: false, error: Some(msg) })
+    }
+}
+
+pub fn remove_channel(channel: &str) -> Result<ChannelRemoveResult, String> {
+    remove_channel_with(cli_runner::default_runner(), channel)
+}
+
+#[derive(Debug, Serialize)]
+pub struct CronJob {
+    pub name: String,
+    pub every: String,
+    pub channel: Option<String>,
+    pub message: Option<String>,
+}
+
+pub fn cron_list_with(runner: &dyn CliRunner) -> Result<Vec<CronJob>, String> {
+    let out = runner.run(&["cron", "list"])?;
+    let mut jobs = Vec::new();
+    if !out.success {
+        return Ok(jobs);
+    }
+    let mut current_name = String::new();
+    let mut current_every = String::new();
+    let mut current_channel: Option<String> = None;
+    let mut current_message: Option<String> = None;
+
+    for line in out.stdout.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("- ") || trimmed.starts_with("• ") {
+            if !current_name.is_empty() {
+                jobs.push(CronJob {
+                    name: current_name.clone(),
+                    every: current_every.clone(),
+                    channel: current_channel.take(),
+                    message: current_message.take(),
+                });
+            }
+            current_name = trimmed.trim_start_matches("- ").trim_start_matches("• ").trim().to_string();
+            current_every.clear();
+            current_channel = None;
+            current_message = None;
+        } else if let Some(val) = trimmed.strip_prefix("every:") {
+            current_every = val.trim().to_string();
+        } else if let Some(val) = trimmed.strip_prefix("Every:") {
+            current_every = val.trim().to_string();
+        } else if let Some(val) = trimmed.strip_prefix("channel:") {
+            current_channel = Some(val.trim().to_string());
+        } else if let Some(val) = trimmed.strip_prefix("Channel:") {
+            current_channel = Some(val.trim().to_string());
+        } else if let Some(val) = trimmed.strip_prefix("message:") {
+            current_message = Some(val.trim().to_string());
+        } else if let Some(val) = trimmed.strip_prefix("Message:") {
+            current_message = Some(val.trim().to_string());
+        }
+    }
+
+    if !current_name.is_empty() {
+        jobs.push(CronJob {
+            name: current_name,
+            every: current_every,
+            channel: current_channel,
+            message: current_message,
+        });
+    }
+
+    if jobs.is_empty() {
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&out.stdout) {
+            if let Some(arr) = json.as_array() {
+                for item in arr {
+                    jobs.push(CronJob {
+                        name: item.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                        every: item.get("every").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                        channel: item.get("channel").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                        message: item.get("message").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(jobs)
+}
+
+pub fn cron_list() -> Result<Vec<CronJob>, String> {
+    cron_list_with(cli_runner::default_runner())
+}
+
+#[derive(Debug, Serialize)]
+pub struct CronRemoveResult {
+    pub success: bool,
+    pub error: Option<String>,
+}
+
+pub fn cron_remove_with(runner: &dyn CliRunner, name: &str) -> Result<CronRemoveResult, String> {
+    let out = runner.run(&["cron", "remove", "--name", name])?;
+    if out.success {
+        Ok(CronRemoveResult { success: true, error: None })
+    } else {
+        let msg = if out.stderr.is_empty() { out.stdout } else { out.stderr };
+        Ok(CronRemoveResult { success: false, error: Some(msg) })
+    }
+}
+
+pub fn cron_remove(name: &str) -> Result<CronRemoveResult, String> {
+    cron_remove_with(cli_runner::default_runner(), name)
+}
+
+#[derive(Debug, Serialize)]
+pub struct CronAddResult {
+    pub success: bool,
+    pub error: Option<String>,
+}
+
+pub fn cron_add_with(
+    runner: &dyn CliRunner,
+    name: &str,
+    every: &str,
+    message: &str,
+    channel: &str,
+    announce: bool,
+) -> Result<CronAddResult, String> {
+    let mut args = vec![
+        "cron", "add",
+        "--name", name,
+        "--every", every,
+        "--session", "isolated",
+        "--message", message,
+        "--channel", channel,
+    ];
+    if announce {
+        args.push("--announce");
+    }
+    let out = runner.run(&args)?;
+    if out.success {
+        Ok(CronAddResult { success: true, error: None })
+    } else {
+        let msg = if out.stderr.is_empty() { out.stdout } else { out.stderr };
+        Ok(CronAddResult { success: false, error: Some(msg) })
+    }
+}
+
+pub fn cron_add(
+    name: &str,
+    every: &str,
+    message: &str,
+    channel: &str,
+    announce: bool,
+) -> Result<CronAddResult, String> {
+    cron_add_with(cli_runner::default_runner(), name, every, message, channel, announce)
+}
+
+#[derive(Debug, Serialize)]
 pub struct SafetyApplyResult {
     pub success: bool,
     pub applied: Vec<String>,
@@ -1037,4 +1201,25 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
 
 pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
     uninstall_openclaw_with(cli_runner::default_runner(), remove_config)
+}
+
+#[derive(Debug, Serialize)]
+pub struct CliOutput {
+    pub success: bool,
+    pub stdout: String,
+    pub stderr: String,
+}
+
+pub fn run_cli_with(runner: &dyn CliRunner, args: &[&str]) -> Result<CliOutput, String> {
+    let out = runner.run(args)?;
+    Ok(CliOutput {
+        success: out.success,
+        stdout: out.stdout,
+        stderr: out.stderr,
+    })
+}
+
+pub fn run_cli(args: Vec<String>) -> Result<CliOutput, String> {
+    let refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+    run_cli_with(cli_runner::default_runner(), &refs)
 }

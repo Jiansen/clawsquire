@@ -20,7 +20,7 @@ use detect::{Environment, UpdateCheck};
 use doctor::DoctorReport;
 use instances::VpsInstance;
 use node_install::NodeInstallResult;
-use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, EmailMonitorResult, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
+use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, ChannelRemoveResult, CliOutput, CronAddResult, CronJob, CronRemoveResult, EmailMonitorResult, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
 use remote::RemoteInstallCommand;
 
 use tauri::{
@@ -186,6 +186,49 @@ async fn get_full_config() -> Result<String, String> {
 #[tauri::command]
 async fn list_channels() -> Result<Vec<ChannelInfo>, String> {
     tauri::async_runtime::spawn_blocking(openclaw::list_channels)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn remove_channel(channel: String) -> Result<ChannelRemoveResult, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::remove_channel(&channel))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn cron_list() -> Result<Vec<CronJob>, String> {
+    tauri::async_runtime::spawn_blocking(openclaw::cron_list)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn cron_remove(name: String) -> Result<CronRemoveResult, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::cron_remove(&name))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn cron_add(
+    name: String,
+    every: String,
+    message: String,
+    channel: String,
+    announce: bool,
+) -> Result<CronAddResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::cron_add(&name, &every, &message, &channel, announce)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn run_openclaw_cli(args: Vec<String>) -> Result<CliOutput, String> {
+    tauri::async_runtime::spawn_blocking(move || openclaw::run_cli(args))
         .await
         .map_err(|e| e.to_string())?
 }
@@ -519,11 +562,16 @@ pub fn run() {
             install_openclaw,
             uninstall_openclaw,
             add_channel,
+            remove_channel,
             get_full_config,
             list_channels,
+            cron_list,
+            cron_remove,
+            cron_add,
             collect_feedback_info,
             copy_screenshot_to_clipboard,
             agent_chat,
+            run_openclaw_cli,
             apply_safety_preset,
             search_community_issues,
             smart_search,

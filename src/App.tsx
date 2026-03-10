@@ -13,9 +13,11 @@ import Doctor from './pages/Doctor';
 import Backup from './pages/Backup';
 import Config from './pages/Config';
 import Settings from './pages/Settings';
-import Help from './pages/Help';
 import VpsManager from './pages/VpsManager';
 import ImapWizard from './pages/ImapWizard';
+import Channels from './pages/Channels';
+import Automations from './pages/Automations';
+import Sources from './pages/Sources';
 import Welcome from './pages/Welcome';
 import { useWindowTitle } from './lib/useWindowTitle';
 
@@ -38,10 +40,12 @@ function AppShell() {
               <Route path="/doctor" element={<Doctor />} />
               <Route path="/backup" element={<Backup />} />
               <Route path="/config" element={<Config />} />
+              <Route path="/channels" element={<Channels />} />
+              <Route path="/automations" element={<Automations />} />
+              <Route path="/sources" element={<Sources />} />
               <Route path="/vps" element={<VpsManager />} />
               <Route path="/imap" element={<ImapWizard />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/help" element={<Help />} />
             </Routes>
           </main>
         </div>

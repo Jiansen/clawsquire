@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import InfoTooltip from '../components/shared/InfoTooltip';
 
 interface Environment {
@@ -299,6 +300,32 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      {/* Web Dashboard */}
+      {installed && running && (
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🌐</span>
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('dashboard.webDashboard.title')}</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.webDashboard.desc')}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => openUrl('http://localhost:18789')}
+            className="rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white hover:bg-claw-700 transition-all whitespace-nowrap flex items-center gap-1.5"
+          >
+            {t('dashboard.webDashboard.open')}
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z" />
+              <path d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* CLI Terminal */}
+      {installed && <CliTerminal />}
 
       {/* Not Installed → Install Card */}
       {!installed && !loading && (
@@ -760,6 +787,84 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
           >
             {t('dashboard.install.tryAgain')}
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CliTerminal() {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const [cmd, setCmd] = useState('');
+  const [history, setHistory] = useState<{ input: string; output: string; success: boolean }[]>([]);
+  const [running, setRunning] = useState(false);
+
+  const handleRun = async () => {
+    const trimmed = cmd.trim();
+    if (!trimmed || running) return;
+
+    const args = trimmed.split(/\s+/);
+    setRunning(true);
+    try {
+      const res = await invoke<{ success: boolean; stdout: string; stderr: string }>('run_openclaw_cli', { args });
+      setHistory((h) => [...h, { input: trimmed, output: res.stdout || res.stderr, success: res.success }]);
+    } catch (e) {
+      setHistory((h) => [...h, { input: trimmed, output: String(e), success: false }]);
+    } finally {
+      setCmd('');
+      setRunning(false);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-base">⌨️</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('dashboard.cli.title')}</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500">{t('dashboard.cli.advanced')}</span>
+        </div>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-gray-200 dark:border-gray-800">
+          <div className="bg-gray-950 rounded-b-xl p-4 font-mono text-xs max-h-64 overflow-y-auto">
+            {history.map((entry, i) => (
+              <div key={i} className="mb-2">
+                <div className="text-green-400">$ openclaw {entry.input}</div>
+                <pre className={`whitespace-pre-wrap mt-0.5 ${entry.success ? 'text-gray-300' : 'text-red-400'}`}>
+                  {entry.output || '(no output)'}
+                </pre>
+              </div>
+            ))}
+            <div className="flex items-center gap-1.5">
+              <span className="text-green-400 flex-shrink-0">$ openclaw</span>
+              <input
+                type="text"
+                value={cmd}
+                onChange={(e) => setCmd(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRun()}
+                placeholder={t('dashboard.cli.placeholder')}
+                disabled={running}
+                autoFocus
+                className="flex-1 bg-transparent text-gray-100 placeholder-gray-600 outline-none"
+              />
+              {running && <span className="text-yellow-400 animate-pulse">...</span>}
+            </div>
+          </div>
+          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50 text-[10px] text-gray-400">
+            {t('dashboard.cli.hint')}
+          </div>
         </div>
       )}
     </div>
