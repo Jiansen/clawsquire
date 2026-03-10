@@ -101,17 +101,32 @@ async fn daemon_status(state: tauri::State<'_, ActiveTargetState>) -> Result<ope
 }
 
 #[tauri::command]
-async fn create_backup(label: Option<String>) -> Result<BackupEntry, String> {
-    tauri::async_runtime::spawn_blocking(move || backup::create_backup(label.as_deref()))
-        .await
-        .map_err(|e| e.to_string())?
+async fn create_backup(state: tauri::State<'_, ActiveTargetState>, label: Option<String>) -> Result<BackupEntry, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        let runner = target.runner();
+        let remote_tag = match &target {
+            active_target::Target::Vps(conn) => Some(conn.instance_id.clone()),
+            _ => None,
+        };
+        backup::create_backup_with(runner.as_ref(), label.as_deref(), remote_tag.as_deref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn list_backups() -> Result<Vec<BackupEntry>, String> {
-    tauri::async_runtime::spawn_blocking(backup::list_backups)
-        .await
-        .map_err(|e| e.to_string())?
+async fn list_backups(state: tauri::State<'_, ActiveTargetState>) -> Result<Vec<BackupEntry>, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        let remote_tag = match &target {
+            active_target::Target::Vps(conn) => Some(conn.instance_id.as_str()),
+            _ => None,
+        };
+        backup::list_backups_for(remote_tag)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

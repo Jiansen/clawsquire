@@ -32,20 +32,42 @@ fn config_path() -> PathBuf {
     PathBuf::from(&env.config_dir).join(OPENCLAW_CONFIG_FILENAME)
 }
 
-pub fn create_backup(label: Option<&str>) -> Result<BackupEntry, String> {
-    let cfg_path = config_path();
-    if !cfg_path.exists() {
-        return Err("No OpenClaw config file found to back up.".to_string());
-    }
+pub fn create_backup_with(
+    runner: &dyn crate::cli_runner::CliRunner,
+    label: Option<&str>,
+    remote_tag: Option<&str>,
+) -> Result<BackupEntry, String> {
+    let config_content = if let Some(_tag) = remote_tag {
+        let out = runner.run(&["config", "list", "--json"])
+            .map_err(|e| format!("Failed to read remote config: {}", e))?;
+        if !out.success {
+            return Err(format!("Remote config read failed: {}", out.stderr));
+        }
+        Some(out.stdout)
+    } else {
+        None
+    };
 
-    let dir = backup_dir();
+    let dir = if let Some(tag) = remote_tag {
+        backup_dir().join(format!("remote-{}", tag))
+    } else {
+        backup_dir()
+    };
     fs::create_dir_all(&dir).map_err(|e| format!("Cannot create backup directory: {}", e))?;
 
     let now = chrono_utc_now();
     let filename = format!("{}.json", now.replace(':', "-"));
     let dest = dir.join(&filename);
 
-    fs::copy(&cfg_path, &dest).map_err(|e| format!("Failed to copy config: {}", e))?;
+    if let Some(content) = config_content {
+        fs::write(&dest, &content).map_err(|e| format!("Failed to write backup: {}", e))?;
+    } else {
+        let cfg_path = config_path();
+        if !cfg_path.exists() {
+            return Err("No OpenClaw config file found to back up.".to_string());
+        }
+        fs::copy(&cfg_path, &dest).map_err(|e| format!("Failed to copy config: {}", e))?;
+    }
 
     let meta = fs::metadata(&dest).map_err(|e| format!("Cannot read backup metadata: {}", e))?;
     let user_label = label.unwrap_or("").to_string();
@@ -72,8 +94,20 @@ pub fn create_backup(label: Option<&str>) -> Result<BackupEntry, String> {
     Ok(entry)
 }
 
+pub fn create_backup(label: Option<&str>) -> Result<BackupEntry, String> {
+    create_backup_with(crate::cli_runner::default_runner(), label, None)
+}
+
 pub fn list_backups() -> Result<Vec<BackupEntry>, String> {
-    let dir = backup_dir();
+    list_backups_for(None)
+}
+
+pub fn list_backups_for(remote_tag: Option<&str>) -> Result<Vec<BackupEntry>, String> {
+    let dir = if let Some(tag) = remote_tag {
+        backup_dir().join(format!("remote-{}", tag))
+    } else {
+        backup_dir()
+    };
     if !dir.exists() {
         return Ok(Vec::new());
     }

@@ -305,8 +305,6 @@ export default function Dashboard() {
             }
             onClick={handleBackupNow}
             loading={backingUp}
-            disabled={isRemote}
-            tooltip={isRemote ? 'Local only — backup is stored on this machine' : undefined}
           />
           <ActionCard
             label={t('dashboard.viewConfig')}
