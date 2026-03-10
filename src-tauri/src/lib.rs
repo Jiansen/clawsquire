@@ -104,12 +104,31 @@ async fn daemon_status(state: tauri::State<'_, ActiveTargetState>) -> Result<ope
 async fn create_backup(state: tauri::State<'_, ActiveTargetState>, label: Option<String>) -> Result<BackupEntry, String> {
     let target = state.get();
     tauri::async_runtime::spawn_blocking(move || {
-        let runner = target.runner();
-        let remote_tag = match &target {
-            active_target::Target::Vps(conn) => Some(conn.instance_id.clone()),
-            _ => None,
+        let (remote_tag, prefetched) = match &target {
+            active_target::Target::Vps(conn) => {
+                let rt = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .map_err(|e| format!("Runtime error: {}", e))?;
+                let result = rt.block_on(crate::ssh::ssh_exec(
+                    &conn.host,
+                    conn.port,
+                    &conn.username,
+                    conn.password.as_deref(),
+                    conn.key_path.as_deref(),
+                    "cat ~/.openclaw/openclaw.json",
+                ));
+                if let Some(err) = result.error {
+                    return Err(format!("SSH error: {}", err));
+                }
+                if !result.success {
+                    return Err(format!("Remote config read failed: {}", result.stderr));
+                }
+                (Some(conn.instance_id.clone()), Some(result.stdout))
+            }
+            _ => (None, None),
         };
-        backup::create_backup_with(runner.as_ref(), label.as_deref(), remote_tag.as_deref())
+        backup::create_backup_with(label.as_deref(), remote_tag.as_deref(), prefetched)
     })
     .await
     .map_err(|e| e.to_string())?
@@ -255,7 +274,44 @@ async fn add_channel(state: tauri::State<'_, ActiveTargetState>, channel: String
 async fn get_full_config(state: tauri::State<'_, ActiveTargetState>) -> Result<String, String> {
     let target = state.get();
     tauri::async_runtime::spawn_blocking(move || {
-        openclaw::get_full_config_with(target.runner().as_ref())
+        match &target {
+            active_target::Target::Local => {
+                let config_path = if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
+                    std::path::PathBuf::from(dir)
+                } else {
+                    dirs::home_dir()
+                        .unwrap_or_default()
+                        .join(crate::constants::OPENCLAW_STATE_DIR_DEFAULT)
+                }
+                .join("openclaw.json");
+                if !config_path.exists() {
+                    return Err("Config file not found. Is OpenClaw installed?".to_string());
+                }
+                std::fs::read_to_string(&config_path)
+                    .map_err(|e| format!("Failed to read config: {}", e))
+            }
+            active_target::Target::Vps(conn) => {
+                let rt = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .map_err(|e| format!("Runtime error: {}", e))?;
+                let result = rt.block_on(crate::ssh::ssh_exec(
+                    &conn.host,
+                    conn.port,
+                    &conn.username,
+                    conn.password.as_deref(),
+                    conn.key_path.as_deref(),
+                    "cat ~/.openclaw/openclaw.json",
+                ));
+                if let Some(err) = result.error {
+                    Err(format!("SSH error: {}", err))
+                } else if result.success {
+                    Ok(result.stdout)
+                } else {
+                    Err(result.stderr)
+                }
+            }
+        }
     })
     .await
     .map_err(|e| e.to_string())?

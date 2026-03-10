@@ -130,8 +130,6 @@ pub fn daemon_start_with(runner: &dyn CliRunner) -> Result<String, String> {
 }
 
 
-
-
 #[derive(Debug, Serialize)]
 pub struct UninstallResult {
     pub daemon_stopped: bool,
@@ -628,12 +626,6 @@ pub fn add_channel_with(runner: &dyn CliRunner, channel: &str, token: &str) -> R
             error: Some(if out.stderr.is_empty() { out.stdout } else { out.stderr }),
         })
     }
-}
-
-
-pub fn get_full_config_with(runner: &dyn CliRunner) -> Result<String, String> {
-    let out = runner.run(&["config", "get", "--json"])?;
-    if out.success { Ok(out.stdout) } else { Err(out.stderr) }
 }
 
 

@@ -33,20 +33,11 @@ fn config_path() -> PathBuf {
 }
 
 pub fn create_backup_with(
-    runner: &dyn crate::cli_runner::CliRunner,
     label: Option<&str>,
     remote_tag: Option<&str>,
+    prefetched_config: Option<String>,
 ) -> Result<BackupEntry, String> {
-    let config_content = if let Some(_tag) = remote_tag {
-        let out = runner.run(&["config", "list", "--json"])
-            .map_err(|e| format!("Failed to read remote config: {}", e))?;
-        if !out.success {
-            return Err(format!("Remote config read failed: {}", out.stderr));
-        }
-        Some(out.stdout)
-    } else {
-        None
-    };
+    let config_content = prefetched_config;
 
     let dir = if let Some(tag) = remote_tag {
         backup_dir().join(format!("remote-{}", tag))
@@ -94,10 +85,12 @@ pub fn create_backup_with(
     Ok(entry)
 }
 
+#[allow(dead_code)]
 pub fn create_backup(label: Option<&str>) -> Result<BackupEntry, String> {
-    create_backup_with(crate::cli_runner::default_runner(), label, None)
+    create_backup_with(label, None, None)
 }
 
+#[allow(dead_code)]
 pub fn list_backups() -> Result<Vec<BackupEntry>, String> {
     list_backups_for(None)
 }
