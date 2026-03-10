@@ -13,6 +13,7 @@ mod openclaw;
 mod remote;
 mod secure_store;
 mod ssh;
+mod util;
 
 use active_target::{ActiveTargetInfo, ActiveTargetState};
 use backup::{BackupEntry, DiffEntry};
@@ -30,6 +31,65 @@ use tauri::{
     tray::TrayIconBuilder,
     Manager, WindowEvent,
 };
+
+
+#[derive(Debug)]
+struct TargetOutput {
+    success: bool,
+    stdout: String,
+    stderr: String,
+}
+
+async fn run_on_target(
+    state: &active_target::ActiveTargetState,
+    args: &[&str],
+) -> Result<TargetOutput, String> {
+    use active_target::Target;
+    match state.get() {
+        Target::Local => {
+            let args_owned: Vec<String> = args.iter().map(|s| s.to_string()).collect();
+            let result = tauri::async_runtime::spawn_blocking(move || {
+                let refs: Vec<&str> = args_owned.iter().map(|s| s.as_str()).collect();
+                cli_runner::default_runner().run(&refs)
+            })
+            .await
+            .map_err(|e| e.to_string())??;
+            Ok(TargetOutput {
+                success: result.success,
+                stdout: result.stdout,
+                stderr: result.stderr,
+            })
+        }
+        Target::Vps(conn) => {
+            let cmd = format!(
+                "openclaw {}",
+                args.iter()
+                    .map(|a| util::shell_escape(a))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            );
+            let r = ssh::ssh_exec(
+                &conn.host,
+                conn.port,
+                &conn.username,
+                conn.password.as_deref(),
+                conn.key_path.as_deref(),
+                &cmd,
+            )
+            .await;
+            if let Some(err) = r.error {
+                Err(format!("SSH error: {}", err))
+            } else {
+                Ok(TargetOutput {
+                    success: r.success,
+                    stdout: r.stdout,
+                    stderr: r.stderr,
+                })
+            }
+        }
+    }
+}
+
 
 #[tauri::command]
 async fn get_environment() -> Environment {
