@@ -72,8 +72,15 @@ async fn ssh_exec_inner(
 
     // Authenticate
     if let Some(key_path) = auth_key_path {
+        let expanded = if key_path.starts_with('~') {
+            dirs::home_dir()
+                .map(|h| key_path.replacen('~', &h.to_string_lossy(), 1))
+                .unwrap_or_else(|| key_path.to_string())
+        } else {
+            key_path.to_string()
+        };
         let key_pair =
-            load_secret_key(key_path, None).map_err(|e| format!("Failed to load key: {}", e))?;
+            load_secret_key(&expanded, None).map_err(|e| format!("Failed to load key: {}", e))?;
 
         let auth_res = session
             .authenticate_publickey(
