@@ -8,8 +8,7 @@ const EXPECTED_NAV_ROUTES = [
   "/doctor",
   "/backup",
   "/config",
-  "/remote",
-  "/ssh",
+  "/vps",
   "/help",
   "/settings",
 ];

@@ -161,7 +161,7 @@ pub struct InstallResult {
     pub error: Option<String>,
 }
 
-pub fn install_openclaw() -> Result<InstallResult, String> {
+pub fn install_openclaw_with(runner: &dyn CliRunner) -> Result<InstallResult, String> {
     let pkg = format!("{}@latest", OPENCLAW_NPM_PKG);
     let output = cmd_with_path("npm")
         .args(["install", "-g", &pkg])
@@ -169,31 +169,18 @@ pub fn install_openclaw() -> Result<InstallResult, String> {
         .map_err(|e| format!("Failed to run npm: {}", e))?;
 
     if output.status.success() {
-        let version = cmd_with_path(OPENCLAW_CLI)
-            .arg("--version")
-            .output()
-            .ok()
-            .and_then(|o| {
-                if o.status.success() {
-                    Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
-                } else {
-                    None
-                }
-            });
-
-        Ok(InstallResult {
-            success: true,
-            version,
-            error: None,
-        })
+        let version = runner.run(&["--version"]).ok()
+            .filter(|o| o.success)
+            .map(|o| o.stdout);
+        Ok(InstallResult { success: true, version, error: None })
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        Ok(InstallResult {
-            success: false,
-            version: None,
-            error: Some(stderr),
-        })
+        Ok(InstallResult { success: false, version: None, error: Some(stderr) })
     }
+}
+
+pub fn install_openclaw() -> Result<InstallResult, String> {
+    install_openclaw_with(cli_runner::default_runner())
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -296,7 +283,7 @@ pub struct LlmConfigStatus {
     pub provider_name: Option<String>,
 }
 
-pub fn check_llm_config() -> LlmConfigStatus {
+pub fn check_llm_config_with(runner: &dyn CliRunner) -> LlmConfigStatus {
     let env_checks = [
         ("OPENAI_API_KEY", "openai"),
         ("ANTHROPIC_API_KEY", "anthropic"),
@@ -306,34 +293,19 @@ pub fn check_llm_config() -> LlmConfigStatus {
     ];
 
     for (env_key, provider) in env_checks {
-        if std::env::var(env_key)
-            .map(|v| !v.is_empty())
-            .unwrap_or(false)
-        {
-            return LlmConfigStatus {
-                has_provider: true,
-                provider_name: Some(provider.to_string()),
-            };
+        if std::env::var(env_key).map(|v| !v.is_empty()).unwrap_or(false) {
+            return LlmConfigStatus { has_provider: true, provider_name: Some(provider.to_string()) };
         }
     }
 
-    if let Ok(output) = cmd_with_path(OPENCLAW_CLI)
-        .args(["config", "get", "models.providers", "--json"])
-        .output()
-    {
-        if output.status.success() {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            if let Ok(val) = serde_json::from_str::<serde_json::Value>(stdout.trim()) {
+    if let Ok(out) = runner.run(&["config", "get", "models.providers", "--json"]) {
+        if out.success {
+            if let Ok(val) = serde_json::from_str::<serde_json::Value>(out.stdout.trim()) {
                 if let Some(obj) = val.as_object() {
                     for (provider, config) in obj {
-                        if let Some(key) =
-                            config.get("apiKey").and_then(|v| v.as_str())
-                        {
+                        if let Some(key) = config.get("apiKey").and_then(|v| v.as_str()) {
                             if !key.is_empty() {
-                                return LlmConfigStatus {
-                                    has_provider: true,
-                                    provider_name: Some(provider.clone()),
-                                };
+                                return LlmConfigStatus { has_provider: true, provider_name: Some(provider.clone()) };
                             }
                         }
                     }
@@ -342,10 +314,11 @@ pub fn check_llm_config() -> LlmConfigStatus {
         }
     }
 
-    LlmConfigStatus {
-        has_provider: false,
-        provider_name: None,
-    }
+    LlmConfigStatus { has_provider: false, provider_name: None }
+}
+
+pub fn check_llm_config() -> LlmConfigStatus {
+    check_llm_config_with(cli_runner::default_runner())
 }
 
 #[derive(Debug, Serialize)]
@@ -615,71 +588,37 @@ fn parse_openai_response(stdout: &str, model: &str) -> LlmTestResult {
     }
 }
 
-pub fn test_llm_via_gateway() -> LlmTestResult {
-    let output = match cmd_with_path(OPENCLAW_CLI)
-        .args([
-            "agent",
-            "--session-id", "clawsquire-llm-test",
-            "--message", "Say OK in one word.",
-            "--json",
-            "--timeout", "30",
-        ])
-        .output()
-    {
+pub fn test_llm_via_gateway_with(runner: &dyn CliRunner) -> LlmTestResult {
+    let out = match runner.run(&[
+        "agent", "--session-id", "clawsquire-llm-test",
+        "--message", "Say OK in one word.", "--json", "--timeout", "30",
+    ]) {
         Ok(o) => o,
-        Err(e) => {
-            return LlmTestResult {
-                success: false,
-                response: None,
-                error: Some(format!("Failed to run openclaw: {}", e)),
-                model: None,
-            }
-        }
+        Err(e) => return LlmTestResult { success: false, response: None, error: Some(format!("Failed to run openclaw: {}", e)), model: None },
     };
 
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    if !output.status.success() || stdout.is_empty() {
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    if !out.success || out.stdout.is_empty() {
         return LlmTestResult {
-            success: false,
-            response: None,
-            error: Some(if !stderr.is_empty() { truncate_resp(&stderr) } else { "Gateway agent returned no output.".to_string() }),
-            model: None,
+            success: false, response: None, model: None,
+            error: Some(if !out.stderr.is_empty() { truncate_resp(&out.stderr) } else { "Gateway agent returned no output.".to_string() }),
         };
     }
 
-    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-        let model = json
-            .get("result")
-            .and_then(|r| r.get("meta"))
-            .and_then(|m| m.get("agentMeta"))
-            .and_then(|a| a.get("model"))
-            .and_then(|m| m.as_str())
-            .map(|s| s.to_string());
-        let text = json
-            .get("result")
-            .and_then(|r| r.get("payloads"))
-            .and_then(|p| p.get(0))
-            .and_then(|p| p.get("text"))
-            .and_then(|t| t.as_str())
-            .map(|s| s.to_string());
-
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&out.stdout) {
+        let model = json.get("result").and_then(|r| r.get("meta")).and_then(|m| m.get("agentMeta"))
+            .and_then(|a| a.get("model")).and_then(|m| m.as_str()).map(|s| s.to_string());
+        let text = json.get("result").and_then(|r| r.get("payloads")).and_then(|p| p.get(0))
+            .and_then(|p| p.get("text")).and_then(|t| t.as_str()).map(|s| s.to_string());
         if json.get("status").and_then(|s| s.as_str()) == Some("ok") && text.is_some() {
-            return LlmTestResult {
-                success: true,
-                response: text,
-                error: None,
-                model,
-            };
+            return LlmTestResult { success: true, response: text, error: None, model };
         }
     }
 
-    LlmTestResult {
-        success: false,
-        response: None,
-        error: Some(truncate_resp(&stdout)),
-        model: None,
-    }
+    LlmTestResult { success: false, response: None, error: Some(truncate_resp(&out.stdout)), model: None }
+}
+
+pub fn test_llm_via_gateway() -> LlmTestResult {
+    test_llm_via_gateway_with(cli_runner::default_runner())
 }
 
 fn truncate_resp(s: &str) -> String {
@@ -753,25 +692,16 @@ pub struct FeedbackInfo {
     pub screenshot_path: Option<String>,
 }
 
-pub fn collect_feedback_info() -> FeedbackInfo {
+pub fn collect_feedback_info_with(runner: &dyn CliRunner) -> FeedbackInfo {
     let platform = std::env::consts::OS.to_string();
 
-    let openclaw_version = cmd_with_path(OPENCLAW_CLI)
-        .arg("--version")
-        .output()
-        .ok()
-        .filter(|o| o.status.success())
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+    let openclaw_version = runner.run(&["--version"]).ok()
+        .filter(|o| o.success)
+        .map(|o| o.stdout)
         .unwrap_or_else(|| "not installed".to_string());
 
-    let gateway_status = cmd_with_path(OPENCLAW_CLI)
-        .args(["gateway", "status"])
-        .output()
-        .ok()
-        .map(|o| {
-            let stdout = String::from_utf8_lossy(&o.stdout).trim().to_string();
-            if stdout.len() > 500 { stdout[..500].to_string() } else { stdout }
-        })
+    let gateway_status = runner.run(&["gateway", "status"]).ok()
+        .map(|o| if o.stdout.len() > 500 { o.stdout[..500].to_string() } else { o.stdout })
         .unwrap_or_else(|| "unknown".to_string());
 
     let llm_status = check_llm_config();
@@ -809,6 +739,10 @@ pub fn collect_feedback_info() -> FeedbackInfo {
         recent_log_lines,
         screenshot_path,
     }
+}
+
+pub fn collect_feedback_info() -> FeedbackInfo {
+    collect_feedback_info_with(cli_runner::default_runner())
 }
 
 pub fn copy_screenshot_to_clipboard(path: &str) -> Result<(), String> {
@@ -875,77 +809,41 @@ pub struct AgentChatResult {
     pub error: Option<String>,
 }
 
-pub fn agent_chat(message: &str) -> AgentChatResult {
-    let output = match cmd_with_path(OPENCLAW_CLI)
-        .args([
-            "agent",
-            "--session-id", "clawsquire",
-            "--message", message,
-            "--json",
-            "--timeout", "60",
-        ])
-        .output()
-    {
+pub fn agent_chat_with(runner: &dyn CliRunner, message: &str) -> AgentChatResult {
+    let out = match runner.run(&[
+        "agent", "--session-id", "clawsquire", "--message", message, "--json", "--timeout", "60",
+    ]) {
         Ok(o) => o,
-        Err(e) => {
-            return AgentChatResult {
-                success: false,
-                reply: None,
-                error: Some(format!("Failed to run openclaw agent: {}", e)),
-            }
-        }
+        Err(e) => return AgentChatResult { success: false, reply: None, error: Some(format!("Failed to run openclaw agent: {}", e)) },
     };
 
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-
-    if !output.status.success() {
-        let err_msg = if !stderr.is_empty() { &stderr } else { &stdout };
-        return AgentChatResult {
-            success: false,
-            reply: None,
-            error: Some(truncate_resp(err_msg)),
-        };
+    if !out.success {
+        let err_msg = if !out.stderr.is_empty() { &out.stderr } else { &out.stdout };
+        return AgentChatResult { success: false, reply: None, error: Some(truncate_resp(err_msg)) };
     }
 
-    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&out.stdout) {
         if json.get("status").and_then(|s| s.as_str()) == Some("ok") {
-            if let Some(text) = json
-                .get("result")
-                .and_then(|r| r.get("payloads"))
-                .and_then(|p| p.get(0))
-                .and_then(|p| p.get("text"))
-                .and_then(|t| t.as_str())
+            if let Some(text) = json.get("result").and_then(|r| r.get("payloads"))
+                .and_then(|p| p.get(0)).and_then(|p| p.get("text")).and_then(|t| t.as_str())
             {
-                return AgentChatResult {
-                    success: true,
-                    reply: Some(text.to_string()),
-                    error: None,
-                };
+                return AgentChatResult { success: true, reply: Some(text.to_string()), error: None };
             }
         }
         if let Some(err) = json.get("error").and_then(|e| e.as_str()) {
-            return AgentChatResult {
-                success: false,
-                reply: None,
-                error: Some(err.to_string()),
-            };
+            return AgentChatResult { success: false, reply: None, error: Some(err.to_string()) };
         }
     }
 
-    if stdout.is_empty() {
-        return AgentChatResult {
-            success: false,
-            reply: None,
-            error: Some("No response from OpenClaw agent. Check that the gateway is running.".to_string()),
-        };
+    if out.stdout.is_empty() {
+        return AgentChatResult { success: false, reply: None, error: Some("No response from OpenClaw agent. Check that the gateway is running.".to_string()) };
     }
 
-    AgentChatResult {
-        success: false,
-        reply: None,
-        error: Some(truncate_resp(&stdout)),
-    }
+    AgentChatResult { success: false, reply: None, error: Some(truncate_resp(&out.stdout)) }
+}
+
+pub fn agent_chat(message: &str) -> AgentChatResult {
+    agent_chat_with(cli_runner::default_runner(), message)
 }
 
 pub fn list_channels_with(runner: &dyn CliRunner) -> Result<Vec<ChannelInfo>, String> {
@@ -1024,7 +922,8 @@ pub struct EmailMonitorResult {
 /// Set up email-to-Telegram monitoring:
 /// 1. Add Telegram channel if token provided
 /// 2. Create a cron job that checks email and pushes summaries to Telegram
-pub fn setup_email_monitor(
+pub fn setup_email_monitor_with(
+    runner: &dyn CliRunner,
     telegram_token: &str,
     email_address: &str,
     check_interval: &str,
@@ -1036,7 +935,7 @@ pub fn setup_email_monitor(
         errors: Vec::new(),
     };
 
-    let ch = add_channel("telegram", telegram_token);
+    let ch = add_channel_with(runner, "telegram", telegram_token);
     match ch {
         Ok(r) if r.success => result.channel_ok = true,
         Ok(r) => {
@@ -1056,30 +955,21 @@ pub fn setup_email_monitor(
         email_address, check_interval
     );
 
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args([
-            "cron", "add",
-            "--name", &format!("Email Check ({})", email_address),
-            "--every", check_interval,
-            "--session", "isolated",
-            "--message", &prompt,
-            "--announce",
-            "--channel", "telegram",
-        ])
-        .output();
+    let cron_name = format!("Email Check ({})", email_address);
+    let out = runner.run(&[
+        "cron", "add", "--name", &cron_name, "--every", check_interval,
+        "--session", "isolated", "--message", &prompt, "--announce", "--channel", "telegram",
+    ]);
 
-    match output {
-        Ok(o) if o.status.success() => {
+    match out {
+        Ok(o) if o.success => {
             result.cron_ok = true;
-            let stdout = String::from_utf8_lossy(&o.stdout).trim().to_string();
-            if let Some(id_line) = stdout.lines().find(|l| l.contains("id") || l.contains("created")) {
+            if let Some(id_line) = o.stdout.lines().find(|l| l.contains("id") || l.contains("created")) {
                 result.cron_id = Some(id_line.trim().to_string());
             }
         }
         Ok(o) => {
-            let stderr = String::from_utf8_lossy(&o.stderr).trim().to_string();
-            let stdout = String::from_utf8_lossy(&o.stdout).trim().to_string();
-            result.errors.push(format!("Cron job: {}", if stderr.is_empty() { stdout } else { stderr }));
+            result.errors.push(format!("Cron job: {}", if o.stderr.is_empty() { o.stdout } else { o.stderr }));
         }
         Err(e) => result.errors.push(format!("Cron command: {}", e)),
     }
@@ -1087,7 +977,15 @@ pub fn setup_email_monitor(
     result
 }
 
-pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
+pub fn setup_email_monitor(
+    telegram_token: &str,
+    email_address: &str,
+    check_interval: &str,
+) -> EmailMonitorResult {
+    setup_email_monitor_with(cli_runner::default_runner(), telegram_token, email_address, check_interval)
+}
+
+pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> Result<UninstallResult, String> {
     let mut result = UninstallResult {
         daemon_stopped: false,
         npm_uninstalled: false,
@@ -1095,12 +993,11 @@ pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String
         errors: Vec::new(),
     };
 
-    match cmd_with_path(OPENCLAW_CLI).args(["daemon", "stop"]).output() {
-        Ok(o) if o.status.success() => result.daemon_stopped = true,
+    match runner.run(&["daemon", "stop"]) {
+        Ok(o) if o.success => result.daemon_stopped = true,
         Ok(o) => {
-            let msg = String::from_utf8_lossy(&o.stderr).trim().to_string();
-            if !msg.is_empty() {
-                result.errors.push(format!("daemon stop: {}", msg));
+            if !o.stderr.is_empty() {
+                result.errors.push(format!("daemon stop: {}", o.stderr));
             }
             result.daemon_stopped = true;
         }
@@ -1136,4 +1033,8 @@ pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String
     }
 
     Ok(result)
+}
+
+pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
+    uninstall_openclaw_with(cli_runner::default_runner(), remove_config)
 }
