@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-const DEFAULT_INSTALL_URL: &str = "https://clawsquire.com/install.sh";
+const DEFAULT_INSTALL_URL: &str = "https://raw.githubusercontent.com/Jiansen/clawsquire/main/scripts/install-remote.sh";
 
 #[derive(Debug, Serialize)]
 pub struct RemoteInstallCommand {
