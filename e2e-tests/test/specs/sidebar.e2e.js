@@ -9,6 +9,7 @@ const EXPECTED_NAV_ROUTES = [
   "/backup",
   "/config",
   "/vps",
+  "/imap",
   "/help",
   "/settings",
 ];

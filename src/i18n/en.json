@@ -11,6 +11,7 @@
     "backup": "Backups",
     "config": "Config",
     "vps": "VPS",
+    "imap": "Email",
     "settings": "Settings",
     "help": "Help"
   },

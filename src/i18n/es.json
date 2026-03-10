@@ -12,7 +12,8 @@
     "settings": "Ajustes",
     "help": "Ayuda",
     "config": "Configuración",
-    "vps": "VPS"
+    "vps": "VPS",
+    "imap": "Correo"
   },
   "dashboard": {
     "title": "Panel",

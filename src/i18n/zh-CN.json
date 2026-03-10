@@ -11,6 +11,7 @@
     "backup": "备份管理",
     "config": "配置",
     "vps": "VPS 管理",
+    "imap": "邮件",
     "settings": "设置",
     "help": "帮助"
   },

@@ -12,7 +12,8 @@
     "settings": "設定",
     "help": "ヘルプ",
     "config": "設定",
-    "vps": "VPS管理"
+    "vps": "VPS管理",
+    "imap": "メール"
   },
   "dashboard": {
     "title": "ダッシュボード",
