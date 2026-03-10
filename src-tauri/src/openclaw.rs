@@ -1,5 +1,5 @@
 use crate::cli_runner::{self, CliRunner};
-use crate::constants::{OPENCLAW_CLI, OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
+use crate::constants::{OPENCLAW_NPM_PKG, OPENCLAW_STATE_DIR_DEFAULT};
 use crate::detect::{cmd_with_path, hidden_cmd};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
@@ -30,17 +30,11 @@ fn config_set_raw_json_with(runner: &dyn CliRunner, path: &str, json_value: &str
 
 // --- Backward-compatible wrappers (use default runner) ---
 
-pub fn config_get(path: &str) -> Result<String, String> {
-    config_get_with(cli_runner::default_runner(), path)
-}
 
 pub fn config_set(path: &str, value: &str) -> Result<(), String> {
     config_set_with(cli_runner::default_runner(), path, value)
 }
 
-fn config_set_raw_json(path: &str, json_value: &str) -> Result<(), String> {
-    config_set_raw_json_with(cli_runner::default_runner(), path, json_value)
-}
 
 fn provider_base_url(provider: &str) -> Option<&'static str> {
     match provider {
@@ -89,9 +83,6 @@ pub fn setup_provider_with(runner: &dyn CliRunner, provider: &str, api_key: &str
     config_set_raw_json_with(runner, &path, &config.to_string())
 }
 
-pub fn setup_provider(provider: &str, api_key: &str) -> Result<(), String> {
-    setup_provider_with(cli_runner::default_runner(), provider, api_key)
-}
 
 pub fn daemon_status_with(runner: &dyn CliRunner) -> Result<DaemonStatus, String> {
     let out = match runner.run(&["gateway", "status"]) {
@@ -138,17 +129,8 @@ pub fn daemon_start_with(runner: &dyn CliRunner) -> Result<String, String> {
     Ok(if out.stdout.is_empty() { out.stderr } else { out.stdout })
 }
 
-pub fn daemon_status() -> Result<DaemonStatus, String> {
-    daemon_status_with(cli_runner::default_runner())
-}
 
-pub fn daemon_stop() -> Result<String, String> {
-    daemon_stop_with(cli_runner::default_runner())
-}
 
-pub fn daemon_start() -> Result<String, String> {
-    daemon_start_with(cli_runner::default_runner())
-}
 
 #[derive(Debug, Serialize)]
 pub struct UninstallResult {
@@ -237,9 +219,6 @@ pub fn list_providers_with(runner: &dyn CliRunner) -> Result<Vec<ProviderInfo>, 
     Ok(result)
 }
 
-pub fn list_providers() -> Result<Vec<ProviderInfo>, String> {
-    list_providers_with(cli_runner::default_runner())
-}
 
 fn parse_model_lines(stdout: &str, prefix: &str) -> Vec<ModelInfo> {
     stdout
@@ -277,9 +256,6 @@ pub fn list_models_with(runner: &dyn CliRunner, provider: &str) -> Result<Vec<Mo
     Ok(parse_model_lines(&out.stdout, &prefix))
 }
 
-pub fn list_models(provider: &str) -> Result<Vec<ModelInfo>, String> {
-    list_models_with(cli_runner::default_runner(), provider)
-}
 
 #[derive(Debug, Serialize)]
 pub struct LlmConfigStatus {
@@ -621,9 +597,6 @@ pub fn test_llm_via_gateway_with(runner: &dyn CliRunner) -> LlmTestResult {
     LlmTestResult { success: false, response: None, error: Some(truncate_resp(&out.stdout)), model: None }
 }
 
-pub fn test_llm_via_gateway() -> LlmTestResult {
-    test_llm_via_gateway_with(cli_runner::default_runner())
-}
 
 fn truncate_resp(s: &str) -> String {
     if s.len() > 300 {
@@ -657,32 +630,12 @@ pub fn add_channel_with(runner: &dyn CliRunner, channel: &str, token: &str) -> R
     }
 }
 
-pub fn add_channel(channel: &str, token: &str) -> Result<ChannelAddResult, String> {
-    add_channel_with(cli_runner::default_runner(), channel, token)
-}
 
 pub fn get_full_config_with(runner: &dyn CliRunner) -> Result<String, String> {
     let out = runner.run(&["config", "get", "--json"])?;
     if out.success { Ok(out.stdout) } else { Err(out.stderr) }
 }
 
-pub fn get_full_config() -> Result<String, String> {
-    let config_path = if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
-        std::path::PathBuf::from(dir)
-    } else {
-        dirs::home_dir()
-            .unwrap_or_default()
-            .join(OPENCLAW_STATE_DIR_DEFAULT)
-    }
-    .join("openclaw.json");
-
-    if !config_path.exists() {
-        return Err("Config file not found. Is OpenClaw installed?".to_string());
-    }
-
-    std::fs::read_to_string(&config_path)
-        .map_err(|e| format!("Failed to read config: {}", e))
-}
 
 #[derive(Debug, Serialize)]
 pub struct ChannelInfo {
@@ -750,9 +703,6 @@ pub fn collect_feedback_info_with(runner: &dyn CliRunner) -> FeedbackInfo {
     }
 }
 
-pub fn collect_feedback_info() -> FeedbackInfo {
-    collect_feedback_info_with(cli_runner::default_runner())
-}
 
 pub fn copy_screenshot_to_clipboard(path: &str) -> Result<(), String> {
     if !std::path::Path::new(path).exists() {
@@ -851,9 +801,6 @@ pub fn agent_chat_with(runner: &dyn CliRunner, message: &str) -> AgentChatResult
     AgentChatResult { success: false, reply: None, error: Some(truncate_resp(&out.stdout)) }
 }
 
-pub fn agent_chat(message: &str) -> AgentChatResult {
-    agent_chat_with(cli_runner::default_runner(), message)
-}
 
 pub fn list_channels_with(runner: &dyn CliRunner) -> Result<Vec<ChannelInfo>, String> {
     let out = runner.run(&["channels", "list"])?;
@@ -868,9 +815,6 @@ pub fn list_channels_with(runner: &dyn CliRunner) -> Result<Vec<ChannelInfo>, St
     Ok(channels)
 }
 
-pub fn list_channels() -> Result<Vec<ChannelInfo>, String> {
-    list_channels_with(cli_runner::default_runner())
-}
 
 #[derive(Debug, Serialize)]
 pub struct ChannelRemoveResult {
@@ -888,9 +832,6 @@ pub fn remove_channel_with(runner: &dyn CliRunner, channel: &str) -> Result<Chan
     }
 }
 
-pub fn remove_channel(channel: &str) -> Result<ChannelRemoveResult, String> {
-    remove_channel_with(cli_runner::default_runner(), channel)
-}
 
 #[derive(Debug, Serialize)]
 pub struct CronJob {
@@ -968,9 +909,6 @@ pub fn cron_list_with(runner: &dyn CliRunner) -> Result<Vec<CronJob>, String> {
     Ok(jobs)
 }
 
-pub fn cron_list() -> Result<Vec<CronJob>, String> {
-    cron_list_with(cli_runner::default_runner())
-}
 
 #[derive(Debug, Serialize)]
 pub struct CronRemoveResult {
@@ -988,9 +926,6 @@ pub fn cron_remove_with(runner: &dyn CliRunner, name: &str) -> Result<CronRemove
     }
 }
 
-pub fn cron_remove(name: &str) -> Result<CronRemoveResult, String> {
-    cron_remove_with(cli_runner::default_runner(), name)
-}
 
 #[derive(Debug, Serialize)]
 pub struct CronAddResult {
@@ -1026,15 +961,6 @@ pub fn cron_add_with(
     }
 }
 
-pub fn cron_add(
-    name: &str,
-    every: &str,
-    message: &str,
-    channel: &str,
-    announce: bool,
-) -> Result<CronAddResult, String> {
-    cron_add_with(cli_runner::default_runner(), name, every, message, channel, announce)
-}
 
 #[derive(Debug, Serialize)]
 pub struct SafetyApplyResult {
@@ -1084,9 +1010,6 @@ pub fn apply_safety_preset_with(runner: &dyn CliRunner, level: &str) -> SafetyAp
     }
 }
 
-pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
-    apply_safety_preset_with(cli_runner::default_runner(), level)
-}
 
 #[derive(Debug, Serialize)]
 pub struct EmailMonitorResult {
@@ -1154,13 +1077,6 @@ pub fn setup_email_monitor_with(
     result
 }
 
-pub fn setup_email_monitor(
-    telegram_token: &str,
-    email_address: &str,
-    check_interval: &str,
-) -> EmailMonitorResult {
-    setup_email_monitor_with(cli_runner::default_runner(), telegram_token, email_address, check_interval)
-}
 
 pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> Result<UninstallResult, String> {
     let mut result = UninstallResult {
@@ -1232,7 +1148,3 @@ pub fn run_cli_with(runner: &dyn CliRunner, args: &[&str]) -> Result<CliOutput, 
     })
 }
 
-pub fn run_cli(args: Vec<String>) -> Result<CliOutput, String> {
-    let refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
-    run_cli_with(cli_runner::default_runner(), &refs)
-}

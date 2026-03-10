@@ -574,10 +574,13 @@ async fn save_imap_config(
 }
 
 #[tauri::command]
-async fn get_version_info() -> VersionInfo {
-    tauri::async_runtime::spawn_blocking(compat::get_version_info)
-        .await
-        .unwrap_or_else(|_| compat::get_version_info())
+async fn get_version_info(state: tauri::State<'_, ActiveTargetState>) -> Result<VersionInfo, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(compat::get_version_info_with(target.runner().as_ref()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

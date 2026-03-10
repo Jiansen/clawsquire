@@ -1,4 +1,4 @@
-use crate::cli_runner::{self, CliRunner};
+use crate::cli_runner::CliRunner;
 use serde::Serialize;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -13,7 +13,7 @@ pub enum OpenClawVersion {
     Unknown(String),
 }
 
-/// Describes how gateway authentication is configured for a given version.
+#[allow(dead_code)]
 pub struct GatewayAuthConfig {
     /// Config paths to set when configuring gateway auth token.
     /// v3.2: set `gateway.token` only.
@@ -29,10 +29,7 @@ pub fn detect_version_with(runner: &dyn CliRunner) -> OpenClawVersion {
     }
 }
 
-/// Detect the installed OpenClaw version using the default runner.
-pub fn detect_version() -> OpenClawVersion {
-    detect_version_with(cli_runner::default_runner())
-}
+
 
 /// Parse a version string like "2026.3.7" or "v2026.3.8" into an enum variant.
 fn parse_version(raw: &str) -> OpenClawVersion {
@@ -55,8 +52,7 @@ fn parse_version(raw: &str) -> OpenClawVersion {
     }
 }
 
-/// Build gateway auth config entries for the given version.
-/// `token` is the auth token value to set.
+#[allow(dead_code)]
 pub fn gateway_auth_config(ver: &OpenClawVersion, token: &str) -> GatewayAuthConfig {
     match ver {
         OpenClawVersion::V3_2 => GatewayAuthConfig {
@@ -125,9 +121,6 @@ pub fn get_version_info_with(runner: &dyn CliRunner) -> VersionInfo {
     }
 }
 
-pub fn get_version_info() -> VersionInfo {
-    get_version_info_with(cli_runner::default_runner())
-}
 
 #[cfg(test)]
 mod tests {

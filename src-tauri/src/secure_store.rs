@@ -42,14 +42,17 @@ pub fn delete_secret(key: &str) -> SecureStoreResult {
 /// - "api_key:{provider}" for LLM API keys (e.g. "api_key:openai")
 /// - "ssh_password:{instance_id}" for VPS SSH passwords
 /// - "imap_password:{email}" for email passwords
+#[allow(dead_code)]
 pub fn api_key_name(provider: &str) -> String {
     format!("api_key:{}", provider)
 }
 
+#[allow(dead_code)]
 pub fn ssh_password_name(instance_id: &str) -> String {
     format!("ssh_password:{}", instance_id)
 }
 
+#[allow(dead_code)]
 pub fn imap_password_name(email: &str) -> String {
     format!("imap_password:{}", email)
 }

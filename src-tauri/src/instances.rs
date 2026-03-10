@@ -15,8 +15,8 @@ pub struct VpsInstance {
     pub port: u16,
     pub username: String,
     pub auth_method: String, // "password" | "key"
-    /// Not persisted — stored in keyring or entered each session
     #[serde(skip)]
+    #[allow(dead_code)]
     pub password: Option<String>,
     pub key_path: Option<String>,
     pub openclaw_installed: Option<bool>,
