@@ -84,7 +84,7 @@ mod tests {
     fn test_basic_command() {
         let result = generate_install_command(None, None, None, false);
         assert!(result.command.contains("curl -sSL"));
-        assert!(result.command.contains("install.sh"));
+        assert!(result.command.contains("install-remote.sh"));
         assert!(!result.command.contains("--provider"));
     }
 

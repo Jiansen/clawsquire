@@ -11,6 +11,7 @@
     "backup": "备份管理",
     "config": "配置",
     "remote": "远程安装",
+    "ssh": "SSH",
     "settings": "设置",
     "help": "帮助"
   },
@@ -166,6 +167,10 @@
         "name": "AI 模型",
         "description": "快速接入 AI 模型（DeepSeek、OpenAI、Anthropic、Ollama）"
       },
+      "email-telegram": {
+        "name": "邮件 → Telegram",
+        "description": "监控邮箱收件箱，将新邮件摘要推送到 Telegram"
+      },
       "vps-headless": {
         "name": "VPS 服务器部署",
         "description": "在无图形界面的 VPS 服务器上部署 OpenClaw"
@@ -226,6 +231,24 @@
         "step3Desc": "选择默认使用的 AI 模型。您可以随时更改。",
         "noModels": "未找到此提供商的模型。",
         "skipModelHint": "您可以跳过此步骤，稍后再配置模型。"
+      },
+      "emailTelegram": {
+        "step1Title": "工作原理",
+        "step1Desc": "OpenClaw 会定期检查你的邮箱收件箱，并将新邮件摘要推送到你的 Telegram 机器人。如果还没有 Telegram 机器人，请先通过 @BotFather 创建。",
+        "step2Title": "Telegram Bot Token",
+        "step2Desc": "粘贴从 @BotFather 获取的 bot token。请先和你的机器人发一条消息，这样它才能给你发送通知。",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "邮箱地址",
+        "step3Desc": "输入要监控的邮箱地址。OpenClaw 使用 IMAP 协议检查新邮件。",
+        "step3Placeholder": "you@example.com",
+        "step4Title": "检查频率",
+        "step4Desc": "OpenClaw 多久检查一次新邮件？",
+        "interval5m": "每 5 分钟",
+        "interval15m": "每 15 分钟",
+        "interval30m": "每 30 分钟",
+        "interval1h": "每小时",
+        "completeTitle": "邮件监控已启动！",
+        "completeDesc": "OpenClaw 现在会定期检查邮箱并将摘要推送到 Telegram。你可以在仪表盘中管理此定时任务。"
       },
       "vpsHeadless": {
         "step1Title": "启用守护模式",
@@ -539,5 +562,28 @@
     "copy": "复制",
     "copied": "已复制！",
     "postInstall": "安装完成后，在服务器上运行："
+  },
+  "ssh": {
+    "title": "SSH 连接",
+    "description": "从 ClawSquire 直接连接到你的 VPS 并执行命令。",
+    "connection": "连接设置",
+    "host": "主机地址",
+    "port": "端口",
+    "username": "用户名",
+    "authMethod": "认证方式",
+    "password": "密码",
+    "keyFile": "SSH 密钥",
+    "keyPath": "私钥路径",
+    "keyPathHint": "SSH 私钥文件路径（如 ~/.ssh/id_ed25519）",
+    "testConnection": "测试连接",
+    "testing": "连接中...",
+    "connectionOk": "连接成功！",
+    "connectionFailed": "连接失败",
+    "runCommand": "执行命令",
+    "command": "命令",
+    "commandPlaceholder": "例如 curl -sSL https://... | bash",
+    "execute": "执行",
+    "executing": "执行中...",
+    "exitCode": "退出码"
   }
 }

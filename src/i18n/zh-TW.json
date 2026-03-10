@@ -12,7 +12,8 @@
     "settings": "設定",
     "help": "說明",
     "config": "設定",
-    "remote": "遠端安裝"
+    "remote": "遠端安裝",
+    "ssh": "SSH"
   },
   "dashboard": {
     "title": "儀表板",
@@ -166,6 +167,10 @@
         "name": "LLM 服務接入",
         "description": "快速接入 LLM 服務（DeepSeek、OpenAI、Anthropic、Ollama）"
       },
+      "email-telegram": {
+        "name": "郵件 → Telegram",
+        "description": "監控郵箱收件匣，將新郵件摘要推送到 Telegram"
+      },
       "vps-headless": {
         "name": "VPS 無頭部署",
         "description": "在無圖形介面的 VPS 伺服器上部署 OpenClaw"
@@ -226,6 +231,24 @@
         "step3Desc": "選擇預設使用的 AI 模型。您可以隨時更改。",
         "noModels": "未找到此提供商的模型。",
         "skipModelHint": "您可以跳過此步驟，稍後再設定模型。"
+      },
+      "emailTelegram": {
+        "step1Title": "運作原理",
+        "step1Desc": "OpenClaw 會定期檢查您的郵箱收件匣，並將新郵件摘要推送到您的 Telegram 機器人。如果還沒有 Telegram 機器人，請先透過 @BotFather 建立。",
+        "step2Title": "Telegram Bot Token",
+        "step2Desc": "貼上從 @BotFather 取得的 bot token。請先和您的機器人發一則訊息，這樣它才能傳送通知給您。",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "電子郵件地址",
+        "step3Desc": "輸入要監控的電子郵件地址。OpenClaw 使用 IMAP 協定檢查新郵件。",
+        "step3Placeholder": "you@example.com",
+        "step4Title": "檢查頻率",
+        "step4Desc": "OpenClaw 多久檢查一次新郵件？",
+        "interval5m": "每 5 分鐘",
+        "interval15m": "每 15 分鐘",
+        "interval30m": "每 30 分鐘",
+        "interval1h": "每小時",
+        "completeTitle": "郵件監控已啟動！",
+        "completeDesc": "OpenClaw 現在會定期檢查郵箱並將摘要推送到 Telegram。您可以在儀表板中管理此排程任務。"
       },
       "vpsHeadless": {
         "step1Title": "啟用守護程式模式",
@@ -539,5 +562,28 @@
     "copy": "複製",
     "copied": "已複製！",
     "postInstall": "安裝完成後，在伺服器上執行："
+  },
+  "ssh": {
+    "title": "SSH 連線",
+    "description": "從 ClawSquire 直接連線到您的 VPS 並執行命令。",
+    "connection": "連線設定",
+    "host": "主機位址",
+    "port": "連接埠",
+    "username": "使用者名稱",
+    "authMethod": "認證方式",
+    "password": "密碼",
+    "keyFile": "SSH 金鑰",
+    "keyPath": "私鑰路徑",
+    "keyPathHint": "SSH 私鑰檔案路徑（如 ~/.ssh/id_ed25519）",
+    "testConnection": "測試連線",
+    "testing": "連線中...",
+    "connectionOk": "連線成功！",
+    "connectionFailed": "連線失敗",
+    "runCommand": "執行命令",
+    "command": "命令",
+    "commandPlaceholder": "例如 curl -sSL https://... | bash",
+    "execute": "執行",
+    "executing": "執行中...",
+    "exitCode": "退出碼"
   }
 }

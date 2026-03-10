@@ -9,10 +9,11 @@
     "onboard": "Einrichtung",
     "doctor": "Systemprüfung",
     "backup": "Backups",
+    "remote": "Remote-Installation",
+    "ssh": "SSH",
     "settings": "Einstellungen",
     "help": "Hilfe",
-    "config": "Konfiguration",
-    "remote": "Remote-Installation"
+    "config": "Konfiguration"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -166,6 +167,10 @@
         "name": "LLM-Anbieter",
         "description": "Schnell einen LLM-Anbieter verbinden (DeepSeek, OpenAI, Anthropic, Ollama)"
       },
+      "email-telegram": {
+        "name": "E-Mail → Telegram",
+        "description": "Posteingang überwachen und Zusammenfassungen an Telegram senden"
+      },
       "vps-headless": {
         "name": "VPS Headless-Bereitstellung",
         "description": "OpenClaw auf einem VPS-Server ohne grafische Oberfläche bereitstellen"
@@ -226,6 +231,24 @@
         "step3Desc": "Wählen Sie das Standard-KI-Modell aus. Sie können es jederzeit ändern.",
         "noModels": "Keine Modelle für diesen Anbieter gefunden.",
         "skipModelHint": "Sie können diesen Schritt überspringen und später ein Modell konfigurieren."
+      },
+      "emailTelegram": {
+        "step1Title": "So funktioniert es",
+        "step1Desc": "OpenClaw prüft regelmäßig Ihren E-Mail-Posteingang und sendet eine Zusammenfassung neuer Nachrichten an Ihren Telegram-Bot. Falls Sie noch keinen haben, erstellen Sie einen über @BotFather.",
+        "step2Title": "Telegram-Bot-Token",
+        "step2Desc": "Fügen Sie den Bot-Token von @BotFather ein. Starten Sie einen Chat mit Ihrem Bot, damit er Ihnen Nachrichten senden kann.",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "E-Mail-Adresse",
+        "step3Desc": "Geben Sie die zu überwachende E-Mail-Adresse ein. OpenClaw verwendet IMAP zum Prüfen neuer Nachrichten.",
+        "step3Placeholder": "du@beispiel.com",
+        "step4Title": "Prüfintervall",
+        "step4Desc": "Wie oft soll OpenClaw nach neuen E-Mails suchen?",
+        "interval5m": "Alle 5 Minuten",
+        "interval15m": "Alle 15 Minuten",
+        "interval30m": "Alle 30 Minuten",
+        "interval1h": "Jede Stunde",
+        "completeTitle": "E-Mail-Überwachung aktiv!",
+        "completeDesc": "OpenClaw prüft nun Ihre E-Mails und sendet Zusammenfassungen an Telegram. Sie können diese Aufgabe im Dashboard verwalten."
       },
       "vpsHeadless": {
         "step1Title": "Daemon-Modus aktivieren",
@@ -539,5 +562,28 @@
     "copy": "Kopieren",
     "copied": "Kopiert!",
     "postInstall": "Nach der Installation auf dem Server ausführen:"
+  },
+  "ssh": {
+    "title": "SSH-Verbindung",
+    "description": "Verbinden Sie sich direkt von ClawSquire mit Ihrem VPS und führen Sie Befehle aus.",
+    "connection": "Verbindung",
+    "host": "Host",
+    "port": "Port",
+    "username": "Benutzername",
+    "authMethod": "Authentifizierung",
+    "password": "Passwort",
+    "keyFile": "SSH-Schlüssel",
+    "keyPath": "Privater Schlüsselpfad",
+    "keyPathHint": "Pfad zur SSH-Privatschlüsseldatei (z.B. ~/.ssh/id_ed25519)",
+    "testConnection": "Verbindung testen",
+    "testing": "Verbinde...",
+    "connectionOk": "Verbindung erfolgreich!",
+    "connectionFailed": "Verbindung fehlgeschlagen",
+    "runCommand": "Befehl ausführen",
+    "command": "Befehl",
+    "commandPlaceholder": "z.B. curl -sSL https://... | bash",
+    "execute": "Ausführen",
+    "executing": "Wird ausgeführt...",
+    "exitCode": "Exit-Code"
   }
 }

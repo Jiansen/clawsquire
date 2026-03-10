@@ -1071,6 +1071,80 @@ pub fn apply_safety_preset(level: &str) -> SafetyApplyResult {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct EmailMonitorResult {
+    pub channel_ok: bool,
+    pub cron_ok: bool,
+    pub cron_id: Option<String>,
+    pub errors: Vec<String>,
+}
+
+/// Set up email-to-Telegram monitoring:
+/// 1. Add Telegram channel if token provided
+/// 2. Create a cron job that checks email and pushes summaries to Telegram
+pub fn setup_email_monitor(
+    telegram_token: &str,
+    email_address: &str,
+    check_interval: &str,
+) -> EmailMonitorResult {
+    let mut result = EmailMonitorResult {
+        channel_ok: false,
+        cron_ok: false,
+        cron_id: None,
+        errors: Vec::new(),
+    };
+
+    let ch = add_channel("telegram", telegram_token);
+    match ch {
+        Ok(r) if r.success => result.channel_ok = true,
+        Ok(r) => {
+            let err_msg = r.error.unwrap_or_default();
+            if err_msg.contains("already") || err_msg.contains("exists") {
+                result.channel_ok = true;
+            } else {
+                result.errors.push(format!("Telegram channel: {}", err_msg));
+            }
+        }
+        Err(e) => result.errors.push(format!("Telegram channel: {}", e)),
+    }
+
+    let prompt = format!(
+        "Check for new unread emails at {} from the last {} . \
+         Summarize any important ones briefly. If nothing new, stay silent.",
+        email_address, check_interval
+    );
+
+    let output = cmd_with_path(OPENCLAW_CLI)
+        .args([
+            "cron", "add",
+            "--name", &format!("Email Check ({})", email_address),
+            "--every", check_interval,
+            "--session", "isolated",
+            "--message", &prompt,
+            "--announce",
+            "--channel", "telegram",
+        ])
+        .output();
+
+    match output {
+        Ok(o) if o.status.success() => {
+            result.cron_ok = true;
+            let stdout = String::from_utf8_lossy(&o.stdout).trim().to_string();
+            if let Some(id_line) = stdout.lines().find(|l| l.contains("id") || l.contains("created")) {
+                result.cron_id = Some(id_line.trim().to_string());
+            }
+        }
+        Ok(o) => {
+            let stderr = String::from_utf8_lossy(&o.stderr).trim().to_string();
+            let stdout = String::from_utf8_lossy(&o.stdout).trim().to_string();
+            result.errors.push(format!("Cron job: {}", if stderr.is_empty() { stdout } else { stderr }));
+        }
+        Err(e) => result.errors.push(format!("Cron command: {}", e)),
+    }
+
+    result
+}
+
 pub fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
     let mut result = UninstallResult {
         daemon_stopped: false,

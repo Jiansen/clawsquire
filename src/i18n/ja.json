@@ -12,7 +12,8 @@
     "settings": "設定",
     "help": "ヘルプ",
     "config": "設定",
-    "remote": "リモートインストール"
+    "remote": "リモートインストール",
+    "ssh": "SSH"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -166,6 +167,10 @@
         "name": "LLM プロバイダー",
         "description": "LLM プロバイダーを素早く接続（DeepSeek、OpenAI、Anthropic、Ollama）"
       },
+      "email-telegram": {
+        "name": "メール → Telegram",
+        "description": "メール受信箱を監視し、新着メールの要約を Telegram に送信"
+      },
       "vps-headless": {
         "name": "VPS ヘッドレスデプロイ",
         "description": "GUI のない VPS サーバーに OpenClaw をデプロイ"
@@ -226,6 +231,24 @@
         "step3Desc": "デフォルトで使用するAIモデルを選んでください。後からいつでも変更できます。",
         "noModels": "このプロバイダーのモデルが見つかりません。",
         "skipModelHint": "このステップをスキップして、後でモデルを設定できます。"
+      },
+      "emailTelegram": {
+        "step1Title": "仕組み",
+        "step1Desc": "OpenClaw が定期的にメール受信箱をチェックし、新着メールの要約を Telegram ボットに送信します。まだ Telegram ボットがない場合は、@BotFather で作成してください。",
+        "step2Title": "Telegram Bot トークン",
+        "step2Desc": "@BotFather から取得した bot トークンを貼り付けてください。ボットにメッセージを送信してから設定してください。",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "メールアドレス",
+        "step3Desc": "監視するメールアドレスを入力してください。OpenClaw は IMAP で新着メールをチェックします。",
+        "step3Placeholder": "you@example.com",
+        "step4Title": "チェック間隔",
+        "step4Desc": "OpenClaw がどのくらいの頻度で新着メールをチェックしますか？",
+        "interval5m": "5分ごと",
+        "interval15m": "15分ごと",
+        "interval30m": "30分ごと",
+        "interval1h": "1時間ごと",
+        "completeTitle": "メール監視が有効になりました！",
+        "completeDesc": "OpenClaw がメールをチェックし、要約を Telegram に送信します。ダッシュボードでこのスケジュールタスクを管理できます。"
       },
       "vpsHeadless": {
         "step1Title": "デーモンモードを有効化",
@@ -539,5 +562,28 @@
     "copy": "コピー",
     "copied": "コピー済み！",
     "postInstall": "インストール後、サーバーで以下を実行："
+  },
+  "ssh": {
+    "title": "SSH 接続",
+    "description": "ClawSquire から VPS に直接接続してコマンドを実行します。",
+    "connection": "接続設定",
+    "host": "ホスト",
+    "port": "ポート",
+    "username": "ユーザー名",
+    "authMethod": "認証方法",
+    "password": "パスワード",
+    "keyFile": "SSH キー",
+    "keyPath": "秘密鍵パス",
+    "keyPathHint": "SSH 秘密鍵ファイルのパス（例: ~/.ssh/id_ed25519）",
+    "testConnection": "接続テスト",
+    "testing": "接続中...",
+    "connectionOk": "接続成功！",
+    "connectionFailed": "接続失敗",
+    "runCommand": "コマンド実行",
+    "command": "コマンド",
+    "commandPlaceholder": "例: curl -sSL https://... | bash",
+    "execute": "実行",
+    "executing": "実行中...",
+    "exitCode": "終了コード"
   }
 }

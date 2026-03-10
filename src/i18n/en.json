@@ -11,6 +11,7 @@
     "backup": "Backups",
     "config": "Config",
     "remote": "Remote",
+    "ssh": "SSH",
     "settings": "Settings",
     "help": "Help"
   },
@@ -168,6 +169,10 @@
         "name": "LLM Provider",
         "description": "Quickly connect an LLM provider (DeepSeek, OpenAI, Anthropic, Ollama)"
       },
+      "email-telegram": {
+        "name": "Email → Telegram",
+        "description": "Monitor an email inbox and push summaries to Telegram"
+      },
       "vps-headless": {
         "name": "VPS Headless Deploy",
         "description": "Deploy OpenClaw on a headless VPS server"
@@ -228,6 +233,24 @@
         "step3Desc": "Pick which model to use by default. You can change this anytime.",
         "noModels": "No models found for this provider.",
         "skipModelHint": "You can skip this step and configure a model later."
+      },
+      "emailTelegram": {
+        "step1Title": "How It Works",
+        "step1Desc": "OpenClaw will periodically check your email inbox and send a summary of new messages to your Telegram bot. First, create a Telegram bot via @BotFather if you haven't already.",
+        "step2Title": "Telegram Bot Token",
+        "step2Desc": "Paste the bot token from @BotFather. Start a chat with your bot so it can send you messages.",
+        "step2Placeholder": "123456789:ABCdefGHIjklMNO...",
+        "step3Title": "Email Address",
+        "step3Desc": "Enter the email address to monitor. OpenClaw uses IMAP to check for new messages.",
+        "step3Placeholder": "you@example.com",
+        "step4Title": "Check Interval",
+        "step4Desc": "How often should OpenClaw check for new emails?",
+        "interval5m": "Every 5 minutes",
+        "interval15m": "Every 15 minutes",
+        "interval30m": "Every 30 minutes",
+        "interval1h": "Every hour",
+        "completeTitle": "Email Monitor Active!",
+        "completeDesc": "OpenClaw will now check your email and push summaries to Telegram. You can manage this cron job from the Dashboard."
       },
       "vpsHeadless": {
         "step1Title": "Enable Daemon Mode",
@@ -541,5 +564,28 @@
     "copy": "Copy",
     "copied": "Copied!",
     "postInstall": "After installation, run these on the server:"
+  },
+  "ssh": {
+    "title": "SSH Connection",
+    "description": "Connect to your VPS and run commands directly from ClawSquire.",
+    "connection": "Connection",
+    "host": "Host",
+    "port": "Port",
+    "username": "Username",
+    "authMethod": "Authentication",
+    "password": "Password",
+    "keyFile": "SSH Key",
+    "keyPath": "Private Key Path",
+    "keyPathHint": "Path to your SSH private key file (e.g. ~/.ssh/id_ed25519)",
+    "testConnection": "Test Connection",
+    "testing": "Connecting...",
+    "connectionOk": "Connection successful!",
+    "connectionFailed": "Connection failed",
+    "runCommand": "Execute Command",
+    "command": "Command",
+    "commandPlaceholder": "e.g. curl -sSL https://... | bash",
+    "execute": "Run",
+    "executing": "Running...",
+    "exitCode": "Exit code"
   }
 }

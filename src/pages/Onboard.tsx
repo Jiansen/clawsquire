@@ -7,6 +7,7 @@ import { OPENCLAW_GETTING_STARTED_URL } from '../constants';
 
 const TEMPLATES = [
   { id: 'llm-provider', icon: '🧠', est: '~2 min', badge: 'recommended' as const },
+  { id: 'email-telegram', icon: '📧', est: '~5 min', badge: null },
   { id: 'telegram', icon: '💬', est: '~3 min', badge: 'optional' as const },
   { id: 'whatsapp', icon: '📱', est: '~2 min', badge: 'optional' as const },
   { id: 'discord', icon: '🤖', est: '~3 min', badge: 'optional' as const },
@@ -81,6 +82,47 @@ function getSteps(templateId: string): StepDef[] {
           type: 'complete',
           titleKey: 'onboard.wizard.llmReadyTitle',
           descKey: 'onboard.wizard.llmReadyDesc',
+        },
+      ];
+    case 'email-telegram':
+      return [
+        {
+          type: 'info',
+          titleKey: 'onboard.wizard.emailTelegram.step1Title',
+          descKey: 'onboard.wizard.emailTelegram.step1Desc',
+          link: 'https://t.me/BotFather',
+          linkTextKey: 'onboard.wizard.telegram.step1LinkText',
+          conceptKey: 'channel',
+        },
+        {
+          type: 'input',
+          titleKey: 'onboard.wizard.emailTelegram.step2Title',
+          descKey: 'onboard.wizard.emailTelegram.step2Desc',
+          placeholder: 'onboard.wizard.emailTelegram.step2Placeholder',
+          isSecret: true,
+          conceptKey: 'token',
+        },
+        {
+          type: 'input',
+          titleKey: 'onboard.wizard.emailTelegram.step3Title',
+          descKey: 'onboard.wizard.emailTelegram.step3Desc',
+          placeholder: 'onboard.wizard.emailTelegram.step3Placeholder',
+        },
+        {
+          type: 'select',
+          titleKey: 'onboard.wizard.emailTelegram.step4Title',
+          descKey: 'onboard.wizard.emailTelegram.step4Desc',
+          options: [
+            { value: '5m', labelKey: 'onboard.wizard.emailTelegram.interval5m', icon: '⚡' },
+            { value: '15m', labelKey: 'onboard.wizard.emailTelegram.interval15m', icon: '⏱️', recommended: true },
+            { value: '30m', labelKey: 'onboard.wizard.emailTelegram.interval30m', icon: '🕐' },
+            { value: '1h', labelKey: 'onboard.wizard.emailTelegram.interval1h', icon: '🕑' },
+          ],
+        },
+        {
+          type: 'complete',
+          titleKey: 'onboard.wizard.emailTelegram.completeTitle',
+          descKey: 'onboard.wizard.emailTelegram.completeDesc',
         },
       ];
     case 'telegram':
@@ -387,6 +429,30 @@ function OnboardWizard({ templateId }: { templateId: string }) {
 
     if (step.type === 'select' && (templateId === 'telegram' || templateId === 'llm-provider')) {
       setSelectedProvider(values[`select-${currentStep}`] || 'openai');
+    }
+
+    if (templateId === 'email-telegram' && step.type === 'select') {
+      setSaving(true);
+      try {
+        const telegramToken = values['step-1'] || '';
+        const emailAddress = values['step-2'] || '';
+        const interval = values[`select-${currentStep}`] || '15m';
+        const res = await invoke<{ channel_ok: boolean; cron_ok: boolean; errors: string[] }>('setup_email_monitor', {
+          telegramToken: telegramToken.trim(),
+          emailAddress: emailAddress.trim(),
+          checkInterval: interval,
+        });
+        if (res.errors.length > 0) {
+          setError(res.errors.join('\n'));
+          setSaving(false);
+          return;
+        }
+      } catch (e) {
+        setError(String(e));
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
     }
 
     if (step.type === 'model-select' && selectedModel && models.length > 0) {

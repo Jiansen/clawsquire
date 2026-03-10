@@ -7,6 +7,7 @@ mod doctor;
 mod node_install;
 mod openclaw;
 mod remote;
+mod ssh;
 
 use backup::{BackupEntry, DiffEntry};
 use community_search::{SearchResponse, SmartSearchResponse};
@@ -15,7 +16,7 @@ use detect::{Environment, UpdateCheck};
 use remote::RemoteInstallCommand;
 use doctor::DoctorReport;
 use node_install::NodeInstallResult;
-use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
+use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, EmailMonitorResult, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
 
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
@@ -227,6 +228,25 @@ async fn smart_search(query: String, lang: String) -> Result<SmartSearchResponse
 }
 
 #[tauri::command]
+async fn setup_email_monitor(
+    telegram_token: String,
+    email_address: String,
+    check_interval: Option<String>,
+) -> EmailMonitorResult {
+    let interval = check_interval.unwrap_or_else(|| "5m".to_string());
+    tauri::async_runtime::spawn_blocking(move || {
+        openclaw::setup_email_monitor(&telegram_token, &email_address, &interval)
+    })
+    .await
+    .unwrap_or_else(|e| EmailMonitorResult {
+        channel_ok: false,
+        cron_ok: false,
+        cron_id: None,
+        errors: vec![format!("Task failed: {}", e)],
+    })
+}
+
+#[tauri::command]
 async fn generate_install_command(
     provider: Option<String>,
     channel: Option<String>,
@@ -239,6 +259,45 @@ async fn generate_install_command(
         safety.as_deref(),
         no_start.unwrap_or(false),
     )
+}
+
+#[tauri::command]
+async fn ssh_test_connection(
+    host: String,
+    port: Option<u16>,
+    username: String,
+    password: Option<String>,
+    key_path: Option<String>,
+) -> ssh::SshExecResult {
+    ssh::ssh_exec(
+        &host,
+        port.unwrap_or(22),
+        &username,
+        password.as_deref(),
+        key_path.as_deref(),
+        "echo ok",
+    )
+    .await
+}
+
+#[tauri::command]
+async fn ssh_run_command(
+    host: String,
+    port: Option<u16>,
+    username: String,
+    password: Option<String>,
+    key_path: Option<String>,
+    command: String,
+) -> ssh::SshExecResult {
+    ssh::ssh_exec(
+        &host,
+        port.unwrap_or(22),
+        &username,
+        password.as_deref(),
+        key_path.as_deref(),
+        &command,
+    )
+    .await
 }
 
 #[tauri::command]
@@ -338,6 +397,9 @@ pub fn run() {
             check_for_updates,
             get_version_info,
             generate_install_command,
+            setup_email_monitor,
+            ssh_test_connection,
+            ssh_run_command,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
