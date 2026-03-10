@@ -605,6 +605,7 @@
     "passwordSessionOnly": "パスワードはメモリ内のみで保持され、ディスクには保存されません。",
     "notDeployed": "未インストール",
     "created": "作成日時",
+    "lastConnected": "最終接続",
     "tab": {
       "overview": "概要",
       "deploy": "OpenClawをデプロイ",

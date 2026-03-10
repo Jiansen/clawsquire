@@ -605,6 +605,7 @@
     "passwordSessionOnly": "A senha é mantida apenas na memória — nunca salva no disco.",
     "notDeployed": "Não instalado",
     "created": "Criado",
+    "lastConnected": "Última conexão",
     "tab": {
       "overview": "Visão geral",
       "deploy": "Implantar OpenClaw",

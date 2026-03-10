@@ -605,6 +605,7 @@
     "passwordSessionOnly": "密码仅存在内存中，不会保存到磁盘。",
     "notDeployed": "未安装",
     "created": "创建时间",
+    "lastConnected": "最后连接",
     "tab": {
       "overview": "概览",
       "deploy": "部署 OpenClaw",

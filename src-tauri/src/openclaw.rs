@@ -89,82 +89,61 @@ pub fn setup_provider(provider: &str, api_key: &str) -> Result<(), String> {
     config_set_raw_json(&path, &config.to_string())
 }
 
-pub fn daemon_status() -> Result<DaemonStatus, String> {
-    let output = match cmd_with_path(OPENCLAW_CLI)
-        .args(["gateway", "status"])
-        .output()
-    {
+pub fn daemon_status_with(runner: &dyn CliRunner) -> Result<DaemonStatus, String> {
+    let out = match runner.run(&["gateway", "status"]) {
         Ok(o) => o,
         Err(_) => return Ok(DaemonStatus { running: false, pid: None }),
     };
-
-    let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_lowercase();
-    let combined = format!("{}{}", stdout, stderr);
+    let combined = format!("{}{}", out.stdout.to_lowercase(), out.stderr.to_lowercase());
     let running = (combined.contains("running") || combined.contains("healthy") || combined.contains("listening"))
         && !combined.contains("not running")
         && !combined.contains("not loaded")
         && !combined.contains("stopped");
-
     Ok(DaemonStatus { running, pid: None })
 }
 
-pub fn daemon_stop() -> Result<String, String> {
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["gateway", "stop"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-    if !output.status.success() && !stderr.is_empty() {
-        return Err(stderr);
+pub fn daemon_stop_with(runner: &dyn CliRunner) -> Result<String, String> {
+    let out = runner.run(&["gateway", "stop"])?;
+    if !out.success && !out.stderr.is_empty() {
+        return Err(out.stderr);
     }
-    Ok(if stdout.is_empty() { stderr } else { stdout })
+    Ok(if out.stdout.is_empty() { out.stderr } else { out.stdout })
+}
+
+pub fn daemon_start_with(runner: &dyn CliRunner) -> Result<String, String> {
+    let _ = config_set_raw_json_with(runner, "gateway.mode", "\"local\"");
+
+    let out = runner.run(&["gateway", "start"])?;
+    let combined = format!("{}\n{}", out.stdout, out.stderr);
+
+    if combined.contains("not loaded") || combined.contains("not installed") || combined.contains("gateway install") {
+        let install = runner.run(&["gateway", "install"])?;
+        if !install.success {
+            return Err(format!("Gateway install failed: {}", install.stderr));
+        }
+        let start2 = runner.run(&["gateway", "start"])?;
+        if !start2.success {
+            return Err(if start2.stderr.is_empty() { start2.stdout } else { start2.stderr });
+        }
+        return Ok(start2.stdout);
+    }
+
+    if !out.success && !out.stderr.is_empty() {
+        return Err(out.stderr);
+    }
+    Ok(if out.stdout.is_empty() { out.stderr } else { out.stdout })
+}
+
+pub fn daemon_status() -> Result<DaemonStatus, String> {
+    daemon_status_with(cli_runner::default_runner())
+}
+
+pub fn daemon_stop() -> Result<String, String> {
+    daemon_stop_with(cli_runner::default_runner())
 }
 
 pub fn daemon_start() -> Result<String, String> {
-    // Ensure gateway.mode=local is set (required for gateway to listen)
-    let _ = config_set_raw_json("gateway.mode", "\"local\"");
-
-    // Try `gateway start` first; if the service isn't installed, install it then start
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["gateway", "start"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-    let combined = format!("{}\n{}", stdout, stderr);
-
-    if combined.contains("not loaded") || combined.contains("not installed") || combined.contains("gateway install") {
-        let install = cmd_with_path(OPENCLAW_CLI)
-            .args(["gateway", "install"])
-            .output()
-            .map_err(|e| format!("Failed to install gateway: {}", e))?;
-
-        if !install.status.success() {
-            let err = String::from_utf8_lossy(&install.stderr).trim().to_string();
-            return Err(format!("Gateway install failed: {}", err));
-        }
-
-        let start2 = cmd_with_path(OPENCLAW_CLI)
-            .args(["gateway", "start"])
-            .output()
-            .map_err(|e| format!("Failed to start gateway: {}", e))?;
-
-        let out = String::from_utf8_lossy(&start2.stdout).trim().to_string();
-        if !start2.status.success() {
-            let err = String::from_utf8_lossy(&start2.stderr).trim().to_string();
-            return Err(if err.is_empty() { out } else { err });
-        }
-        return Ok(out);
-    }
-
-    if !output.status.success() && !stderr.is_empty() {
-        return Err(stderr);
-    }
-    Ok(if stdout.is_empty() { stderr } else { stdout })
+    daemon_start_with(cli_runner::default_runner())
 }
 
 #[derive(Debug, Serialize)]
@@ -237,20 +216,12 @@ const PRIORITY_PROVIDERS: &[&str] = &[
     "xai", "mistral", "groq", "cerebras",
 ];
 
-pub fn list_providers() -> Result<Vec<ProviderInfo>, String> {
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["models", "list", "--all"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
+pub fn list_providers_with(runner: &dyn CliRunner) -> Result<Vec<ProviderInfo>, String> {
+    let out = runner.run(&["models", "list", "--all"])?;
+    if !out.success { return Err(out.stderr); }
 
-    if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let mut providers: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
-
-    for line in stdout.lines().skip(1) {
+    for line in out.stdout.lines().skip(1) {
         let model_id = line.split_whitespace().next().unwrap_or("").to_string();
         if let Some(slash) = model_id.find('/') {
             let provider = model_id[..slash].to_string();
@@ -268,17 +239,15 @@ pub fn list_providers() -> Result<Vec<ProviderInfo>, String> {
                 .map(|i| i as u8)
                 .unwrap_or(100);
             let sample_models: Vec<String> = models.iter().take(5).cloned().collect();
-            ProviderInfo {
-                id,
-                model_count: models.len(),
-                sample_models,
-                priority,
-            }
+            ProviderInfo { id, model_count: models.len(), sample_models, priority }
         })
         .collect();
-
     result.sort_by_key(|p| (p.priority, p.id.clone()));
     Ok(result)
+}
+
+pub fn list_providers() -> Result<Vec<ProviderInfo>, String> {
+    list_providers_with(cli_runner::default_runner())
 }
 
 fn parse_model_lines(stdout: &str, prefix: &str) -> Vec<ModelInfo> {
@@ -300,35 +269,25 @@ fn parse_model_lines(stdout: &str, prefix: &str) -> Vec<ModelInfo> {
         .collect()
 }
 
-pub fn list_models(provider: &str) -> Result<Vec<ModelInfo>, String> {
+pub fn list_models_with(runner: &dyn CliRunner, provider: &str) -> Result<Vec<ModelInfo>, String> {
     let prefix = format!("{}/", provider);
 
-    // First try configured models (without --all)
-    if let Ok(output) = cmd_with_path(OPENCLAW_CLI)
-        .args(["models", "list", "--provider", provider])
-        .output()
-    {
-        if output.status.success() {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            let models = parse_model_lines(&stdout, &prefix);
+    if let Ok(out) = runner.run(&["models", "list", "--provider", provider]) {
+        if out.success {
+            let models = parse_model_lines(&out.stdout, &prefix);
             if !models.is_empty() {
                 return Ok(models);
             }
         }
     }
 
-    // Fall back to full catalog
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["models", "list", "--all"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
+    let out = runner.run(&["models", "list", "--all"])?;
+    if !out.success { return Err(out.stderr); }
+    Ok(parse_model_lines(&out.stdout, &prefix))
+}
 
-    if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    Ok(parse_model_lines(&stdout, &prefix))
+pub fn list_models(provider: &str) -> Result<Vec<ModelInfo>, String> {
+    list_models_with(cli_runner::default_runner(), provider)
 }
 
 #[derive(Debug, Serialize)]
@@ -738,28 +697,25 @@ pub struct ChannelAddResult {
     pub error: Option<String>,
 }
 
-pub fn add_channel(channel: &str, token: &str) -> Result<ChannelAddResult, String> {
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["channels", "add", "--channel", channel, "--token", token])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-
-    if output.status.success() {
+pub fn add_channel_with(runner: &dyn CliRunner, channel: &str, token: &str) -> Result<ChannelAddResult, String> {
+    let out = runner.run(&["channels", "add", "--channel", channel, "--token", token])?;
+    if out.success {
         Ok(ChannelAddResult {
             success: true,
-            message: Some(if stdout.is_empty() { stderr } else { stdout }),
+            message: Some(if out.stdout.is_empty() { out.stderr } else { out.stdout }),
             error: None,
         })
     } else {
         Ok(ChannelAddResult {
             success: false,
             message: None,
-            error: Some(if stderr.is_empty() { stdout } else { stderr }),
+            error: Some(if out.stderr.is_empty() { out.stdout } else { out.stderr }),
         })
     }
+}
+
+pub fn add_channel(channel: &str, token: &str) -> Result<ChannelAddResult, String> {
+    add_channel_with(cli_runner::default_runner(), channel, token)
 }
 
 pub fn get_full_config() -> Result<String, String> {
@@ -992,27 +948,21 @@ pub fn agent_chat(message: &str) -> AgentChatResult {
     }
 }
 
-pub fn list_channels() -> Result<Vec<ChannelInfo>, String> {
-    let output = cmd_with_path(OPENCLAW_CLI)
-        .args(["channels", "list"])
-        .output()
-        .map_err(|e| format!("Failed to execute openclaw: {}", e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
+pub fn list_channels_with(runner: &dyn CliRunner) -> Result<Vec<ChannelInfo>, String> {
+    let out = runner.run(&["channels", "list"])?;
     let mut channels = Vec::new();
-
-    for line in stdout.lines() {
+    for line in out.stdout.lines() {
         let trimmed = line.trim();
         if trimmed.starts_with("- ") && !trimmed.contains("none") {
             let name = trimmed.trim_start_matches("- ").trim().to_string();
-            channels.push(ChannelInfo {
-                name: name.clone(),
-                status: "configured".to_string(),
-            });
+            channels.push(ChannelInfo { name, status: "configured".to_string() });
         }
     }
-
     Ok(channels)
+}
+
+pub fn list_channels() -> Result<Vec<ChannelInfo>, String> {
+    list_channels_with(cli_runner::default_runner())
 }
 
 #[derive(Debug, Serialize)]

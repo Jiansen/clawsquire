@@ -167,11 +167,17 @@ export default function VpsManager() {
     }
   };
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   const handleDeleteInstance = async (id: string) => {
     try {
       await invoke('delete_instance', { id });
-      if (selectedId === id) setSelectedId(null);
+      const remaining = instances.filter(i => i.id !== id);
+      if (selectedId === id) {
+        setSelectedId(remaining.length > 0 ? remaining[0].id : null);
+      }
       await loadInstances();
+      setConfirmDeleteId(null);
     } catch (e) {
       console.error('Failed to delete:', e);
     }
@@ -194,7 +200,7 @@ export default function VpsManager() {
       });
       setDeployResult(res);
       if (res.test_ok && res.install_output?.success) {
-        const updated = { ...selected, openclaw_installed: true };
+        const updated = { ...selected, openclaw_installed: true, last_connected: new Date().toISOString().replace(/\.\d+Z$/, 'Z') };
         await invoke('update_instance', { instance: updated });
         await loadInstances();
       }
@@ -218,6 +224,10 @@ export default function VpsManager() {
         command: command.trim(),
       });
       setCmdResult(res);
+      if (res.success && selected) {
+        const updated = { ...selected, last_connected: new Date().toISOString().replace(/\.\d+Z$/, 'Z') };
+        await invoke('update_instance', { instance: updated }).catch(() => {});
+      }
     } catch (e) {
       setCmdResult({ success: false, exit_code: null, stdout: '', stderr: '', error: String(e) });
     }
@@ -236,6 +246,8 @@ export default function VpsManager() {
   };
 
   const canSave = formHost.trim().length > 0 && formUsername.trim().length > 0 && testResult?.success;
+  const canTestConnection = formHost.trim().length > 0 && formUsername.trim().length > 0 &&
+    (formAuth === 'password' ? formPassword.length > 0 : formKeyPath.trim().length > 0);
 
   const inputClass = "w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-claw-500 focus:ring-2 focus:ring-claw-200 focus:outline-none transition-all font-mono bg-white dark:bg-gray-800";
 
@@ -349,7 +361,7 @@ export default function VpsManager() {
               <div className="flex gap-3">
                 <button
                   onClick={handleTestConnection}
-                  disabled={!formHost.trim() || !formUsername.trim() || testing}
+                  disabled={!canTestConnection || testing}
                   className="rounded-lg bg-gray-100 dark:bg-gray-800 px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 transition-all"
                 >
                   {testing ? t('ssh.testing') : t('ssh.testConnection')}
@@ -386,12 +398,20 @@ export default function VpsManager() {
                 <h2 className="text-2xl font-bold">{selected.name}</h2>
                 <p className="text-sm text-gray-400 font-mono">{selected.username}@{selected.host}:{selected.port}</p>
               </div>
-              <button
-                onClick={() => handleDeleteInstance(selected.id)}
-                className="text-red-500 hover:text-red-700 text-sm font-medium"
-              >
-                {t('vps.delete')}
-              </button>
+              {confirmDeleteId === selected.id ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-red-500">{t('common.confirm')}?</span>
+                  <button onClick={() => handleDeleteInstance(selected.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">{t('common.confirm')}</button>
+                  <button onClick={() => setConfirmDeleteId(null)} className="text-gray-400 hover:text-gray-600 text-sm">{t('common.cancel')}</button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDeleteId(selected.id)}
+                  className="text-red-500 hover:text-red-700 text-sm font-medium"
+                >
+                  {t('vps.delete')}
+                </button>
+              )}
             </div>
 
             {/* Auth prompt for this session */}
@@ -430,6 +450,9 @@ export default function VpsManager() {
                   <div><span className="text-gray-500">{t('ssh.authMethod')}:</span> <span>{selected.auth_method === 'password' ? t('ssh.password') : t('ssh.keyFile')}</span></div>
                   <div><span className="text-gray-500">OpenClaw:</span> <span>{selected.openclaw_installed ? (selected.openclaw_version || 'Installed') : t('vps.notDeployed')}</span></div>
                   <div><span className="text-gray-500">{t('vps.created')}:</span> <span className="font-mono text-xs">{selected.created_at}</span></div>
+                  {selected.last_connected && (
+                    <div><span className="text-gray-500">{t('vps.lastConnected')}:</span> <span className="font-mono text-xs">{selected.last_connected}</span></div>
+                  )}
                 </div>
               </div>
             )}

@@ -605,6 +605,7 @@
     "passwordSessionOnly": "La contraseña solo se mantiene en memoria — nunca se guarda en disco.",
     "notDeployed": "No instalado",
     "created": "Creado",
+    "lastConnected": "Última conexión",
     "tab": {
       "overview": "Resumen",
       "deploy": "Desplegar OpenClaw",

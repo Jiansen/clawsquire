@@ -601,6 +601,7 @@
     "passwordSessionOnly": "Password is kept in memory only — never saved to disk.",
     "notDeployed": "Not installed",
     "created": "Created",
+    "lastConnected": "Last connected",
     "tab": {
       "overview": "Overview",
       "deploy": "Deploy OpenClaw",

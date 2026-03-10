@@ -605,6 +605,7 @@
     "passwordSessionOnly": "密碼僅存在記憶體中，不會儲存到磁碟。",
     "notDeployed": "未安裝",
     "created": "建立時間",
+    "lastConnected": "最後連線",
     "tab": {
       "overview": "總覽",
       "deploy": "部署 OpenClaw",

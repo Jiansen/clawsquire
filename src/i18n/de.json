@@ -605,6 +605,7 @@
     "passwordSessionOnly": "Das Passwort wird nur im Speicher gehalten — nie auf der Festplatte gespeichert.",
     "notDeployed": "Nicht installiert",
     "created": "Erstellt",
+    "lastConnected": "Letzte Verbindung",
     "tab": {
       "overview": "Übersicht",
       "deploy": "OpenClaw bereitstellen",
