@@ -1,3 +1,4 @@
+mod active_target;
 mod backup;
 mod cli_runner;
 mod community_search;
@@ -13,6 +14,7 @@ mod remote;
 mod secure_store;
 mod ssh;
 
+use active_target::{ActiveTargetInfo, ActiveTargetState};
 use backup::{BackupEntry, DiffEntry};
 use community_search::{SearchResponse, SmartSearchResponse};
 use compat::VersionInfo;
@@ -456,6 +458,34 @@ async fn delete_secret(key: String) -> secure_store::SecureStoreResult {
         })
 }
 
+
+#[tauri::command]
+async fn get_active_target(
+    state: tauri::State<'_, ActiveTargetState>,
+) -> Result<ActiveTargetInfo, String> {
+    Ok(ActiveTargetInfo::from(&state.get()))
+}
+
+#[tauri::command]
+async fn set_active_target(
+    state: tauri::State<'_, ActiveTargetState>,
+    mode: String,
+    instance_id: Option<String>,
+    password: Option<String>,
+) -> Result<ActiveTargetInfo, String> {
+    match mode.as_str() {
+        "local" => {
+            state.set_local();
+        }
+        "vps" => {
+            let id = instance_id.ok_or("instance_id required for VPS mode")?;
+            state.set_vps(&id, password)?;
+        }
+        _ => return Err(format!("Unknown mode: {}", mode)),
+    }
+    Ok(ActiveTargetInfo::from(&state.get()))
+}
+
 #[tauri::command]
 async fn detect_imap_preset(email: String) -> Option<imap::ImapPreset> {
     imap::detect_imap_preset(&email)
@@ -501,6 +531,7 @@ async fn check_for_updates() -> UpdateCheck {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .manage(ActiveTargetState::default())
         .setup(|app| {
             let show = MenuItemBuilder::with_id("show", "Show ClawSquire").build(app)?;
             let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
@@ -586,6 +617,8 @@ pub fn run() {
             update_instance,
             delete_instance,
             deploy_to_vps,
+            get_active_target,
+            set_active_target,
             detect_imap_preset,
             save_imap_config,
             store_secret,
