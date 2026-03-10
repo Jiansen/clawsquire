@@ -20,6 +20,7 @@ import Automations from './pages/Automations';
 import Sources from './pages/Sources';
 import Welcome from './pages/Welcome';
 import { useWindowTitle } from './lib/useWindowTitle';
+import { ActiveTargetProvider } from './context/ActiveTargetContext';
 
 const LOCALE_KEY = 'clawsquire.locale';
 
@@ -27,6 +28,7 @@ function AppShell() {
   useWindowTitle();
 
   return (
+    <ActiveTargetProvider>
     <BrowserRouter>
         <div className="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
         <Sidebar />
@@ -51,6 +53,7 @@ function AppShell() {
         </div>
       </div>
     </BrowserRouter>
+    </ActiveTargetProvider>
   );
 }
 
