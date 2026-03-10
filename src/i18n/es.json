@@ -35,6 +35,12 @@
     "safetyLevel": "Nivel de seguridad",
     "safetyConservative": "Conservador",
     "safetyDescription": "Solo las funciones básicas están habilitadas. Las funciones avanzadas requieren activación manual.",
+    "daemon": {
+      "start": "Iniciar",
+      "stop": "Detener",
+      "starting": "Iniciando...",
+      "stopping": "Deteniendo..."
+    },
     "install": {
       "desc": "Instala OpenClaw para desbloquear todas las funciones: asistente de configuración, chequeo de salud, gestión de configuración.",
       "whatWillHappen": "Lo que sucederá:",

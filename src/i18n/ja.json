@@ -35,6 +35,12 @@
     "safetyLevel": "セキュリティレベル",
     "safetyConservative": "保守的",
     "safetyDescription": "基本機能のみ有効です。高度な機能は手動で有効化する必要があります。",
+    "daemon": {
+      "start": "開始",
+      "stop": "停止",
+      "starting": "開始中...",
+      "stopping": "停止中..."
+    },
     "install": {
       "desc": "OpenClaw をインストールして、セットアップウィザード、ヘルスチェック、設定管理などの全機能をご利用ください。",
       "whatWillHappen": "実行内容：",

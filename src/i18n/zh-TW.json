@@ -35,6 +35,12 @@
     "safetyLevel": "安全等級",
     "safetyConservative": "保守模式",
     "safetyDescription": "僅啟用基礎功能。進階功能需手動開啟。",
+    "daemon": {
+      "start": "啟動",
+      "stop": "停止",
+      "starting": "啟動中...",
+      "stopping": "停止中..."
+    },
     "install": {
       "desc": "安裝 OpenClaw 以解鎖所有功能 — 設定精靈、健康檢查、設定管理。",
       "whatWillHappen": "即將執行：",

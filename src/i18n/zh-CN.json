@@ -35,6 +35,12 @@
     "safetyDescription": "仅启用基础功能。高级功能需要手动开启。",
     "platform": "平台",
     "configDir": "配置目录",
+    "daemon": {
+      "start": "启动",
+      "stop": "停止",
+      "starting": "启动中...",
+      "stopping": "停止中..."
+    },
     "install": {
       "desc": "安装 OpenClaw 以解锁所有功能 — 配置向导、健康检查、配置管理。",
       "whatWillHappen": "即将执行：",

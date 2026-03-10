@@ -35,6 +35,12 @@
     "safetyLevel": "Nível de segurança",
     "safetyConservative": "Conservador",
     "safetyDescription": "Apenas recursos básicos estão habilitados. Recursos avançados exigem ativação manual.",
+    "daemon": {
+      "start": "Iniciar",
+      "stop": "Parar",
+      "starting": "Iniciando...",
+      "stopping": "Parando..."
+    },
     "install": {
       "desc": "Instale o OpenClaw para desbloquear todos os recursos — assistente de configuração, verificação de saúde, gerenciamento de configuração.",
       "whatWillHappen": "O que vai acontecer:",
