@@ -1,5 +1,6 @@
 mod backup;
 mod community_search;
+mod compat;
 mod constants;
 mod detect;
 mod doctor;
@@ -8,6 +9,7 @@ mod openclaw;
 
 use backup::{BackupEntry, DiffEntry};
 use community_search::{SearchResponse, SmartSearchResponse};
+use compat::VersionInfo;
 use detect::{Environment, UpdateCheck};
 use doctor::DoctorReport;
 use node_install::NodeInstallResult;
@@ -223,6 +225,13 @@ async fn smart_search(query: String, lang: String) -> Result<SmartSearchResponse
 }
 
 #[tauri::command]
+async fn get_version_info() -> VersionInfo {
+    tauri::async_runtime::spawn_blocking(compat::get_version_info)
+        .await
+        .unwrap_or_else(|_| compat::get_version_info())
+}
+
+#[tauri::command]
 async fn check_for_updates() -> UpdateCheck {
     let version = env!("CARGO_PKG_VERSION").to_string();
     tauri::async_runtime::spawn_blocking(move || detect::check_for_updates(&version))
@@ -310,6 +319,7 @@ pub fn run() {
             search_community_issues,
             smart_search,
             check_for_updates,
+            get_version_info,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
