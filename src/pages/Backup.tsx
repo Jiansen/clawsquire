@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface BackupEntry {
   id: string;
@@ -19,6 +20,7 @@ interface DiffEntry {
 
 export default function Backup() {
   const { t } = useTranslation();
+  const { target } = useActiveTarget();
   const [backups, setBackups] = useState<BackupEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -41,7 +43,7 @@ export default function Backup() {
 
   useEffect(() => {
     loadBackups();
-  }, [loadBackups]);
+  }, [loadBackups, target.mode, target.instanceId]);
 
   const createBackup = async () => {
     setCreating(true);

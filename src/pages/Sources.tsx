@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface ImapStatus {
   configured: boolean;
@@ -18,6 +19,7 @@ const SOURCE_TYPES = [
 
 export default function Sources() {
   const { t } = useTranslation();
+  const { target } = useActiveTarget();
   const [imapStatus, setImapStatus] = useState<ImapStatus>({ configured: false, host: null, username: null });
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ export default function Sources() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [target.mode, target.instanceId]);
 
   return (
     <div className="max-w-3xl mx-auto">

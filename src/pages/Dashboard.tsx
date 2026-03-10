@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import InfoTooltip from '../components/shared/InfoTooltip';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface Environment {
   openclaw_installed: boolean;
@@ -35,6 +36,7 @@ interface LlmConfigStatus {
 }
 
 export default function Dashboard() {
+  const { target } = useActiveTarget();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -83,7 +85,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, target.mode, target.instanceId]);
 
   useEffect(() => {
     const onFocus = () => refresh();

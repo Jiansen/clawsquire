@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface CronJob {
   name: string;
@@ -42,6 +43,7 @@ const INTERVALS = [
 type PresetId = (typeof PRESETS)[number]['id'];
 
 export default function Automations() {
+  const { target } = useActiveTarget();
   const { t } = useTranslation();
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [channels, setChannels] = useState<ChannelInfo[]>([]);
@@ -79,7 +81,7 @@ export default function Automations() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, [loadData, target.mode, target.instanceId]);
 
   const applyPreset = (presetId: PresetId) => {
     setSelectedPreset(presetId);

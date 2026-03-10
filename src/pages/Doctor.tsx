@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import InfoTooltip from '../components/shared/InfoTooltip';
 import CommunitySearch from '../components/shared/CommunitySearch';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface DoctorCheck {
   name: string;
@@ -27,17 +28,14 @@ const STATUS_STYLES = {
 
 export default function Doctor() {
   const { t } = useTranslation();
+  const { target } = useActiveTarget();
   const [report, setReport] = useState<DoctorReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedCheck, setExpandedCheck] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    runDoctor();
-  }, []);
-
-  const runDoctor = async () => {
+  const runDoctor = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -48,7 +46,11 @@ export default function Doctor() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    runDoctor();
+  }, [runDoctor, target.mode, target.instanceId]);
 
   const groupedChecks = report
     ? CATEGORY_ORDER.map((cat) => ({

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 const MASK_KEYS = ['apiKey', 'token', 'secret', 'password', 'botToken'];
 
@@ -24,6 +25,7 @@ function maskSecrets(obj: unknown, parentKey = ''): unknown {
 }
 
 export default function Config() {
+  const { target } = useActiveTarget();
   const { t } = useTranslation();
   const [rawJson, setRawJson] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export default function Config() {
 
   useEffect(() => {
     loadConfig();
-  }, [loadConfig]);
+  }, [loadConfig, target.mode, target.instanceId]);
 
   const parsed = rawJson ? (() => { try { return JSON.parse(rawJson); } catch { return null; } })() : null;
   const masked = parsed ? maskSecrets(parsed) : null;

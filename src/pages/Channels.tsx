@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface ChannelInfo {
   name: string;
@@ -30,6 +31,7 @@ type ChannelTypeId = (typeof CHANNEL_TYPES)[number]['id'];
 
 export default function Channels() {
   const { t } = useTranslation();
+  const { target } = useActiveTarget();
   const [channels, setChannels] = useState<ChannelInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -53,7 +55,7 @@ export default function Channels() {
 
   useEffect(() => {
     loadChannels();
-  }, [loadChannels]);
+  }, [loadChannels, target.mode, target.instanceId]);
 
   const handleAdd = async () => {
     if (!selectedType) return;

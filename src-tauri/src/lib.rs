@@ -34,10 +34,33 @@ use tauri::{
 
 
 #[tauri::command]
-async fn get_environment() -> Environment {
-    tauri::async_runtime::spawn_blocking(detect::detect_environment)
-        .await
-        .unwrap_or_else(|_| detect::detect_environment())
+async fn get_environment(state: tauri::State<'_, ActiveTargetState>) -> Result<Environment, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        match &target {
+            active_target::Target::Local => Ok(detect::detect_environment()),
+            active_target::Target::Vps(_) => {
+                let runner = target.runner();
+                let r = runner.as_ref();
+                let (installed, version) = match r.run(&["--version"]) {
+                    Ok(o) if o.success => (true, Some(o.stdout.trim().to_string())),
+                    _ => (false, None),
+                };
+                Ok(Environment {
+                    openclaw_installed: installed,
+                    openclaw_version: version,
+                    openclaw_path: Some("(remote)".into()),
+                    npm_installed: true,
+                    npm_version: None,
+                    node_version: None,
+                    config_dir: "(remote)".into(),
+                    platform: "linux".into(),
+                })
+            }
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
