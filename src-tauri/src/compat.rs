@@ -1,5 +1,4 @@
-use crate::constants::OPENCLAW_CLI;
-use crate::detect::cmd_with_path;
+use crate::cli_runner::{self, CliRunner};
 use serde::Serialize;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -22,16 +21,17 @@ pub struct GatewayAuthConfig {
     pub paths: Vec<(&'static str, String)>,
 }
 
-/// Detect the installed OpenClaw version by running `openclaw --version`.
-pub fn detect_version() -> OpenClawVersion {
-    let output = match cmd_with_path(OPENCLAW_CLI).arg("--version").output() {
-        Ok(o) if o.status.success() => {
-            String::from_utf8_lossy(&o.stdout).trim().to_string()
-        }
-        _ => return OpenClawVersion::Unknown("not installed".into()),
-    };
+/// Detect the installed OpenClaw version using the given runner.
+pub fn detect_version_with(runner: &dyn CliRunner) -> OpenClawVersion {
+    match runner.run(&["--version"]) {
+        Ok(o) if o.success => parse_version(&o.stdout),
+        _ => OpenClawVersion::Unknown("not installed".into()),
+    }
+}
 
-    parse_version(&output)
+/// Detect the installed OpenClaw version using the default runner.
+pub fn detect_version() -> OpenClawVersion {
+    detect_version_with(cli_runner::default_runner())
 }
 
 /// Parse a version string like "2026.3.7" or "v2026.3.8" into an enum variant.
@@ -101,19 +101,14 @@ pub struct VersionInfo {
 }
 
 /// Detect version and return a frontend-friendly summary.
-pub fn get_version_info() -> VersionInfo {
-    let ver = detect_version();
+pub fn get_version_info_with(runner: &dyn CliRunner) -> VersionInfo {
+    let ver = detect_version_with(runner);
     let raw = match &ver {
         OpenClawVersion::Unknown(s) => s.clone(),
-        _ => {
-            cmd_with_path(OPENCLAW_CLI)
-                .arg("--version")
-                .output()
-                .ok()
-                .filter(|o| o.status.success())
-                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-                .unwrap_or_else(|| "unknown".into())
-        }
+        _ => runner.run(&["--version"]).ok()
+            .filter(|o| o.success)
+            .map(|o| o.stdout)
+            .unwrap_or_else(|| "unknown".into()),
     };
     let tier = match &ver {
         OpenClawVersion::V3_2 => "v3.2",
@@ -128,6 +123,10 @@ pub fn get_version_info() -> VersionInfo {
         has_control_ui: has_control_ui(&ver),
         tools_profile_default: default_tools_profile(&ver).to_string(),
     }
+}
+
+pub fn get_version_info() -> VersionInfo {
+    get_version_info_with(cli_runner::default_runner())
 }
 
 #[cfg(test)]
