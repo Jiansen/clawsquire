@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.2.0] — 2026-03-10
+
+Remote VPS management: ClawSquire can now manage OpenClaw installations on remote servers, not just locally.
+
+### Features
+
+- **Active Target Architecture** — Switch between local and remote (VPS) OpenClaw instances from the TopBar; all commands route transparently via SSH
+- **SshCliRunner** — New CLI execution backend that runs OpenClaw commands on remote servers through SSH (key or password auth)
+- **VPS Instance Registry** — Save and manage multiple VPS connections in `~/.clawsquire/instances.json`
+- **Remote Mode UX** — Blue "Remote Mode" banner on Dashboard; local-only features (Node.js install, CLI terminal, Web Dashboard link) automatically hidden when targeting a VPS
+- **Remote Backup** — Back up remote OpenClaw configuration to local per-instance subdirectories
+- **Auto-refresh on Target Switch** — All data pages (Dashboard, Config, Channels, Automations, Sources, Backup, Doctor) re-fetch data when the active target changes
+- **Composable Automations** — New Channels, Automations, and Sources pages with full CRUD for 5+ channel types and cron-based scheduling
+- **Global Help Panel** — `?` button + `Cmd+Shift+/` shortcut opens a slide-in help panel with FAQ search and community search
+- **CLI Passthrough** — Collapsible CLI terminal on Dashboard for advanced users to run `openclaw` subcommands directly
+
+### Bug Fixes
+
+- SSH key paths with `~` now correctly expand to the user's home directory
+- Config page reads the full config file directly instead of using unsupported CLI commands
+- Remote backup uses SSH file read instead of unsupported `config list --json`
+- Dead code warnings eliminated (zero warnings on `cargo check`)
+
+### Architecture
+
+- `CliRunner` trait abstraction (`RealCliRunner` for local, `SshCliRunner` for remote)
+- `ActiveTargetState` with `RwLock<Target>` for thread-safe target management
+- 22+ IPC handlers routed through `ActiveTargetState`
+- Frontend `ActiveTargetContext` React context + `useActiveTarget` hook
+
 ## [0.1.0] — 2026-03-09
 
 First official release of ClawSquire, the cross-platform companion app for [OpenClaw](https://openclaw.ai).
