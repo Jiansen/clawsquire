@@ -67,11 +67,24 @@ jobs:
           cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" "${{ matrix.asset }}"
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ matrix.asset }}
+        shell: bash
+        run: |
+          # Ensure release exists (create as draft if needed), then upload asset.
+          # gh release upload handles concurrent uploads gracefully with --clobber.
+          TAG="${{ github.ref_name }}"
+          ASSET="${{ matrix.asset }}"
+          IS_PRE=$(echo "$TAG" | grep -q '-' && echo true || echo false)
+          # Create release only if it doesn't exist yet; ignore error if already present
+          gh release create "$TAG" \
+            --draft="$IS_PRE" \
+            --prerelease="$IS_PRE" \
+            --title "$TAG" \
+            --notes "Release $TAG" \
+            2>/dev/null || true
+          # Upload (overwrite if exists)
+          gh release upload "$TAG" "$ASSET" --clobber
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-desktop:
     name: "Build desktop (${{ matrix.platform }})"
