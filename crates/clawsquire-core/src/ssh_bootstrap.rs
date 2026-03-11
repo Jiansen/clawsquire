@@ -1,0 +1,407 @@
+use crate::bootstrap;
+use serde::{Deserialize, Serialize};
+use std::process::Command;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SshConfig {
+    pub host: String,
+    pub port: u16,
+    pub username: String,
+    pub auth_method: String,
+    pub password: Option<String>,
+    pub key_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BootstrapEvent {
+    pub step: String,
+    pub status: String, // "running" | "ok" | "fail"
+    pub message: String,
+    pub detail: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BootstrapResult {
+    pub success: bool,
+    pub port: Option<u16>,
+    pub token: Option<String>,
+    pub platform: Option<String>,
+    pub arch: Option<String>,
+    pub error: Option<String>,
+}
+
+impl BootstrapEvent {
+    fn running(step: &str, msg: &str) -> Self {
+        Self {
+            step: step.into(),
+            status: "running".into(),
+            message: msg.into(),
+            detail: None,
+        }
+    }
+
+    fn ok(step: &str, msg: &str) -> Self {
+        Self {
+            step: step.into(),
+            status: "ok".into(),
+            message: msg.into(),
+            detail: None,
+        }
+    }
+
+    fn fail(step: &str, msg: &str, detail: Option<String>) -> Self {
+        Self {
+            step: step.into(),
+            status: "fail".into(),
+            message: msg.into(),
+            detail,
+        }
+    }
+}
+
+fn build_ssh_args(cfg: &SshConfig) -> Vec<String> {
+    let mut args = vec![
+        "-o".into(),
+        "StrictHostKeyChecking=no".into(),
+        "-o".into(),
+        "ConnectTimeout=15".into(),
+        "-o".into(),
+        "BatchMode=yes".into(),
+        "-p".into(),
+        cfg.port.to_string(),
+    ];
+
+    if cfg.auth_method == "key" {
+        if let Some(ref kp) = cfg.key_path {
+            args.push("-i".into());
+            args.push(kp.clone());
+        }
+    }
+
+    args.push(format!("{}@{}", cfg.username, cfg.host));
+    args
+}
+
+fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
+    let mut args = build_ssh_args(cfg);
+    args.push(remote_cmd.to_string());
+
+    let mut cmd = if cfg.auth_method == "password" {
+        if let Some(ref pw) = cfg.password {
+            let mut c = Command::new("sshpass");
+            c.args(["-p", pw, "ssh"]);
+            c.args(&args);
+            c
+        } else {
+            return Err("Password auth selected but no password provided".into());
+        }
+    } else {
+        let mut c = Command::new("ssh");
+        c.args(&args);
+        c
+    };
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000);
+    }
+
+    let output = cmd.output().map_err(|e| format!("ssh exec: {}", e))?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        Err(if stderr.is_empty() {
+            format!("ssh command failed (exit {})", output.status.code().unwrap_or(-1))
+        } else {
+            stderr
+        })
+    }
+}
+
+/// Run the full SSH bootstrap sequence.
+/// `emit` is called for each progress event.
+pub fn run_bootstrap<F: FnMut(BootstrapEvent)>(
+    cfg: &SshConfig,
+    mut emit: F,
+) -> BootstrapResult {
+    let mut result = BootstrapResult {
+        success: false,
+        port: None,
+        token: None,
+        platform: None,
+        arch: None,
+        error: None,
+    };
+
+    // Step 1: Check local SSH client
+    emit(BootstrapEvent::running("ssh_check", "Checking local SSH client..."));
+    let ssh_bin = if cfg.auth_method == "password" { "sshpass" } else { "ssh" };
+    let which = Command::new("which").arg(ssh_bin).output();
+    match which {
+        Ok(o) if o.status.success() => {
+            emit(BootstrapEvent::ok("ssh_check", &format!("{} available", ssh_bin)));
+        }
+        _ => {
+            let msg = if ssh_bin == "sshpass" {
+                "sshpass not found. Install it (e.g. `brew install sshpass` / `apt install sshpass`) or switch to key-based auth."
+            } else {
+                "SSH client not found. Please install OpenSSH."
+            };
+            emit(BootstrapEvent::fail("ssh_check", msg, None));
+            result.error = Some(msg.into());
+            return result;
+        }
+    }
+
+    // Step 2: Test connection
+    emit(BootstrapEvent::running(
+        "connect",
+        &format!("Connecting to {}@{}:{}...", cfg.username, cfg.host, cfg.port),
+    ));
+    match ssh_exec(cfg, "echo __clawsquire_ok__") {
+        Ok(out) if out.contains("__clawsquire_ok__") => {
+            emit(BootstrapEvent::ok("connect", "SSH connection successful"));
+        }
+        Ok(out) => {
+            emit(BootstrapEvent::fail(
+                "connect",
+                "Unexpected response",
+                Some(out),
+            ));
+            result.error = Some("SSH connected but unexpected response".into());
+            return result;
+        }
+        Err(e) => {
+            emit(BootstrapEvent::fail("connect", "Connection failed", Some(e.clone())));
+            result.error = Some(e);
+            return result;
+        }
+    }
+
+    // Step 3: Detect remote OS & arch
+    emit(BootstrapEvent::running("detect_os", "Detecting remote environment..."));
+    let platform = match ssh_exec(cfg, "uname -s 2>/dev/null || echo windows") {
+        Ok(s) => {
+            let p = s.trim().to_lowercase();
+            match p.as_str() {
+                "linux" => "linux".to_string(),
+                "darwin" => "macos".to_string(),
+                _ if p.contains("mingw") || p.contains("msys") || p == "windows" => {
+                    "windows".to_string()
+                }
+                other => other.to_string(),
+            }
+        }
+        Err(e) => {
+            emit(BootstrapEvent::fail("detect_os", "Failed to detect OS", Some(e.clone())));
+            result.error = Some(e);
+            return result;
+        }
+    };
+
+    let arch = match ssh_exec(cfg, "uname -m 2>/dev/null || echo x86_64") {
+        Ok(s) => {
+            let a = s.trim().to_lowercase();
+            if a.contains("aarch64") || a.contains("arm64") {
+                "aarch64".to_string()
+            } else {
+                "x86_64".to_string()
+            }
+        }
+        Err(_) => "x86_64".to_string(),
+    };
+
+    emit(BootstrapEvent::ok(
+        "detect_os",
+        &format!("Remote: {} {} ", platform, arch),
+    ));
+    result.platform = Some(platform.clone());
+    result.arch = Some(arch.clone());
+
+    // Step 4: Check if serve is already installed & running
+    emit(BootstrapEvent::running("check_serve", "Checking clawsquire-serve..."));
+    let serve_exists = ssh_exec(cfg, "test -f $HOME/.clawsquire/clawsquire-serve && echo yes || echo no")
+        .unwrap_or_default()
+        .contains("yes");
+
+    if serve_exists {
+        emit(BootstrapEvent::ok("check_serve", "clawsquire-serve already installed"));
+    } else {
+        emit(BootstrapEvent::running(
+            "install_serve",
+            "Installing clawsquire-serve...",
+        ));
+
+        let install_cmd = if platform == "windows" {
+            bootstrap::install_script("windows", &arch)
+        } else {
+            let script = bootstrap::install_script(&platform, &arch);
+            // Remove the --init from install script; we'll run it separately
+            script.replace("\"$DEST\" --init", "echo install_done")
+        };
+
+        match ssh_exec(cfg, &install_cmd) {
+            Ok(_) => {
+                emit(BootstrapEvent::ok("install_serve", "clawsquire-serve installed"));
+            }
+            Err(e) => {
+                emit(BootstrapEvent::fail(
+                    "install_serve",
+                    "Failed to install clawsquire-serve",
+                    Some(e.clone()),
+                ));
+                result.error = Some(e);
+                return result;
+            }
+        }
+    }
+
+    // Step 5: Start serve with --init to get token/port
+    emit(BootstrapEvent::running("start_serve", "Starting clawsquire-serve..."));
+    let init_cmd = "$HOME/.clawsquire/clawsquire-serve --init";
+    match ssh_exec(cfg, init_cmd) {
+        Ok(output) => {
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&output) {
+                let token = json
+                    .get("token")
+                    .and_then(|t| t.as_str())
+                    .map(|s| s.to_string());
+                let port = json.get("port").and_then(|p| p.as_u64()).map(|p| p as u16);
+
+                if let (Some(t), Some(p)) = (&token, port) {
+                    result.token = Some(t.clone());
+                    result.port = Some(p);
+                    emit(BootstrapEvent::ok(
+                        "start_serve",
+                        &format!("clawsquire-serve ready (port {})", p),
+                    ));
+                } else {
+                    emit(BootstrapEvent::fail(
+                        "start_serve",
+                        "Invalid init output — missing token or port",
+                        Some(output),
+                    ));
+                    result.error = Some("Invalid clawsquire-serve init output".into());
+                    return result;
+                }
+            } else {
+                emit(BootstrapEvent::fail(
+                    "start_serve",
+                    "Failed to parse init output",
+                    Some(output),
+                ));
+                result.error = Some("clawsquire-serve init returned non-JSON".into());
+                return result;
+            }
+        }
+        Err(e) => {
+            emit(BootstrapEvent::fail(
+                "start_serve",
+                "Failed to start clawsquire-serve",
+                Some(e.clone()),
+            ));
+            result.error = Some(e);
+            return result;
+        }
+    }
+
+    // Step 6: Start serve as background daemon
+    emit(BootstrapEvent::running("daemon", "Starting serve daemon..."));
+    let token = result.token.as_deref().unwrap();
+    let port = result.port.unwrap();
+    let daemon_cmd = format!(
+        "nohup $HOME/.clawsquire/clawsquire-serve --port {} --token {} > $HOME/.clawsquire/serve.log 2>&1 &",
+        port, token
+    );
+    match ssh_exec(cfg, &daemon_cmd) {
+        Ok(_) => {
+            emit(BootstrapEvent::ok("daemon", "Serve daemon started"));
+        }
+        Err(e) => {
+            emit(BootstrapEvent::fail(
+                "daemon",
+                "Failed to start daemon (serve may still work if started manually)",
+                Some(e),
+            ));
+            // Non-fatal: the init already gave us token/port
+        }
+    }
+
+    result.success = true;
+    emit(BootstrapEvent::ok(
+        "complete",
+        &format!(
+            "Bootstrap complete! Connect to ws://{}:{}",
+            cfg.host, port
+        ),
+    ));
+
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ssh_args_key_auth() {
+        let cfg = SshConfig {
+            host: "example.com".into(),
+            port: 22,
+            username: "root".into(),
+            auth_method: "key".into(),
+            password: None,
+            key_path: Some("/home/user/.ssh/id_rsa".into()),
+        };
+        let args = build_ssh_args(&cfg);
+        assert!(args.contains(&"-i".to_string()));
+        assert!(args.contains(&"/home/user/.ssh/id_rsa".to_string()));
+        assert!(args.contains(&"root@example.com".to_string()));
+    }
+
+    #[test]
+    fn test_ssh_args_password_auth() {
+        let cfg = SshConfig {
+            host: "192.168.1.1".into(),
+            port: 2222,
+            username: "admin".into(),
+            auth_method: "password".into(),
+            password: Some("secret".into()),
+            key_path: None,
+        };
+        let args = build_ssh_args(&cfg);
+        assert!(args.contains(&"2222".to_string()));
+        assert!(args.contains(&"admin@192.168.1.1".to_string()));
+    }
+
+    #[test]
+    fn test_bootstrap_event_constructors() {
+        let ev = BootstrapEvent::running("test", "Testing...");
+        assert_eq!(ev.status, "running");
+        assert_eq!(ev.step, "test");
+
+        let ev = BootstrapEvent::ok("test", "Done");
+        assert_eq!(ev.status, "ok");
+
+        let ev = BootstrapEvent::fail("test", "Error", Some("detail".into()));
+        assert_eq!(ev.status, "fail");
+        assert_eq!(ev.detail, Some("detail".into()));
+    }
+
+    #[test]
+    fn test_bootstrap_result_default() {
+        let r = BootstrapResult {
+            success: false,
+            port: None,
+            token: None,
+            platform: None,
+            arch: None,
+            error: None,
+        };
+        assert!(!r.success);
+        assert!(r.port.is_none());
+    }
+}

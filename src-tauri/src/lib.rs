@@ -7,6 +7,7 @@ use active_target::{ActiveTargetInfo, ActiveTargetState};
 use clawsquire_core::backup::{self, BackupEntry, DiffEntry};
 use clawsquire_core::bootstrap::{self, BootstrapStatus};
 use clawsquire_core::community_search::{self, SearchResponse, SmartSearchResponse};
+use clawsquire_core::ssh_bootstrap::{self, SshConfig, BootstrapResult};
 use clawsquire_core::compat::{self, VersionInfo};
 use clawsquire_core::constants;
 use clawsquire_core::detect::{self, Environment, UpdateCheck};
@@ -21,7 +22,7 @@ use clawsquire_core::remote::{self, RemoteInstallCommand};
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::TrayIconBuilder,
-    Manager, WindowEvent,
+    Emitter, Manager, WindowEvent,
 };
 
 
@@ -259,6 +260,37 @@ async fn bootstrap_get_script(platform: String, arch: String) -> Result<String, 
 #[tauri::command]
 async fn bootstrap_get_cargo_script() -> Result<String, String> {
     Ok(bootstrap::cargo_install_script().to_string())
+}
+
+/// Run SSH bootstrap on a remote VPS. Emits "bootstrap-event" for each step.
+/// Returns the final result with token/port on success.
+#[tauri::command]
+async fn bootstrap_ssh_start(
+    app: tauri::AppHandle,
+    host: String,
+    port: u16,
+    username: String,
+    auth_method: String,
+    password: Option<String>,
+    key_path: Option<String>,
+) -> Result<BootstrapResult, String> {
+    let cfg = SshConfig {
+        host,
+        port,
+        username,
+        auth_method,
+        password,
+        key_path,
+    };
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let result = ssh_bootstrap::run_bootstrap(&cfg, |event| {
+            let _ = app.emit("bootstrap-event", &event);
+        });
+        Ok(result)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -644,6 +676,7 @@ pub fn run() {
             bootstrap_install_openclaw,
             bootstrap_get_script,
             bootstrap_get_cargo_script,
+            bootstrap_ssh_start,
             add_channel,
             remove_channel,
             get_full_config,
