@@ -219,6 +219,7 @@ export default function VpsManager() {
   const [activeTarget, setActiveTarget] = useState<ActiveTargetInfo | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [restarting, setRestarting] = useState(false);
 
   const loadInstances = useCallback(async () => {
     try {
@@ -309,6 +310,30 @@ export default function VpsManager() {
       setConfirmDeleteId(null);
     } catch (e) {
       console.error('Failed to delete:', e);
+    }
+  };
+
+  const handleRestartServe = async (inst: VpsInstance) => {
+    if (!inst.serve_port || !inst.serve_token) return;
+    setRestarting(true);
+    setConnectError(null);
+    try {
+      await invoke('ssh_restart_serve', {
+        host: inst.host,
+        sshPort: inst.port,
+        username: inst.username,
+        authMethod: inst.auth_method,
+        password: inst.auth_method === 'password' ? (inst.password ?? null) : null,
+        keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
+        servePort: inst.serve_port,
+        serveToken: inst.serve_token,
+      });
+      // Serve restarted — now try to connect
+      await handleConnect(inst);
+    } catch (e) {
+      setConnectError(String(e));
+    } finally {
+      setRestarting(false);
     }
   };
 
@@ -621,9 +646,25 @@ export default function VpsManager() {
                     </div>
                   )}
                   {connectError && (
-                    <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-                      <span className="font-medium">{t('vps.connectFailed', { defaultValue: 'Connection failed:' })}</span>{' '}
-                      {connectError}
+                    <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-400 space-y-2">
+                      <div>
+                        <span className="font-medium">{t('vps.connectFailed', { defaultValue: 'Connection failed:' })}</span>{' '}
+                        {connectError}
+                      </div>
+                      {connectError.includes('Connection refused') && selected.serve_port && selected.serve_token && (
+                        <div className="flex items-center gap-3">
+                          <p className="text-xs text-red-600 dark:text-red-400">
+                            {t('vps.serveNotRunning', { defaultValue: 'Remote serve is not running. Click to (re)start it via SSH:' })}
+                          </p>
+                          <button
+                            onClick={() => handleRestartServe(selected)}
+                            disabled={restarting}
+                            className="shrink-0 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
+                          >
+                            {restarting ? t('vps.restarting', { defaultValue: 'Starting...' }) : t('vps.startServe', { defaultValue: 'Start Remote Serve' })}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                   {/* Status banner — shows state, no duplicate action button */}

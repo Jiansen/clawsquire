@@ -88,7 +88,7 @@ fn build_ssh_args(cfg: &SshConfig) -> Vec<String> {
     args
 }
 
-fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
+pub fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
     let mut args = build_ssh_args(cfg);
     args.push(remote_cmd.to_string());
 

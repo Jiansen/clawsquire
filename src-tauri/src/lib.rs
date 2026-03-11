@@ -291,6 +291,37 @@ async fn ssh_stop_tunnel() {
     ssh_tunnel::stop();
 }
 
+/// SSH into the VPS and (re)start clawsquire-serve as a background daemon.
+/// Used when Connection refused is received (serve crashed / VPS rebooted).
+#[tauri::command]
+async fn ssh_restart_serve(
+    host: String,
+    ssh_port: u16,
+    username: String,
+    auth_method: String,
+    password: Option<String>,
+    key_path: Option<String>,
+    serve_port: u16,
+    serve_token: String,
+) -> Result<(), String> {
+    let cfg = SshConfig { host, port: ssh_port, username, auth_method, password, key_path };
+    tauri::async_runtime::spawn_blocking(move || {
+        // Kill any stale serve process first, then start fresh
+        let _ = clawsquire_core::ssh_bootstrap::ssh_exec(
+            &cfg,
+            "pkill -f clawsquire-serve 2>/dev/null; sleep 0.5",
+        );
+        let start_cmd = format!(
+            "nohup $HOME/.clawsquire/clawsquire-serve --port {} --token {} > $HOME/.clawsquire/serve.log 2>&1 & sleep 1; echo started",
+            serve_port, serve_token
+        );
+        clawsquire_core::ssh_bootstrap::ssh_exec(&cfg, &start_cmd)?;
+        Ok(())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Quick SSH connectivity test for the Add Instance form.
 #[tauri::command]
 async fn ssh_test_connection(
@@ -748,6 +779,7 @@ pub fn run() {
             ssh_test_connection,
             ssh_start_tunnel,
             ssh_stop_tunnel,
+            ssh_restart_serve,
             bootstrap_ssh_start,
             add_channel,
             remove_channel,

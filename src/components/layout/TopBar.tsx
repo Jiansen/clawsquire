@@ -1,24 +1,20 @@
 import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { getVersion } from '@tauri-apps/api/app';
+import { useNavigate } from 'react-router';
 import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
 import HelpPanel from '../shared/HelpPanel';
-import { useActiveTarget } from '../../context/ActiveTargetContext';
+import { useActiveTarget, type VpsInstance } from '../../context/ActiveTargetContext';
 
 function TargetSwitcher() {
-  const { target, switching, error, setTarget } = useActiveTarget();
+  const { target, switching, instances, setTarget } = useActiveTarget();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [connectForm, setConnectForm] = useState(false);
-  const [url, setUrl] = useState('');
-  const [token, setToken] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-        setConnectForm(false);
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -27,25 +23,13 @@ function TargetSwitcher() {
   const handleLocal = async () => {
     await setTarget('local');
     setOpen(false);
-    setConnectForm(false);
-  };
-
-  const handleProtocolConnect = async () => {
-    if (!url || !token) return;
-    const wsUrl = url.startsWith('ws') ? url : `ws://${url}`;
-    const host = url.replace(/^wss?:\/\//, '').replace(/:\d+$/, '');
-    try {
-      await setTarget('protocol', { url: wsUrl, token, host });
-      setOpen(false);
-      setConnectForm(false);
-      setUrl('');
-      setToken('');
-    } catch {
-      // error shown via context
-    }
   };
 
   const isLocal = target.mode === 'local';
+
+  const readyInstances = instances.filter(
+    (i: VpsInstance) => i.serve_port && i.serve_token,
+  );
 
   return (
     <div ref={ref} className="relative">
@@ -75,7 +59,8 @@ function TargetSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[280px] z-50">
+        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[220px] z-50">
+          {/* Local option */}
           <button
             onClick={handleLocal}
             className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
@@ -84,56 +69,48 @@ function TargetSwitcher() {
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
-            <span className={`w-2 h-2 rounded-full ${isLocal ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
-            <span className="text-base">&#128421;</span> Local
+            <span className={`w-2 h-2 rounded-full shrink-0 ${isLocal ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+            &#128421; Local
           </button>
 
-          {!isLocal && target.mode === 'protocol' && (
-            <div className="px-3 py-2 text-sm flex items-center gap-2 text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 font-medium">
-              <span className="w-2 h-2 rounded-full bg-violet-500" />
-              <span className="text-base">&#127760;</span>
-              <span className="truncate">{target.host || 'Remote'}</span>
-            </div>
+          {/* Saved VPS instances with serve credentials */}
+          {readyInstances.length > 0 && (
+            <>
+              <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-gray-400">Servers</div>
+              {readyInstances.map((inst: VpsInstance) => {
+                const active = target.mode === 'protocol' && target.instanceId === inst.id;
+                return (
+                  <button
+                    key={inst.id}
+                    onClick={() => {
+                      setOpen(false);
+                      navigate(`/vps?focus=${inst.id}`);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
+                      active
+                        ? 'text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 font-medium'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${active ? 'bg-violet-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    &#127760;
+                    <span className="truncate">{inst.name}</span>
+                    <span className="ml-auto text-[10px] font-mono text-gray-400 shrink-0">{inst.host}</span>
+                  </button>
+                );
+              })}
+            </>
           )}
 
-          <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
-            {!connectForm ? (
-              <button
-                onClick={() => setConnectForm(true)}
-                className="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                + Connect to remote agent...
-              </button>
-            ) : (
-              <div className="px-3 py-2 space-y-2">
-                <input
-                  value={url}
-                  onChange={e => setUrl(e.target.value)}
-                  placeholder="host:port (e.g. 192.168.1.5:18790)"
-                  className="w-full px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  autoFocus
-                />
-                <input
-                  type="password"
-                  value={token}
-                  onChange={e => setToken(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleProtocolConnect()}
-                  placeholder="Auth token"
-                  className="w-full px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                />
-                {error && (
-                  <p className="text-xs text-red-500">{error}</p>
-                )}
-                <button
-                  onClick={handleProtocolConnect}
-                  disabled={!url || !token || switching}
-                  className="w-full px-2 py-1.5 text-xs font-medium bg-violet-600 text-white rounded hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {switching ? 'Connecting...' : 'Connect'}
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Go to Servers page if no ready instances */}
+          {readyInstances.length === 0 && (
+            <button
+              onClick={() => { setOpen(false); navigate('/vps'); }}
+              className="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              + Manage Servers...
+            </button>
+          )}
         </div>
       )}
     </div>

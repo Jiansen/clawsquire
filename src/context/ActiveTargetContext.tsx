@@ -26,12 +26,15 @@ export interface VpsInstance {
   host: string;
   port: number;
   username: string;
-  auth_method: 'password' | 'key';
-  key_path?: string;
-  openclaw_installed?: boolean;
-  openclaw_version?: string;
-  last_connected?: string;
+  auth_method: 'password' | 'key' | string;
+  key_path?: string | null;
+  password?: string | null;
+  openclaw_installed?: boolean | null;
+  openclaw_version?: string | null;
+  last_connected?: string | null;
   created_at: string;
+  serve_port?: number | null;
+  serve_token?: string | null;
 }
 
 interface ActiveTargetContextValue {
