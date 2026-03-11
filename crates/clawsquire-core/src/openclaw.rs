@@ -1089,10 +1089,28 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
         Err(e) => result.errors.push(format!("daemon stop: {}", e)),
     }
 
-    match cmd_with_path("npm")
-        .args(["uninstall", "-g", OPENCLAW_NPM_PKG])
-        .output()
-    {
+    // Detect the npm prefix where openclaw is actually installed.
+    // The binary may live in a system prefix (e.g. /usr) rather than the user
+    // prefix (~/.npm-global), so we resolve `which openclaw` to find the right prefix.
+    let npm_prefix: Option<String> = (|| -> Option<String> {
+        let bin = std::process::Command::new("which")
+            .arg("openclaw")
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+            .map(|s| s.trim().to_string())?;
+        // bin is e.g. /usr/bin/openclaw → prefix is /usr
+        let path = std::path::Path::new(&bin);
+        path.parent()?.parent().map(|p| p.to_string_lossy().to_string())
+    })();
+
+    let mut npm_cmd = cmd_with_path("npm");
+    npm_cmd.args(["uninstall", "-g", OPENCLAW_NPM_PKG]);
+    if let Some(ref prefix) = npm_prefix {
+        npm_cmd.arg("--prefix").arg(prefix);
+    }
+    match npm_cmd.output() {
         Ok(o) if o.status.success() => result.npm_uninstalled = true,
         Ok(o) => {
             let msg = String::from_utf8_lossy(&o.stderr).trim().to_string();

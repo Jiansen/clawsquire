@@ -244,8 +244,6 @@ export default function VpsManager() {
   const [updatingServe, setUpdatingServe] = useState(false);
   const [serveUpdateMsg, setServeUpdateMsg] = useState<string | null>(null);
 
-  const [openingPortal, setOpeningPortal] = useState(false);
-
   const loadInstances = useCallback(async () => {
     try {
       const list = await invoke<VpsInstance[]>('list_instances');
@@ -438,24 +436,6 @@ export default function VpsManager() {
   const handleGoToBootstrap = (instId?: string) => {
     const id = instId || selectedId;
     navigate(id ? `/bootstrap?instanceId=${id}` : '/bootstrap');
-  };
-
-  const handleOpenPortal = async (inst: VpsInstance) => {
-    setOpeningPortal(true);
-    try {
-      await invoke('open_openclaw_portal', {
-        host: inst.host,
-        sshPort: inst.port,
-        username: inst.username,
-        authMethod: inst.auth_method,
-        password: inst.password ?? null,
-        keyPath: inst.key_path ?? null,
-      });
-    } catch (e) {
-      setConnectError(`Dashboard: ${String(e)}`);
-    } finally {
-      setOpeningPortal(false);
-    }
   };
 
   const handleServeUpdate = async () => {
@@ -656,13 +636,6 @@ export default function VpsManager() {
               <div className="flex items-center gap-2">
                 {isConnectedTo(selected) ? (
                   <>
-                    <button
-                      onClick={() => handleOpenPortal(selected)}
-                      disabled={openingPortal}
-                      className="rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white px-4 py-2 text-sm font-medium transition-all shadow-sm"
-                    >
-                      {openingPortal ? 'Opening…' : 'Open Dashboard'}
-                    </button>
                     <button
                       onClick={handleDisconnect}
                       className="rounded-lg border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"

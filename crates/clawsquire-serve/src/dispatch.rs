@@ -15,6 +15,7 @@ pub fn handle_with(req: &RpcRequest, runner: &dyn CliRunner) -> RpcResponse {
     let id = req.id.clone();
 
     if !method::is_valid(&req.method) {
+        eprintln!("[dispatch] unknown method: {}", req.method);
         return RpcResponse::error(
             id,
             error_code::METHOD_NOT_FOUND,
@@ -22,9 +23,16 @@ pub fn handle_with(req: &RpcRequest, runner: &dyn CliRunner) -> RpcResponse {
         );
     }
 
+    eprintln!("[dispatch] → {}", req.method);
     match dispatch(req, runner) {
-        Ok(value) => RpcResponse::success(id, value),
-        Err(e) => RpcResponse::error(id, error_code::OPENCLAW_ERROR, e),
+        Ok(value) => {
+            eprintln!("[dispatch] ✓ {}", req.method);
+            RpcResponse::success(id, value)
+        }
+        Err(e) => {
+            eprintln!("[dispatch] ✗ {}: {}", req.method, e);
+            RpcResponse::error(id, error_code::OPENCLAW_ERROR, e)
+        }
     }
 }
 

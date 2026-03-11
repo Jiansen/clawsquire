@@ -380,26 +380,52 @@ async fn serve_update(
 }
 
 /// Open the remote OpenClaw dashboard in an embedded Tauri window.
-/// 1. Calls cli.run ["dashboard", "--no-open"] via protocol to get dashboard URL + token.
-/// 2. Opens an SSH port-forward: remote 18789 → local 28789.
-/// 3. Creates a Tauri WebviewWindow pointing at http://127.0.0.1:28789/#token=...
+/// Open the remote OpenClaw Dashboard in an embedded WebviewWindow.
+/// Credentials are resolved automatically from the active target state and OS Keychain.
+/// 1. Looks up the active VPS instance from storage.
+/// 2. Loads SSH password from Keychain if auth_method == "password".
+/// 3. Calls cli.run ["dashboard", "--no-open"] via protocol to get dashboard URL + token.
+/// 4. Opens an SSH port-forward: remote 18789 → local 28789.
+/// 5. Creates a Tauri WebviewWindow pointing at http://127.0.0.1:28789/#token=...
 #[tauri::command]
 async fn open_openclaw_portal(
     app: tauri::AppHandle,
     state: tauri::State<'_, ActiveTargetState>,
-    host: String,
-    ssh_port: u16,
-    username: String,
-    auth_method: String,
-    password: Option<String>,
-    key_path: Option<String>,
 ) -> Result<(), String> {
     let target = state.get();
     if !target.is_protocol() {
         return Err("open_openclaw_portal is only available in remote mode".into());
     }
 
-    // 1. Get dashboard token from remote
+    // Resolve SSH credentials from stored instance + Keychain
+    let (host, ssh_port, username, auth_method, password, key_path) =
+        tauri::async_runtime::spawn_blocking({
+            let target = target.clone();
+            move || -> Result<(String, u16, String, String, Option<String>, Option<String>), String> {
+                let instance_id = match &target {
+                    active_target::Target::Protocol { instance_id, .. } => instance_id.clone(),
+                    _ => return Err("not in protocol mode".into()),
+                };
+                let inst = instances::list_instances()
+                    .into_iter()
+                    .find(|i| i.id == instance_id)
+                    .ok_or_else(|| format!("instance {} not found", instance_id))?;
+
+                // Load password from OS Keychain if needed
+                let password = if inst.auth_method == "password" {
+                    let key = secure_store::ssh_password_name(&instance_id);
+                    secure_store::get_secret(&key).ok()
+                } else {
+                    None
+                };
+
+                Ok((inst.host, inst.port, inst.username, inst.auth_method, password, inst.key_path))
+            }
+        })
+        .await
+        .map_err(|e| e.to_string())??;
+
+    // Get dashboard token from remote
     let cli_result = tauri::async_runtime::spawn_blocking({
         let target = target.clone();
         move || target.protocol_call(method::CLI_RUN, serde_json::json!({ "args": ["dashboard", "--no-open"] }))
@@ -420,7 +446,7 @@ async fn open_openclaw_portal(
         })
         .ok_or_else(|| format!("Could not parse dashboard token from: {}", stdout))?;
 
-    // 2. Start SSH port-forward for the dashboard
+    // Start SSH port-forward for the dashboard
     let params = ssh_tunnel::TunnelParams {
         host,
         ssh_port,
@@ -435,11 +461,10 @@ async fn open_openclaw_portal(
         .await
         .map_err(|e| e.to_string())??;
 
-    // 3. Open embedded webview window
+    // Open embedded webview window
     let local_port = ssh_tunnel::DASHBOARD_LOCAL_PORT;
     let url_str = format!("http://127.0.0.1:{}/#token={}", local_port, token);
     let url: tauri::Url = url_str.parse::<tauri::Url>().map_err(|e| e.to_string())?;
-    // Close existing portal window if open, then create new one
     if let Some(existing) = app.get_webview_window("openclaw-portal") {
         let _ = existing.close();
     }

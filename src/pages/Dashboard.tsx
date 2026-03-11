@@ -42,6 +42,8 @@ export default function Dashboard() {
   const isRemote = target.mode === 'protocol';
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [openingPortal, setOpeningPortal] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   const [env, setEnv] = useState<Environment | null>(null);
   const [daemon, setDaemon] = useState<DaemonStatus | null>(null);
@@ -186,19 +188,48 @@ export default function Dashboard() {
       ? t('dashboard.running')
       : t('dashboard.stopped');
 
+  const handleOpenPortal = async () => {
+    setOpeningPortal(true);
+    setPortalError(null);
+    try {
+      await invoke('open_openclaw_portal');
+    } catch (e) {
+      setPortalError(String(e));
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h2>
-        <button
-          onClick={refresh}
-          disabled={loading}
-          className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400
-                     hover:bg-gray-200 disabled:opacity-50 transition-all"
-        >
-          {loading ? '...' : '↻'}
-        </button>
+        <div className="flex items-center gap-2">
+          {isRemote && (
+            <button
+              onClick={handleOpenPortal}
+              disabled={openingPortal}
+              className="rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white px-3 py-1.5 text-xs font-medium transition-all"
+            >
+              {openingPortal ? 'Opening…' : '🖥 OpenClaw Dashboard'}
+            </button>
+          )}
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400
+                       hover:bg-gray-200 disabled:opacity-50 transition-all"
+          >
+            {loading ? '...' : '↻'}
+          </button>
+        </div>
       </div>
+      {portalError && (
+        <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-2 text-sm text-red-700 dark:text-red-400 flex items-center justify-between">
+          <span>OpenClaw Dashboard: {portalError}</span>
+          <button onClick={() => setPortalError(null)} className="ml-3 text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
 
       {isRemote && (
         <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-3 flex items-center gap-3">
