@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 interface VpsInstance {
   id: string;
@@ -44,6 +44,7 @@ function generateId() {
 export default function VpsManager() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [instances, setInstances] = useState<VpsInstance[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -69,12 +70,15 @@ export default function VpsManager() {
       const list = await invoke<VpsInstance[]>('list_instances');
       setInstances(list);
       if (list.length > 0 && !selectedId) {
-        setSelectedId(list[0].id);
+        // Prefer ?focus=<id> (navigated from Bootstrap success), then first instance
+        const focusId = searchParams.get('focus');
+        const preferred = (focusId && list.find(i => i.id === focusId)) || list[0];
+        setSelectedId(preferred.id);
       }
     } catch {
       // ignore
     }
-  }, [selectedId]);
+  }, [selectedId, searchParams]);
 
   const loadActiveTarget = useCallback(async () => {
     try {
@@ -374,7 +378,7 @@ export default function VpsManager() {
                   >
                     {t('vps.disconnect')}
                   </button>
-                ) : selected.openclaw_installed ? (
+                ) : (selected.serve_port && selected.serve_token) ? (
                   <button
                     onClick={() => handleConnect(selected)}
                     disabled={connecting}
@@ -382,7 +386,14 @@ export default function VpsManager() {
                   >
                     {connecting ? t('vps.connecting') : t('vps.connect')}
                   </button>
-                ) : null}
+                ) : (
+                  <button
+                    onClick={() => handleGoToBootstrap(selected.id)}
+                    className="rounded-lg border border-amber-300 dark:border-amber-700 px-4 py-2 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all"
+                  >
+                    {t('vps.setupFirst', { defaultValue: 'Set Up Remote' })}
+                  </button>
+                )}
                 {confirmDeleteId === selected.id ? (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-red-500">{t('common.confirm')}?</span>
@@ -442,13 +453,49 @@ export default function VpsManager() {
                       </button>
                     </div>
                   )}
+                  {/* Readiness banner */}
+                  {!isConnectedTo(selected) && (selected.serve_port && selected.serve_token) && (
+                    <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-4 py-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                          {t('vps.serveReady', { defaultValue: 'Remote agent ready — click Connect to go live' })}
+                        </p>
+                        <p className="text-xs text-green-600 dark:text-green-500">
+                          {t('vps.serveReadyDesc', { defaultValue: `Port ${selected.serve_port} · credentials stored` })}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleConnect(selected)}
+                        disabled={connecting}
+                        className="shrink-0 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
+                      >
+                        {connecting ? t('vps.connecting') : t('vps.connect')}
+                      </button>
+                    </div>
+                  )}
+                  {!isConnectedTo(selected) && !(selected.serve_port && selected.serve_token) && (
+                    <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 flex items-center justify-between gap-3">
+                      <p className="text-sm text-amber-700 dark:text-amber-400">
+                        {t('vps.notSetup', { defaultValue: 'Remote agent not installed. Run Remote Setup first.' })}
+                      </p>
+                      <button
+                        onClick={() => handleGoToBootstrap(selected.id)}
+                        className="shrink-0 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-3 py-1.5 transition-colors"
+                      >
+                        {t('vps.setupFirst', { defaultValue: 'Set Up Remote' })}
+                      </button>
+                    </div>
+                  )}
                   <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div><span className="text-gray-500">{t('ssh.host')}:</span> <span className="font-mono">{selected.host}</span></div>
                       <div><span className="text-gray-500">{t('ssh.port')}:</span> <span className="font-mono">{selected.port}</span></div>
                       <div><span className="text-gray-500">{t('ssh.username')}:</span> <span className="font-mono">{selected.username}</span></div>
                       <div><span className="text-gray-500">{t('ssh.authMethod')}:</span> <span>{selected.auth_method === 'password' ? t('ssh.password') : t('ssh.keyFile')}</span></div>
-                      <div><span className="text-gray-500">OpenClaw:</span> <span>{selected.openclaw_installed ? (selected.openclaw_version || 'Installed') : t('vps.notDeployed')}</span></div>
+                      <div>
+                        <span className="text-gray-500">OpenClaw:</span>{' '}
+                        <span>{selected.openclaw_installed ? (selected.openclaw_version || 'Installed') : t('vps.notDeployed')}</span>
+                      </div>
                       <div>
                         <span className="text-gray-500">serve:</span>{' '}
                         <span className="font-mono">
@@ -459,7 +506,7 @@ export default function VpsManager() {
                                 <span className="ml-1 text-green-500 text-[10px]">✓</span>
                               )}
                             </>
-                          ) : '—'}
+                          ) : (selected.serve_port ? `port ${selected.serve_port}` : '—')}
                         </span>
                       </div>
                       <div><span className="text-gray-500">{t('vps.created')}:</span> <span className="font-mono text-xs">{selected.created_at}</span></div>

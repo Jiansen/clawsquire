@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
+import { getVersion } from '@tauri-apps/api/app';
 import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
 import HelpPanel from '../shared/HelpPanel';
 import { useActiveTarget } from '../../context/ActiveTargetContext';
@@ -143,7 +144,12 @@ export default function TopBar() {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [appVersion, setAppVersion] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    getVersion().then(setAppVersion).catch(() => {});
+  }, []);
 
   const current = SUPPORTED_LOCALES.find((l) => l.code === i18n.language);
 
@@ -169,7 +175,14 @@ export default function TopBar() {
   return (
     <header className="flex items-center justify-between h-14 px-6 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('app.name')}</h1>
+        <div className="flex flex-col leading-tight">
+          <h1 className="text-base font-semibold text-gray-900 dark:text-gray-100">{t('app.name')}</h1>
+          {appVersion && (
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-mono leading-none">
+              v{appVersion}
+            </span>
+          )}
+        </div>
         <TargetSwitcher />
       </div>
 

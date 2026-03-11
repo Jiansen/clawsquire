@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams, Link } from 'react-router';
+import { useSearchParams, Link, useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useActiveTarget } from '../context/ActiveTargetContext';
@@ -112,6 +112,7 @@ export default function Bootstrap() {
   const { target } = useActiveTarget();
   const isRemote = target.mode === 'protocol';
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // Tabs
   const [tab, setTab] = useState<'auto' | 'manual' | 'verify'>('auto');
@@ -185,13 +186,24 @@ export default function Bootstrap() {
     }).then(setInstallScript);
   }, [scriptPlatform]);
 
-  // Listen for bootstrap events
+  // Listen for bootstrap events.
+  // React StrictMode double-mounts in dev; the async listen() call means `unlisten`
+  // may be null when the first cleanup runs, leaving two listeners registered.
+  // Fix: track cancellation with a flag so the resolved fn is called immediately
+  // if cleanup already fired.
   useEffect(() => {
+    let cancelled = false;
     let unlisten: UnlistenFn | null = null;
     listen<BootstrapEvent>('bootstrap-event', (e) => {
       setEvents((prev) => [...prev, e.payload]);
-    }).then((fn) => { unlisten = fn; });
-    return () => { if (unlisten) unlisten(); };
+    }).then((fn) => {
+      if (cancelled) fn(); // already unmounted — unlisten immediately
+      else unlisten = fn;
+    });
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
   }, []);
 
   const startBootstrap = async () => {
@@ -213,7 +225,7 @@ export default function Bootstrap() {
       setBootstrapResult(result);
 
       if (result.success && result.token && result.port) {
-        // Persist serve token+port so VpsManager can reconnect without re-bootstrapping
+        // Persist serve token+port so VpsManager can connect without re-bootstrapping
         const instanceId = selectedInstance || 'ssh-bootstrap';
         try {
           await invoke('set_instance_serve', {
@@ -222,11 +234,12 @@ export default function Bootstrap() {
             serveToken: result.token,
           });
         } catch (_) {
-          // Non-fatal: credentials saved best-effort; VpsManager will re-ask if missing
+          // Non-fatal: credentials saved best-effort
         }
-        // Do NOT auto-connect here — connecting resets ActiveTarget and causes TopBar
-        // to lock up while the WebSocket handshake completes.
-        // The instance now has serve_port + serve_token persisted; user connects from VpsManager.
+        // Navigate to VpsManager so the user can click Connect immediately.
+        // We don't auto-connect here — that caused TopBar to lock while WS handshake ran.
+        navigate(instanceId ? `/vps?focus=${instanceId}` : '/vps');
+        return;
       } else if (result.error) {
         setError(result.error);
       }

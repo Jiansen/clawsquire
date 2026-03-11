@@ -80,7 +80,23 @@ export function ActiveTargetProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     invoke<ActiveTarget>('get_active_target')
-      .then(setTargetState)
+      .then(async (t) => {
+        if (t.mode === 'protocol') {
+          // Verify the connection is still alive. If the app was hot-reloaded
+          // (dev HMR) or the serve process died, the Rust in-memory state might
+          // still report Protocol even though the WS is gone.
+          // We use get_environment as a lightweight ping; on failure → reset Local.
+          try {
+            await invoke('get_environment');
+            setTargetState(t);
+          } catch {
+            await invoke('set_active_target', { mode: 'local', url: null, token: null, instanceId: null, host: null }).catch(() => {});
+            setTargetState(defaultTarget);
+          }
+        } else {
+          setTargetState(t);
+        }
+      })
       .catch(() => setTargetState(defaultTarget));
     refreshInstances();
   }, [refreshInstances]);

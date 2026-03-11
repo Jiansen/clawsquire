@@ -173,11 +173,11 @@ describe("VpsManager — with instances", () => {
     });
   });
 
-  it("shows connect button for installed instance", async () => {
-    const installed = { ...SAMPLE_INSTANCE, openclaw_installed: true, openclaw_version: "0.3.0" };
+  it("shows connect button when serve_port and serve_token are present", async () => {
+    const ready = { ...SAMPLE_INSTANCE, serve_port: 19900, serve_token: "tok123" };
     mockedInvoke.mockImplementation(async (...args: unknown[]) => {
       const cmd = args[0] as string;
-      if (cmd === "list_instances") return [installed];
+      if (cmd === "list_instances") return [ready];
       if (cmd === "get_active_target") return { mode: "local" };
       return {};
     });
@@ -185,5 +185,19 @@ describe("VpsManager — with instances", () => {
     await waitForInstances();
     const connectBtn = screen.getAllByRole("button").find(b => b.textContent === "vps.connect");
     expect(connectBtn).toBeDefined();
+  });
+
+  it("shows setup button when serve credentials are missing", async () => {
+    const noServe = { ...SAMPLE_INSTANCE, serve_port: null, serve_token: null };
+    mockedInvoke.mockImplementation(async (...args: unknown[]) => {
+      const cmd = args[0] as string;
+      if (cmd === "list_instances") return [noServe];
+      if (cmd === "get_active_target") return { mode: "local" };
+      return {};
+    });
+    renderVps();
+    await waitForInstances();
+    const setupBtn = screen.getAllByRole("button").find(b => b.textContent === "vps.setupFirst");
+    expect(setupBtn).toBeDefined();
   });
 });
