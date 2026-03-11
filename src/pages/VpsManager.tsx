@@ -692,7 +692,13 @@ export default function VpsManager() {
                       <div><span className="text-gray-500">{t('ssh.authMethod')}:</span> <span>{selected.auth_method === 'password' ? t('ssh.password') : t('ssh.keyFile')}</span></div>
                       <div>
                         <span className="text-gray-500">OpenClaw:</span>{' '}
-                        <span>{selected.openclaw_installed ? (selected.openclaw_version || 'Installed') : t('vps.notDeployed')}</span>
+                        <span>
+                          {selected.openclaw_installed === true
+                            ? (selected.openclaw_version || t('vps.installed', { defaultValue: 'Installed' }))
+                            : selected.openclaw_installed === false
+                              ? t('vps.notDeployed')
+                              : '—'}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-500">serve:</span>{' '}

@@ -306,16 +306,26 @@ async fn ssh_restart_serve(
 ) -> Result<(), String> {
     let cfg = SshConfig { host, port: ssh_port, username, auth_method, password, key_path };
     tauri::async_runtime::spawn_blocking(move || {
-        // Kill any stale serve process first, then start fresh
+        // Kill any stale serve process first
         let _ = clawsquire_core::ssh_bootstrap::ssh_exec(
             &cfg,
-            "pkill -f clawsquire-serve 2>/dev/null; sleep 0.5",
+            "pkill -f clawsquire-serve 2>/dev/null; sleep 1",
         );
+        // Start fresh; wait 3s then verify it's listening on the port
         let start_cmd = format!(
-            "nohup $HOME/.clawsquire/clawsquire-serve --port {} --token {} > $HOME/.clawsquire/serve.log 2>&1 & sleep 1; echo started",
-            serve_port, serve_token
+            "nohup $HOME/.clawsquire/clawsquire-serve --port {} --token {} > $HOME/.clawsquire/serve.log 2>&1 & sleep 3 && ss -tlnp 2>/dev/null | grep {} || netstat -tlnp 2>/dev/null | grep {}",
+            serve_port, serve_token, serve_port, serve_port
         );
-        clawsquire_core::ssh_bootstrap::ssh_exec(&cfg, &start_cmd)?;
+        let out = clawsquire_core::ssh_bootstrap::ssh_exec(&cfg, &start_cmd)?;
+        // If neither ss nor netstat shows the port, serve may have failed to start
+        if !out.contains(&serve_port.to_string()) {
+            // Try reading the serve log for clues
+            let log = clawsquire_core::ssh_bootstrap::ssh_exec(
+                &cfg,
+                "tail -5 $HOME/.clawsquire/serve.log 2>/dev/null || echo '(no log)'",
+            ).unwrap_or_default();
+            return Err(format!("serve did not start on port {}. Last log lines: {}", serve_port, log.trim()));
+        }
         Ok(())
     })
     .await
