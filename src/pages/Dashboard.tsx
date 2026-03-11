@@ -56,7 +56,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const UPDATE_CHECK_KEY = 'clawsquire.lastUpdateCheck';
-    const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
+    const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
     const lastCheck = parseInt(localStorage.getItem(UPDATE_CHECK_KEY) ?? '0', 10);
     if (Date.now() - lastCheck < CHECK_INTERVAL_MS) return;
@@ -67,13 +67,11 @@ export default function Dashboard() {
       try {
         const update = await checkUpdate();
         if (!update?.available) return;
-        // Only notify for stable minor/major releases (ignore pre-releases and patches)
+        // Skip pre-releases — they are unstable and intended for internal testing only.
+        // All stable releases (including patches) are shown: if serve is on a newer
+        // stable version, the desktop must be able to catch up.
         const newVer = update.version ?? '';
-        if (newVer.includes('-')) return; // pre-release: skip
-        const [newMaj, newMin] = newVer.split('.').map(Number);
-        const [curMaj, curMin] = __APP_VERSION__.split('.').map(Number);
-        const isMinorOrMajorBump = newMaj > curMaj || (newMaj === curMaj && newMin > curMin);
-        if (!isMinorOrMajorBump) return; // patch only: skip
+        if (newVer.includes('-')) return;
         setPendingUpdate(update);
         localStorage.setItem(UPDATE_CHECK_KEY, String(Date.now()));
       } catch {
