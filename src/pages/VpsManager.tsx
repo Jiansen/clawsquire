@@ -97,10 +97,26 @@ function InlineSetup({
         keyPath: sshAuthMethod === 'key' ? sshKeyPath : null,
       });
       if (result.success && result.port && result.token) {
+        // Save serve credentials
         await invoke('set_instance_serve', {
           id: instance.id,
           servePort: result.port,
           serveToken: result.token,
+        }).catch(() => {});
+        // Also persist any updated auth credentials back to the instance
+        // (e.g. user may have corrected password in this form)
+        await invoke('update_instance', {
+          instance: {
+            ...instance,
+            host: sshHost,
+            port: parseInt(sshPort) || 22,
+            username: sshUser,
+            auth_method: sshAuthMethod,
+            password: sshAuthMethod === 'password' ? sshPassword : instance.password,
+            key_path: sshAuthMethod === 'key' ? sshKeyPath : instance.key_path,
+            serve_port: result.port,
+            serve_token: result.token,
+          },
         }).catch(() => {});
         onSetupComplete(result.port, result.token);
       } else {
@@ -285,6 +301,7 @@ export default function VpsManager() {
       port: parseInt(formPort, 10) || 22,
       username: formUsername.trim(),
       auth_method: formAuth,
+      password: formAuth === 'password' ? formPassword : null,
       key_path: formAuth === 'key' ? formKeyPath : null,
       created_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     };
