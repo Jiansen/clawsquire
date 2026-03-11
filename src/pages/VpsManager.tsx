@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface VpsInstance {
   id: string;
@@ -199,6 +200,7 @@ export default function VpsManager() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { refreshTarget, refreshInstances: ctxRefreshInstances } = useActiveTarget();
 
   const [instances, setInstances] = useState<VpsInstance[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -341,6 +343,8 @@ export default function VpsManager() {
     try {
       await invoke('set_active_target', { mode: 'local' }); // also stops SSH tunnel
       await loadActiveTarget();
+      await refreshTarget();       // sync TopBar + Dashboard
+      await ctxRefreshInstances();
     } catch (e) {
       console.error('Failed to disconnect:', e);
     }
@@ -354,8 +358,7 @@ export default function VpsManager() {
     setConnecting(true);
     setConnectError(null);
     try {
-      // Step 1: Create SSH port-forward tunnel (localhost:<port> → remote:<port>)
-      // This avoids exposing the serve port on the VPS firewall — only SSH (22) needed.
+      // Step 1: Create SSH port-forward tunnel (localhost:<port+10000> → remote:<port>)
       const localPort = await invoke<number>('ssh_start_tunnel', {
         host: inst.host,
         sshPort: inst.port,
@@ -365,7 +368,7 @@ export default function VpsManager() {
         keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
         remotePort: inst.serve_port,
       });
-      // Step 2: WebSocket to localhost tunnel
+      // Step 2: WebSocket via tunnel
       const url = `ws://127.0.0.1:${localPort}`;
       await invoke('set_active_target', {
         mode: 'protocol',
@@ -374,7 +377,10 @@ export default function VpsManager() {
         instanceId: inst.id,
         host: inst.host,
       });
+      // Step 3: Sync both VpsManager local state AND global ActiveTargetContext
       await loadActiveTarget();
+      await refreshTarget();       // ← updates TopBar + Dashboard
+      await ctxRefreshInstances(); // ← updates TopBar instance list
     } catch (e) {
       setConnectError(String(e));
     }

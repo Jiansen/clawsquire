@@ -44,6 +44,8 @@ interface ActiveTargetContextValue {
   error: string | null;
   setTarget: (mode: 'local' | 'protocol', opts?: ProtocolConnectOpts) => Promise<void>;
   refreshInstances: () => Promise<void>;
+  /** Re-read active target from Rust and sync React state (after external invoke calls). */
+  refreshTarget: () => Promise<void>;
 }
 
 export interface ProtocolConnectOpts {
@@ -62,6 +64,7 @@ const ActiveTargetContext = createContext<ActiveTargetContextValue>({
   error: null,
   setTarget: async () => {},
   refreshInstances: async () => {},
+  refreshTarget: async () => {},
 });
 
 const STORAGE_KEY = 'clawsquire.active_target';
@@ -91,6 +94,15 @@ export function ActiveTargetProvider({ children }: { children: ReactNode }) {
     refreshInstances();
   }, [refreshInstances]);
 
+  const refreshTarget = useCallback(async () => {
+    try {
+      const t = await invoke<ActiveTarget>('get_active_target');
+      setTargetState(t);
+    } catch {
+      setTargetState(defaultTarget);
+    }
+  }, []);
+
   const setTarget = useCallback(async (mode: 'local' | 'protocol', opts?: ProtocolConnectOpts) => {
     setSwitching(true);
     setError(null);
@@ -114,7 +126,7 @@ export function ActiveTargetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ActiveTargetContext.Provider value={{ target, instances, switching, error, setTarget, refreshInstances }}>
+    <ActiveTargetContext.Provider value={{ target, instances, switching, error, setTarget, refreshInstances, refreshTarget }}>
       {children}
     </ActiveTargetContext.Provider>
   );
