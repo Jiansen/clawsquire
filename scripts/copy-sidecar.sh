@@ -31,3 +31,9 @@ DEST="$DEST_DIR/clawsquire-serve-${TRIPLE}${EXT}"
 mkdir -p "$DEST_DIR"
 cp "$SRC" "$DEST"
 echo "[copy-sidecar] copied to $DEST ($(du -h "$DEST" | cut -f1))"
+
+# Also copy to target/{profile}/binaries/ for dev mode
+DEV_DEST_DIR="$ROOT/target/$PROFILE/binaries"
+mkdir -p "$DEV_DEST_DIR"
+cp "$SRC" "$DEV_DEST_DIR/clawsquire-serve-${TRIPLE}${EXT}"
+echo "[copy-sidecar] dev copy → $DEV_DEST_DIR/"
