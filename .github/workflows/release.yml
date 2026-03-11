@@ -74,9 +74,10 @@ jobs:
           TAG="${{ github.ref_name }}"
           ASSET="${{ matrix.asset }}"
           IS_PRE=$(echo "$TAG" | grep -q '-' && echo true || echo false)
-          # Create release only if it doesn't exist yet; ignore error if already present
+          # Create release only if it doesn't exist yet; ignore error if already present.
+          # Note: never use --draft here — draft releases are not downloadable without auth,
+          # which would break the build-desktop sidecar download step.
           gh release create "$TAG" \
-            --draft="$IS_PRE" \
             --prerelease="$IS_PRE" \
             --title "$TAG" \
             --notes "Release $TAG" \
