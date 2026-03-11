@@ -1,0 +1,18 @@
+[package]
+name = "clawsquire-serve"
+version = "0.3.0"
+edition = "2021"
+description = "ClawSquire headless agent — JSON-RPC 2.0 over WebSocket"
+
+[[bin]]
+name = "clawsquire-serve"
+path = "src/main.rs"
+
+[dependencies]
+clawsquire-core = { path = "../clawsquire-core" }
+tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = "0.24"
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "6"
