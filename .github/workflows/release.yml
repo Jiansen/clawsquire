@@ -75,6 +75,7 @@ jobs:
 
   build-desktop:
     name: "Build desktop (${{ matrix.platform }})"
+    needs: [build-serve]
     permissions:
       contents: write
     strategy:
@@ -83,12 +84,20 @@ jobs:
         include:
           - platform: macos-latest
             args: --target aarch64-apple-darwin
+            serve_asset: clawsquire-serve-darwin-aarch64
+            sidecar_triple: aarch64-apple-darwin
           - platform: macos-latest
             args: --target x86_64-apple-darwin
+            serve_asset: clawsquire-serve-darwin-x86_64
+            sidecar_triple: x86_64-apple-darwin
           - platform: ubuntu-22.04
             args: ''
+            serve_asset: clawsquire-serve-linux-x86_64
+            sidecar_triple: x86_64-unknown-linux-gnu
           - platform: windows-latest
             args: ''
+            serve_asset: clawsquire-serve-windows-x86_64.exe
+            sidecar_triple: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -119,6 +128,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Download clawsquire-serve sidecar (Unix)
+        if: matrix.platform != 'windows-latest'
+        shell: bash
+        run: |
+          ASSET="${{ matrix.serve_asset }}"
+          TRIPLE="${{ matrix.sidecar_triple }}"
+          EXT=""
+          URL="https://github.com/Jiansen/clawsquire/releases/download/${{ github.ref_name }}/${ASSET}"
+          curl -fsSL "$URL" -o "src-tauri/binaries/clawsquire-serve-${TRIPLE}${EXT}"
+          chmod +x "src-tauri/binaries/clawsquire-serve-${TRIPLE}"
+
+      - name: Download clawsquire-serve sidecar (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $asset = "${{ matrix.serve_asset }}"
+          $triple = "${{ matrix.sidecar_triple }}"
+          $url = "https://github.com/Jiansen/clawsquire/releases/download/${{ github.ref_name }}/$asset"
+          Invoke-WebRequest -Uri $url -OutFile "src-tauri/binaries/clawsquire-serve-${triple}.exe"
 
       - uses: tauri-apps/tauri-action@v0
         env:
