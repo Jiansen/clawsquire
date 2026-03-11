@@ -582,7 +582,14 @@ async fn set_active_target(
             let token = token.ok_or("token required for protocol mode")?;
             let instance_id = instance_id.unwrap_or_default();
             let host = host.unwrap_or_default();
-            state.set_protocol(&url, &token, instance_id, host)?;
+            // ProtocolRunner::connect blocks on WebSocket handshake; run it off the
+            // async executor thread to avoid starving other Tauri commands.
+            let state_clone = state.inner().clone();
+            tauri::async_runtime::spawn_blocking(move || {
+                state_clone.set_protocol(&url, &token, instance_id, host)
+            })
+            .await
+            .map_err(|e| format!("spawn_blocking panicked: {e}"))??;
         }
         _ => return Err(format!("Unknown mode: {}", mode)),
     }

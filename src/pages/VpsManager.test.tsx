@@ -146,19 +146,15 @@ describe("VpsManager — with instances", () => {
     expect(screen.getByText("vps.delete")).toBeDefined();
   });
 
-  it("switches to setup tab", async () => {
+  it("switches to setup tab and shows inline setup form", async () => {
     renderVps();
     await waitForInstances();
     fireEvent.click(screen.getByText("vps.tab.setup"));
-    expect(screen.getByText("vps.setupDesc")).toBeDefined();
-  });
-
-  it("shows bootstrap button for uninstalled instance", async () => {
-    renderVps();
-    await waitForInstances();
-    fireEvent.click(screen.getByText("vps.tab.setup"));
-    const bootstrapBtn = screen.getAllByRole("button").find(b => b.textContent === "vps.goToBootstrap");
-    expect(bootstrapBtn).toBeDefined();
+    // InlineSetup renders a "Install Remote Agent" button (bootstrap.startSetup)
+    const setupBtn = screen.getAllByRole("button").find(b =>
+      b.textContent === "bootstrap.startSetup" || b.textContent === "vps.rerunSetup"
+    );
+    expect(setupBtn).toBeDefined();
   });
 
   it("confirms and deletes instance", async () => {

@@ -39,7 +39,12 @@ impl ProtocolRunner {
         let pending: PendingMap = Arc::new(Mutex::new(HashMap::new()));
 
         let (agent_info, tx) = rt.block_on(async {
-            Self::connect_async(&url, &token, Arc::clone(&pending)).await
+            tokio::time::timeout(
+                std::time::Duration::from_secs(10),
+                Self::connect_async(&url, &token, Arc::clone(&pending)),
+            )
+            .await
+            .map_err(|_| "Connection timed out (10 s). Is clawsquire-serve running on that host/port?".to_string())?
         })?;
 
         Ok(Self {

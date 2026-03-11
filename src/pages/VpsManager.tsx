@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 
@@ -41,6 +42,159 @@ function generateId() {
   return `vps-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+interface BootstrapEvent { step: string; status: string; message: string; detail?: string | null }
+interface BootstrapResult { success: boolean; port: number | null; token: string | null; error: string | null }
+
+function InlineSetup({
+  instance,
+  onSetupComplete,
+}: {
+  instance: VpsInstance;
+  onSetupComplete: (port: number, token: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [sshHost, setSshHost] = useState(instance.host);
+  const [sshPort, setSshPort] = useState(String(instance.port));
+  const [sshUser, setSshUser] = useState(instance.username);
+  const [sshAuthMethod, setSshAuthMethod] = useState<'key' | 'password'>(
+    instance.auth_method === 'password' ? 'password' : 'key',
+  );
+  const [sshKeyPath, setSshKeyPath] = useState(instance.key_path || '~/.ssh/id_rsa');
+  const [sshPassword, setSshPassword] = useState('');
+  const [running, setRunning] = useState(false);
+  const [events, setEvents] = useState<BootstrapEvent[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let unlisten: UnlistenFn | null = null;
+    listen<BootstrapEvent>('bootstrap-event', (e) => {
+      setEvents((prev) => [...prev, e.payload]);
+    }).then((fn) => {
+      if (cancelled) fn();
+      else unlisten = fn;
+    });
+    return () => { cancelled = true; unlisten?.(); };
+  }, []);
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [events]);
+
+  const run = async () => {
+    setRunning(true);
+    setEvents([]);
+    setError(null);
+    try {
+      const result = await invoke<BootstrapResult>('bootstrap_ssh_start', {
+        host: sshHost,
+        port: parseInt(sshPort) || 22,
+        username: sshUser,
+        authMethod: sshAuthMethod,
+        password: sshAuthMethod === 'password' ? sshPassword : null,
+        keyPath: sshAuthMethod === 'key' ? sshKeyPath : null,
+      });
+      if (result.success && result.port && result.token) {
+        await invoke('set_instance_serve', {
+          id: instance.id,
+          servePort: result.port,
+          serveToken: result.token,
+        }).catch(() => {});
+        onSetupComplete(result.port, result.token);
+      } else {
+        setError(result.error || t('bootstrap.setupFailed', { defaultValue: 'Setup failed' }));
+      }
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const inputCls = "w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:border-claw-500 focus:ring-2 focus:ring-claw-200 focus:outline-none";
+
+  const alreadySetup = !!(instance.serve_port && instance.serve_token);
+
+  return (
+    <div className="space-y-4">
+      {alreadySetup && (
+        <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 p-3 text-sm text-green-700 dark:text-green-400">
+          {t('vps.alreadySetup', { defaultValue: `Remote agent already installed (port ${instance.serve_port}). Re-run below only if you need to reinstall.` })}
+        </div>
+      )}
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+            {t('bootstrap.autoTitle', { defaultValue: 'Install Remote Agent via SSH' })}
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {t('bootstrap.autoDesc', { defaultValue: 'ClawSquire will SSH in, install clawsquire-serve, and save the token automatically.' })}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Host</label>
+            <input value={sshHost} onChange={e => setSshHost(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Port</label>
+            <input value={sshPort} onChange={e => setSshPort(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Username</label>
+            <input value={sshUser} onChange={e => setSshUser(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Auth</label>
+            <select value={sshAuthMethod} onChange={e => setSshAuthMethod(e.target.value as 'key' | 'password')} className={inputCls}>
+              <option value="key">SSH Key</option>
+              <option value="password">Password</option>
+            </select>
+          </div>
+        </div>
+        {sshAuthMethod === 'key' ? (
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Key Path</label>
+            <input value={sshKeyPath} onChange={e => setSshKeyPath(e.target.value)} className={inputCls} />
+          </div>
+        ) : (
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Password</label>
+            <input type="password" value={sshPassword} onChange={e => setSshPassword(e.target.value)} className={inputCls} />
+          </div>
+        )}
+        <button
+          onClick={run}
+          disabled={running || !sshHost}
+          className="w-full py-2.5 text-sm font-medium rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-colors disabled:opacity-50"
+        >
+          {running
+            ? t('bootstrap.bootstrapping', { defaultValue: 'Setting up...' })
+            : alreadySetup
+              ? t('vps.rerunSetup', { defaultValue: 'Re-install Remote Agent' })
+              : t('bootstrap.startSetup', { defaultValue: 'Install Remote Agent' })}
+        </button>
+        {error && (
+          <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-400">
+            {error}
+          </div>
+        )}
+        {events.length > 0 && (
+          <div ref={logRef} className="max-h-48 overflow-y-auto bg-gray-950 rounded-lg p-3 space-y-1 font-mono text-xs">
+            {events.map((ev, i) => (
+              <div key={i} className={`flex gap-2 ${ev.status === 'fail' ? 'text-red-400' : ev.status === 'ok' ? 'text-green-400' : 'text-gray-300'}`}>
+                <span className="shrink-0">{ev.status === 'ok' ? '✓' : ev.status === 'fail' ? '✗' : '●'}</span>
+                <span>{ev.message}{ev.detail ? `: ${ev.detail}` : ''}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function VpsManager() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -64,6 +218,7 @@ export default function VpsManager() {
 
   const [activeTarget, setActiveTarget] = useState<ActiveTargetInfo | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   const loadInstances = useCallback(async () => {
     try {
@@ -168,11 +323,11 @@ export default function VpsManager() {
 
   const handleConnect = async (inst: VpsInstance) => {
     if (!inst.serve_port || !inst.serve_token) {
-      // No stored serve info — guide user to Bootstrap with this instance pre-selected
       navigate(`/bootstrap?instanceId=${inst.id}`);
       return;
     }
     setConnecting(true);
+    setConnectError(null);
     try {
       const url = `ws://${inst.host}:${inst.serve_port}`;
       await invoke('set_active_target', {
@@ -184,7 +339,7 @@ export default function VpsManager() {
       });
       await loadActiveTarget();
     } catch (e) {
-      console.error('Failed to connect:', e);
+      setConnectError(String(e));
     }
     setConnecting(false);
   };
@@ -453,37 +608,27 @@ export default function VpsManager() {
                       </button>
                     </div>
                   )}
-                  {/* Readiness banner */}
-                  {!isConnectedTo(selected) && (selected.serve_port && selected.serve_token) && (
-                    <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-4 py-3 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-green-700 dark:text-green-400">
-                          {t('vps.serveReady', { defaultValue: 'Remote agent ready — click Connect to go live' })}
-                        </p>
-                        <p className="text-xs text-green-600 dark:text-green-500">
-                          {t('vps.serveReadyDesc', { defaultValue: `Port ${selected.serve_port} · credentials stored` })}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleConnect(selected)}
-                        disabled={connecting}
-                        className="shrink-0 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
-                      >
-                        {connecting ? t('vps.connecting') : t('vps.connect')}
-                      </button>
+                  {connectError && (
+                    <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+                      <span className="font-medium">{t('vps.connectFailed', { defaultValue: 'Connection failed:' })}</span>{' '}
+                      {connectError}
                     </div>
                   )}
-                  {!isConnectedTo(selected) && !(selected.serve_port && selected.serve_token) && (
-                    <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 flex items-center justify-between gap-3">
-                      <p className="text-sm text-amber-700 dark:text-amber-400">
-                        {t('vps.notSetup', { defaultValue: 'Remote agent not installed. Run Remote Setup first.' })}
-                      </p>
-                      <button
-                        onClick={() => handleGoToBootstrap(selected.id)}
-                        className="shrink-0 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-3 py-1.5 transition-colors"
-                      >
-                        {t('vps.setupFirst', { defaultValue: 'Set Up Remote' })}
-                      </button>
+                  {/* Status banner — shows state, no duplicate action button */}
+                  {isConnectedTo(selected) ? (
+                    <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-4 py-2.5 flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+                      {t('vps.statusConnected', { defaultValue: 'Connected — managing remote OpenClaw' })}
+                    </div>
+                  ) : (selected.serve_port && selected.serve_token) ? (
+                    <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-4 py-2.5 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400">
+                      <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                      {t('vps.statusReady', { defaultValue: 'Agent ready — click Connect above to start' })}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-2.5 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                      {t('vps.notSetup', { defaultValue: 'Remote agent not installed — go to Setup tab' })}
                     </div>
                   )}
                   <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
@@ -519,28 +664,17 @@ export default function VpsManager() {
               );
             })()}
 
-            {/* Setup tab — navigate to Bootstrap page */}
+            {/* Setup tab — inline bootstrap */}
             {activeTab === 'setup' && (
-              <div className="space-y-4">
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {t('vps.setupDesc')}
-                  </p>
-
-                  {selected.openclaw_installed ? (
-                    <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 p-3 text-sm text-green-700 dark:text-green-400">
-                      {t('vps.alreadySetup')}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleGoToBootstrap()}
-                      className="w-full py-3 bg-claw-600 hover:bg-claw-700 text-white rounded-lg font-medium transition-colors"
-                    >
-                      {t('vps.goToBootstrap')}
-                    </button>
-                  )}
-                </div>
-              </div>
+              <InlineSetup
+                instance={selected}
+                onSetupComplete={(port, token) => {
+                  // Reload instance list to reflect updated serve_port/token
+                  loadInstances();
+                  setActiveTab('overview');
+                  void port; void token;
+                }}
+              />
             )}
           </div>
         )}

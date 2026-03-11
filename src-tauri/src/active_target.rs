@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
+use std::clone::Clone;
 
 use clawsquire_core::cli_runner::{CliOutput, CliRunner, RealCliRunner};
 
@@ -73,14 +74,20 @@ impl Target {
 }
 
 pub struct ActiveTargetState {
-    inner: RwLock<Target>,
+    inner: Arc<RwLock<Target>>,
 }
 
 impl Default for ActiveTargetState {
     fn default() -> Self {
         Self {
-            inner: RwLock::new(Target::Local),
+            inner: Arc::new(RwLock::new(Target::Local)),
         }
+    }
+}
+
+impl Clone for ActiveTargetState {
+    fn clone(&self) -> Self {
+        Self { inner: Arc::clone(&self.inner) }
     }
 }
 

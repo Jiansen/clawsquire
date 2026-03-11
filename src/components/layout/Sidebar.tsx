@@ -55,25 +55,9 @@ const primaryNavItems = [
 ];
 
 // Secondary / setup items (bottom group, above utility icons)
+// Note: Remote Setup (Bootstrap) is accessed via VPS → Setup tab.
+//       Onboard/Setup Wizard is accessible via /onboard URL but not in sidebar.
 const secondaryNavItems = [
-  {
-    to: '/bootstrap',
-    labelKey: 'nav.remoteSetup',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-      </svg>
-    ),
-  },
-  {
-    to: '/onboard',
-    labelKey: 'nav.setupWizard',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 8.41m5.96 5.96a14.926 14.926 0 01-5.84 2.58m0 0a6 6 0 01-7.38-5.84h4.8" />
-      </svg>
-    ),
-  },
   {
     to: '/config',
     labelKey: 'nav.config',
