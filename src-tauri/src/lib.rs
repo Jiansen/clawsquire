@@ -653,6 +653,19 @@ async fn agent_chat(state: tauri::State<'_, ActiveTargetState>, message: String)
     .map_err(|e| e.to_string())?
 }
 
+/// Like agent_chat but ALWAYS routes to the local OpenClaw, regardless of active target.
+/// Used for getting help with remote install failures where local openclaw can analyze
+/// the diagnostics and suggest fixes.
+#[tauri::command]
+async fn agent_chat_local(message: String) -> Result<AgentChatResult, String> {
+    use clawsquire_core::cli_runner::RealCliRunner;
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(openclaw::agent_chat_with(&RealCliRunner, &message))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[tauri::command]
 async fn collect_feedback_info(state: tauri::State<'_, ActiveTargetState>) -> Result<FeedbackInfo, String> {
     let target = state.get();
@@ -987,6 +1000,7 @@ pub fn run() {
             collect_feedback_info,
             copy_screenshot_to_clipboard,
             agent_chat,
+            agent_chat_local,
             run_openclaw_cli,
             apply_safety_preset,
             search_community_issues,

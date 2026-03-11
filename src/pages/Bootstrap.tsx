@@ -70,6 +70,12 @@ interface InstallResult {
   error: string | null;
 }
 
+interface AgentChatResult {
+  success: boolean;
+  reply: string | null;
+  error: string | null;
+}
+
 interface VpsInstance {
   id: string;
   name: string;
@@ -142,6 +148,10 @@ export default function Bootstrap() {
   const [installing, setInstalling] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [remoteEnv, setRemoteEnv] = useState<RemoteEnvironment | null>(null);
+
+  // Local OpenClaw help for install failures
+  const [askingOc, setAskingOc] = useState(false);
+  const [ocReply, setOcReply] = useState<string | null>(null);
 
   // Load VPS instances; pre-select the one from ?instanceId= query param if present
   useEffect(() => {
@@ -286,6 +296,32 @@ export default function Bootstrap() {
       setError(String(e));
     } finally {
       setInstalling(null);
+    }
+  };
+
+  const handleAskOpenClaw = async () => {
+    if (!error) return;
+    setAskingOc(true);
+    setOcReply(null);
+    try {
+      const sshInfo = sshHost ? `SSH: ${sshUser}@${sshHost}:${sshPort} (${sshAuthMethod} auth)` : '';
+      const platformInfo = remoteEnv ? `Platform: ${remoteEnv.platform} ${remoteEnv.arch}, node: ${remoteEnv.node_version || 'unknown'}, npm: ${remoteEnv.npm_installed ? 'yes' : 'no'}` : '';
+      const prompt = [
+        '[ClawSquire Install Assist]',
+        'I am trying to install OpenClaw on a remote server and it failed.',
+        sshInfo,
+        platformInfo,
+        `Error: ${error}`,
+        'Official install docs: https://docs.openclaw.ai/start/getting-started',
+        'Official install script: curl -fsSL https://openclaw.ai/install.sh | bash --no-onboard',
+        'Please suggest what is wrong and how to fix it.',
+      ].filter(Boolean).join('\n');
+      const result = await invoke<AgentChatResult>('agent_chat_local', { message: prompt });
+      setOcReply(result.reply || result.error || 'No response from local OpenClaw.');
+    } catch (e) {
+      setOcReply(`Could not reach local OpenClaw: ${String(e)}`);
+    } finally {
+      setAskingOc(false);
     }
   };
 
@@ -526,8 +562,23 @@ export default function Bootstrap() {
           )}
 
           {error && (
-            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 py-2">
-              {error}
+            <div className="space-y-2">
+              <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 py-2">
+                {error}
+              </div>
+              <button
+                onClick={handleAskOpenClaw}
+                disabled={askingOc}
+                className="text-xs px-3 py-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-200 disabled:opacity-50 transition-colors"
+              >
+                {askingOc ? '🦞 Asking local OpenClaw…' : '🦞 Ask Local OpenClaw for Help'}
+              </button>
+              {ocReply && (
+                <div className="text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 whitespace-pre-wrap">
+                  <span className="text-violet-600 dark:text-violet-400 font-medium">OpenClaw: </span>
+                  {ocReply}
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -667,8 +718,23 @@ export default function Bootstrap() {
           )}
 
           {error && (
-            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 py-2">
-              {error}
+            <div className="space-y-2">
+              <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 py-2">
+                {error}
+              </div>
+              <button
+                onClick={handleAskOpenClaw}
+                disabled={askingOc}
+                className="text-xs px-3 py-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-200 disabled:opacity-50 transition-colors"
+              >
+                {askingOc ? '🦞 Asking local OpenClaw…' : '🦞 Ask Local OpenClaw for Help'}
+              </button>
+              {ocReply && (
+                <div className="text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 whitespace-pre-wrap">
+                  <span className="text-violet-600 dark:text-violet-400 font-medium">OpenClaw: </span>
+                  {ocReply}
+                </div>
+              )}
             </div>
           )}
         </section>
