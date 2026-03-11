@@ -37,7 +37,7 @@ interface LlmConfigStatus {
 
 export default function Dashboard() {
   const { target } = useActiveTarget();
-  const isRemote = target.mode === 'vps';
+  const isRemote = target.mode === 'protocol';
   const { t } = useTranslation();
   const navigate = useNavigate();
 

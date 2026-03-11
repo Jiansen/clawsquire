@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { invoke } from '@tauri-apps/api/core';
 
 export interface ActiveTarget {
-  mode: 'local' | 'vps';
+  mode: 'local' | 'protocol';
   instanceId?: string;
   host?: string;
   username?: string;
@@ -26,8 +26,16 @@ interface ActiveTargetContextValue {
   target: ActiveTarget;
   instances: VpsInstance[];
   switching: boolean;
-  setTarget: (mode: 'local' | 'vps', instanceId?: string, password?: string) => Promise<void>;
+  error: string | null;
+  setTarget: (mode: 'local' | 'protocol', opts?: ProtocolConnectOpts) => Promise<void>;
   refreshInstances: () => Promise<void>;
+}
+
+export interface ProtocolConnectOpts {
+  url: string;
+  token: string;
+  instanceId?: string;
+  host?: string;
 }
 
 const defaultTarget: ActiveTarget = { mode: 'local' };
@@ -36,6 +44,7 @@ const ActiveTargetContext = createContext<ActiveTargetContextValue>({
   target: defaultTarget,
   instances: [],
   switching: false,
+  error: null,
   setTarget: async () => {},
   refreshInstances: async () => {},
 });
@@ -46,6 +55,7 @@ export function ActiveTargetProvider({ children }: { children: ReactNode }) {
   const [target, setTargetState] = useState<ActiveTarget>(defaultTarget);
   const [instances, setInstances] = useState<VpsInstance[]>([]);
   const [switching, setSwitching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const refreshInstances = useCallback(async () => {
     try {
@@ -63,24 +73,30 @@ export function ActiveTargetProvider({ children }: { children: ReactNode }) {
     refreshInstances();
   }, [refreshInstances]);
 
-  const setTarget = useCallback(async (mode: 'local' | 'vps', instanceId?: string, password?: string) => {
+  const setTarget = useCallback(async (mode: 'local' | 'protocol', opts?: ProtocolConnectOpts) => {
     setSwitching(true);
+    setError(null);
     try {
       const result = await invoke<ActiveTarget>('set_active_target', {
         mode,
-        instanceId: instanceId ?? null,
-        password: password ?? null,
+        url: opts?.url ?? null,
+        token: opts?.token ?? null,
+        instanceId: opts?.instanceId ?? null,
+        host: opts?.host ?? null,
       });
       setTargetState(result);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode, instanceId }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode, url: opts?.url, host: opts?.host }));
       window.dispatchEvent(new CustomEvent('target-changed', { detail: result }));
+    } catch (e) {
+      setError(typeof e === 'string' ? e : String(e));
+      throw e;
     } finally {
       setSwitching(false);
     }
   }, []);
 
   return (
-    <ActiveTargetContext.Provider value={{ target, instances, switching, setTarget, refreshInstances }}>
+    <ActiveTargetContext.Provider value={{ target, instances, switching, error, setTarget, refreshInstances }}>
       {children}
     </ActiveTargetContext.Provider>
   );

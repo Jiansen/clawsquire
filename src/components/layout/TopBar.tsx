@@ -3,53 +3,48 @@ import { useState, useRef, useEffect } from 'react';
 import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
 import HelpPanel from '../shared/HelpPanel';
 import { useActiveTarget } from '../../context/ActiveTargetContext';
-import { useNavigate } from 'react-router';
 
 function TargetSwitcher() {
-  const { target, instances, switching, setTarget } = useActiveTarget();
+  const { target, switching, error, setTarget } = useActiveTarget();
   const [open, setOpen] = useState(false);
-  const [passwordPrompt, setPasswordPrompt] = useState<string | null>(null);
-  const [password, setPassword] = useState('');
+  const [connectForm, setConnectForm] = useState(false);
+  const [url, setUrl] = useState('');
+  const [token, setToken] = useState('');
   const ref = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
-        setPasswordPrompt(null);
+        setConnectForm(false);
       }
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const handleSelect = async (mode: 'local' | 'vps', instanceId?: string) => {
-    if (mode === 'local') {
-      await setTarget('local');
-      setOpen(false);
-      return;
-    }
-    const inst = instances.find(i => i.id === instanceId);
-    if (inst?.auth_method === 'password') {
-      setPasswordPrompt(instanceId!);
-      return;
-    }
-    await setTarget('vps', instanceId);
+  const handleLocal = async () => {
+    await setTarget('local');
     setOpen(false);
+    setConnectForm(false);
   };
 
-  const handlePasswordSubmit = async () => {
-    if (passwordPrompt) {
-      await setTarget('vps', passwordPrompt, password);
-      setPassword('');
-      setPasswordPrompt(null);
+  const handleProtocolConnect = async () => {
+    if (!url || !token) return;
+    const wsUrl = url.startsWith('ws') ? url : `ws://${url}`;
+    const host = url.replace(/^wss?:\/\//, '').replace(/:\d+$/, '');
+    try {
+      await setTarget('protocol', { url: wsUrl, token, host });
       setOpen(false);
+      setConnectForm(false);
+      setUrl('');
+      setToken('');
+    } catch {
+      // error shown via context
     }
   };
 
   const isLocal = target.mode === 'local';
-  const activeInstance = instances.find(i => i.id === target.instanceId);
 
   return (
     <div ref={ref} className="relative">
@@ -59,19 +54,19 @@ function TargetSwitcher() {
         className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg transition-colors ${
           isLocal
             ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
-            : 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+            : 'text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30'
         } ${switching ? 'opacity-50' : ''}`}
         data-testid="target-switcher"
       >
         {switching ? (
-          <span className="animate-spin">⟳</span>
+          <span className="animate-spin">&#10227;</span>
         ) : isLocal ? (
-          <span>🖥</span>
+          <span className="text-base">&#128421;</span>
         ) : (
-          <span>☁️</span>
+          <span className="text-base">&#127760;</span>
         )}
         <span className="font-medium">
-          {isLocal ? 'Local' : (activeInstance?.name || target.host || 'VPS')}
+          {isLocal ? 'Local' : (target.host || 'Remote')}
         </span>
         <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
           <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
@@ -79,9 +74,9 @@ function TargetSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[220px] z-50">
+        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[280px] z-50">
           <button
-            onClick={() => handleSelect('local')}
+            onClick={handleLocal}
             className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
               isLocal
                 ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 font-medium'
@@ -89,54 +84,54 @@ function TargetSwitcher() {
             }`}
           >
             <span className={`w-2 h-2 rounded-full ${isLocal ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
-            🖥 Local
+            <span className="text-base">&#128421;</span> Local
           </button>
 
-          {instances.map(inst => (
-            <button
-              key={inst.id}
-              onClick={() => handleSelect('vps', inst.id)}
-              className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
-                target.instanceId === inst.id
-                  ? 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 font-medium'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${target.instanceId === inst.id ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
-              <div className="flex flex-col">
-                <span>☁️ {inst.name}</span>
-                <span className="text-xs text-gray-400">{inst.host}</span>
-              </div>
-            </button>
-          ))}
-
-          {passwordPrompt && (
-            <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
-                placeholder="SSH Password"
-                className="w-full px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                autoFocus
-              />
-              <button
-                onClick={handlePasswordSubmit}
-                className="mt-1 w-full px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Connect
-              </button>
+          {!isLocal && target.mode === 'protocol' && (
+            <div className="px-3 py-2 text-sm flex items-center gap-2 text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 font-medium">
+              <span className="w-2 h-2 rounded-full bg-violet-500" />
+              <span className="text-base">&#127760;</span>
+              <span className="truncate">{target.host || 'Remote'}</span>
             </div>
           )}
 
           <div className="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
-            <button
-              onClick={() => { setOpen(false); navigate('/vps'); }}
-              className="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              + Manage VPS instances...
-            </button>
+            {!connectForm ? (
+              <button
+                onClick={() => setConnectForm(true)}
+                className="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                + Connect to remote agent...
+              </button>
+            ) : (
+              <div className="px-3 py-2 space-y-2">
+                <input
+                  value={url}
+                  onChange={e => setUrl(e.target.value)}
+                  placeholder="host:port (e.g. 192.168.1.5:18790)"
+                  className="w-full px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  value={token}
+                  onChange={e => setToken(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleProtocolConnect()}
+                  placeholder="Auth token"
+                  className="w-full px-2 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+                {error && (
+                  <p className="text-xs text-red-500">{error}</p>
+                )}
+                <button
+                  onClick={handleProtocolConnect}
+                  disabled={!url || !token || switching}
+                  className="w-full px-2 py-1.5 text-xs font-medium bg-violet-600 text-white rounded hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {switching ? 'Connecting...' : 'Connect'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
