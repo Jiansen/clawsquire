@@ -4,7 +4,8 @@ use std::sync::Arc;
 
 use clawsquire_core::cli_runner::{CliOutput, CliRunner};
 use clawsquire_core::protocol::{
-    method, AuthHandshake, AuthResponse, RpcId, RpcRequest, RpcResponse, PROTOCOL_VERSION,
+    method, is_protocol_compatible, AuthHandshake, AuthResponse, RpcId,
+    RpcRequest, RpcResponse, PROTOCOL_VERSION,
 };
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::{mpsc, oneshot, Mutex};
@@ -94,6 +95,15 @@ impl ProtocolRunner {
         }
 
         let agent_info = auth_resp.agent_info.ok_or("no agent info")?;
+
+        // Warn if minor/patch version differs (major mismatch was rejected by server).
+        if !is_protocol_compatible(PROTOCOL_VERSION, &agent_info.serve_version) {
+            // Log a warning but don't abort — minor diffs are allowed.
+            eprintln!(
+                "[protocol_runner] version warning: desktop={} serve={}",
+                PROTOCOL_VERSION, agent_info.serve_version
+            );
+        }
 
         // Request channel: sync callers send requests here
         let (req_tx, mut req_rx) = mpsc::unbounded_channel::<RpcRequest>();

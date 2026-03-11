@@ -33,9 +33,9 @@ describe("Onboard — TemplateList", () => {
     expect(await screen.findByText("onboard.navCards.channels.name")).toBeDefined();
   });
 
-  it("includes vps-headless template", async () => {
+  it("includes vps-bootstrap template", async () => {
     renderOnboard();
-    expect(await screen.findByText("onboard.templates.vps-headless.name")).toBeDefined();
+    expect(await screen.findByText("onboard.templates.vps-bootstrap.name")).toBeDefined();
   });
 });
 

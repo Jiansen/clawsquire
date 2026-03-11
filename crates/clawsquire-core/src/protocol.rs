@@ -152,8 +152,30 @@ pub mod error_code {
 
     pub const AUTH_REQUIRED: i32 = -32000;
     pub const AUTH_FAILED: i32 = -32001;
+    pub const VERSION_INCOMPATIBLE: i32 = -32002;
     pub const OPENCLAW_ERROR: i32 = -32010;
     pub const OPENCLAW_NOT_INSTALLED: i32 = -32011;
+}
+
+// ---------------------------------------------------------------------------
+// Version compatibility
+// ---------------------------------------------------------------------------
+
+/// Parse the major version from a semver string (e.g. "0.3.1" → 0, "1.2.0" → 1).
+pub fn semver_major(v: &str) -> Option<u64> {
+    v.split('.').next()?.parse().ok()
+}
+
+/// Returns true when client and server can communicate.
+///
+/// Rules (LSP-style):
+/// - Major must match exactly (breaking changes).
+/// - Minor/patch differences are allowed (additive-only policy).
+pub fn is_protocol_compatible(client: &str, server: &str) -> bool {
+    match (semver_major(client), semver_major(server)) {
+        (Some(c), Some(s)) => c == s,
+        _ => false,
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -341,10 +363,29 @@ pub struct AuthHandshake {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerCapabilities {
+    /// Protocol version spoken by this server.
+    pub protocol_version: String,
+    /// All JSON-RPC method names supported.
+    pub methods: Vec<String>,
+}
+
+impl ServerCapabilities {
+    pub fn current() -> Self {
+        Self {
+            protocol_version: PROTOCOL_VERSION.into(),
+            methods: method::ALL.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthResponse {
     pub ok: bool,
     pub agent_info: Option<AgentInfo>,
     pub error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub server_capabilities: Option<ServerCapabilities>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -547,6 +588,52 @@ mod tests {
         let json = serde_json::to_string(&hb).unwrap();
         let parsed: Heartbeat = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.timestamp_ms, 1710000000000);
+    }
+
+    #[test]
+    fn test_semver_major() {
+        assert_eq!(semver_major("0.3.0"), Some(0));
+        assert_eq!(semver_major("1.2.3"), Some(1));
+        assert_eq!(semver_major("0.3.1"), Some(0));
+        assert_eq!(semver_major("invalid"), None);
+    }
+
+    #[test]
+    fn test_is_protocol_compatible_same_major() {
+        assert!(is_protocol_compatible("0.3.0", "0.3.0"));
+        assert!(is_protocol_compatible("0.3.0", "0.3.1"));
+        assert!(is_protocol_compatible("0.3.1", "0.3.0"));
+        assert!(is_protocol_compatible("1.0.0", "1.5.2"));
+    }
+
+    #[test]
+    fn test_is_protocol_compatible_different_major() {
+        assert!(!is_protocol_compatible("0.3.0", "1.0.0"));
+        assert!(!is_protocol_compatible("1.0.0", "2.0.0"));
+        assert!(!is_protocol_compatible("2.1.0", "1.9.9"));
+    }
+
+    #[test]
+    fn test_server_capabilities_current_includes_all_methods() {
+        let caps = ServerCapabilities::current();
+        assert_eq!(caps.protocol_version, PROTOCOL_VERSION);
+        assert_eq!(caps.methods.len(), method::ALL.len());
+        for m in method::ALL {
+            assert!(caps.methods.contains(&m.to_string()), "missing method: {m}");
+        }
+    }
+
+    #[test]
+    fn test_auth_response_with_capabilities() {
+        let resp = AuthResponse {
+            ok: true,
+            agent_info: None,
+            error: None,
+            server_capabilities: Some(ServerCapabilities::current()),
+        };
+        let json = serde_json::to_string(&resp).unwrap();
+        let parsed: AuthResponse = serde_json::from_str(&json).unwrap();
+        assert!(parsed.server_capabilities.is_some());
     }
 
     #[test]

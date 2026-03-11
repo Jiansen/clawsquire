@@ -200,9 +200,18 @@
     "chooseTemplate": "Escolha um modelo de configuração",
     "nextSteps": "Próximos passos",
     "navCards": {
-      "channels": { "name": "Adicionar canais", "desc": "Telegram, Discord, WhatsApp..." },
-      "automations": { "name": "Configurar automações", "desc": "Resumos de email, tarefas agendadas..." },
-      "sources": { "name": "Configurar email", "desc": "Configuração IMAP para caixa de entrada" }
+      "channels": {
+        "name": "Adicionar canais",
+        "desc": "Telegram, Discord, WhatsApp..."
+      },
+      "automations": {
+        "name": "Configurar automações",
+        "desc": "Resumos de email, tarefas agendadas..."
+      },
+      "sources": {
+        "name": "Configurar email",
+        "desc": "Configuração IMAP para caixa de entrada"
+      }
     },
     "step": "Passo {{current}} de {{total}}",
     "back": "Voltar",
@@ -232,6 +241,10 @@
       "vps-headless": {
         "name": "Implantação VPS Headless",
         "description": "Implantar o OpenClaw em um servidor VPS sem interface gráfica"
+      },
+      "vps-bootstrap": {
+        "name": "Configuração VPS remota",
+        "description": "Gerencie e implante o OpenClaw em um servidor VPS remoto"
       }
     },
     "wizard": {
@@ -380,7 +393,6 @@
   "settings": {
     "title": "Configurações",
     "language": "Idioma",
-    "theme": "Tema",
     "theme": "Tema",
     "light": "Claro",
     "dark": "Escuro",
@@ -583,7 +595,11 @@
     "title": "Enviar feedback",
     "collecting": "Coletando informações de diagnóstico...",
     "type": "Tipo de problema",
-    "types": { "bug": "Bug", "feature": "Sugestão", "question": "Pergunta" },
+    "types": {
+      "bug": "Bug",
+      "feature": "Sugestão",
+      "question": "Pergunta"
+    },
     "descriptionLabel": "Descrição",
     "descriptionPlaceholder": "Conte-nos o que aconteceu ou o que você gostaria de ver...",
     "autoCollected": "Diagnóstico coletado automaticamente",
@@ -724,7 +740,13 @@
     "save": "Adicionar canal",
     "cancel": "Cancelar",
     "noTokenGeneric": "Este canal requer configuração manual via terminal.",
-    "types": { "telegram": "Telegram", "discord": "Discord", "whatsapp": "WhatsApp", "slack": "Slack", "webchat": "WebChat" },
+    "types": {
+      "telegram": "Telegram",
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "slack": "Slack",
+      "webchat": "WebChat"
+    },
     "setup": {
       "telegram": "Crie um bot via @BotFather no Telegram e cole o token abaixo.",
       "discord": "Crie um app no Portal do Desenvolvedor do Discord. Copie o Bot Token.",
@@ -747,10 +769,22 @@
     "tipTitle": "Como fontes funcionam com automações",
     "tipDesc": "Após configurar uma fonte, crie uma automação para verificá-la periodicamente e enviar resumos aos seus canais.",
     "types": {
-      "imap": { "name": "Email (IMAP)", "desc": "Leia emails de qualquer caixa compatível com IMAP" },
-      "rss": { "name": "Feeds RSS", "desc": "Monitore posts de blog, notícias e atualizações" },
-      "calendar": { "name": "Calendário", "desc": "Acompanhe eventos e mudanças de agenda" },
-      "webhook": { "name": "Webhooks", "desc": "Receba dados de serviços externos" }
+      "imap": {
+        "name": "Email (IMAP)",
+        "desc": "Leia emails de qualquer caixa compatível com IMAP"
+      },
+      "rss": {
+        "name": "Feeds RSS",
+        "desc": "Monitore posts de blog, notícias e atualizações"
+      },
+      "calendar": {
+        "name": "Calendário",
+        "desc": "Acompanhe eventos e mudanças de agenda"
+      },
+      "webhook": {
+        "name": "Webhooks",
+        "desc": "Receba dados de serviços externos"
+      }
     }
   },
   "automations": {
@@ -781,11 +815,31 @@
     "saving": "Criando...",
     "save": "Criar automação",
     "cancel": "Cancelar",
-    "intervals": { "5m": "5 minutos", "15m": "15 minutos", "30m": "30 minutos", "1h": "1 hora", "6h": "6 horas", "24h": "24 horas" },
+    "intervals": {
+      "5m": "5 minutos",
+      "15m": "15 minutos",
+      "30m": "30 minutos",
+      "1h": "1 hora",
+      "6h": "6 horas",
+      "24h": "24 horas"
+    },
     "presets": {
-      "email-summary": { "name": "Resumo de emails", "desc": "Resume novos emails periodicamente", "defaultName": "Resumo de emails", "defaultMessage": "Verifique novos emails não lidos. Resuma brevemente os importantes. Se não houver nada novo, fique em silêncio." },
-      "scheduled-reminder": { "name": "Lembrete agendado", "desc": "Envia lembretes ou atualizações periódicas", "defaultName": "Lembrete diário", "defaultMessage": "Me dê um breve resumo do clima de hoje e notícias importantes." },
-      "custom": { "name": "Personalizado", "desc": "Defina sua própria tarefa do zero" }
+      "email-summary": {
+        "name": "Resumo de emails",
+        "desc": "Resume novos emails periodicamente",
+        "defaultName": "Resumo de emails",
+        "defaultMessage": "Verifique novos emails não lidos. Resuma brevemente os importantes. Se não houver nada novo, fique em silêncio."
+      },
+      "scheduled-reminder": {
+        "name": "Lembrete agendado",
+        "desc": "Envia lembretes ou atualizações periódicas",
+        "defaultName": "Lembrete diário",
+        "defaultMessage": "Me dê um breve resumo do clima de hoje e notícias importantes."
+      },
+      "custom": {
+        "name": "Personalizado",
+        "desc": "Defina sua própria tarefa do zero"
+      }
     }
   }
 }

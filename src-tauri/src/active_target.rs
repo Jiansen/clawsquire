@@ -123,6 +123,8 @@ pub struct ActiveTargetInfo {
     pub instance_id: Option<String>,
     pub host: Option<String>,
     pub username: Option<String>,
+    /// Serve binary version reported in AgentInfo after successful auth.
+    pub serve_version: Option<String>,
 }
 
 impl From<&Target> for ActiveTargetInfo {
@@ -133,15 +135,26 @@ impl From<&Target> for ActiveTargetInfo {
                 instance_id: None,
                 host: None,
                 username: None,
+                serve_version: None,
             },
             Target::Protocol {
-                instance_id, host, ..
-            } => ActiveTargetInfo {
-                mode: "protocol".into(),
-                instance_id: Some(instance_id.clone()),
-                host: Some(host.clone()),
-                username: None,
-            },
+                runner,
+                instance_id,
+                host,
+                ..
+            } => {
+                let serve_version = runner
+                    .agent_info
+                    .as_ref()
+                    .map(|a| a.serve_version.clone());
+                ActiveTargetInfo {
+                    mode: "protocol".into(),
+                    instance_id: Some(instance_id.clone()),
+                    host: Some(host.clone()),
+                    username: None,
+                    serve_version,
+                }
+            }
         }
     }
 }

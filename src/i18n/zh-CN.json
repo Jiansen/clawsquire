@@ -201,9 +201,18 @@
     "chooseTemplate": "选择配置模板",
     "nextSteps": "下一步",
     "navCards": {
-      "channels": { "name": "添加渠道", "desc": "Telegram、Discord、WhatsApp..." },
-      "automations": { "name": "设置自动化", "desc": "邮件摘要、定时任务..." },
-      "sources": { "name": "配置邮箱", "desc": "IMAP 设置，监控收件箱" }
+      "channels": {
+        "name": "添加渠道",
+        "desc": "Telegram、Discord、WhatsApp..."
+      },
+      "automations": {
+        "name": "设置自动化",
+        "desc": "邮件摘要、定时任务..."
+      },
+      "sources": {
+        "name": "配置邮箱",
+        "desc": "IMAP 设置，监控收件箱"
+      }
     },
     "step": "第 {{current}} 步，共 {{total}} 步",
     "back": "上一步",
@@ -233,6 +242,10 @@
       "vps-headless": {
         "name": "VPS 服务器部署",
         "description": "在无图形界面的 VPS 服务器上部署 OpenClaw"
+      },
+      "vps-bootstrap": {
+        "name": "VPS 远程部署",
+        "description": "远程管理和部署 VPS 服务器上的 OpenClaw"
       }
     },
     "wizard": {
@@ -381,7 +394,6 @@
   "settings": {
     "title": "设置",
     "language": "语言",
-    "theme": "主题",
     "theme": "主题",
     "light": "浅色",
     "dark": "深色",
@@ -584,7 +596,11 @@
     "title": "发送反馈",
     "collecting": "正在收集诊断信息...",
     "type": "问题类型",
-    "types": { "bug": "Bug", "feature": "功能建议", "question": "提问" },
+    "types": {
+      "bug": "Bug",
+      "feature": "功能建议",
+      "question": "提问"
+    },
     "descriptionLabel": "描述",
     "descriptionPlaceholder": "告诉我们发生了什么，或者您想要什么功能...",
     "autoCollected": "自动收集的诊断信息",
@@ -755,10 +771,22 @@
     "tipTitle": "输入源如何与自动化配合",
     "tipDesc": "配置输入源后，创建一个自动化来定期检查并将摘要发送到你的渠道。",
     "types": {
-      "imap": { "name": "邮箱 (IMAP)", "desc": "从任何 IMAP 兼容的邮箱读取邮件" },
-      "rss": { "name": "RSS 订阅", "desc": "监控博客文章、新闻和网站更新" },
-      "calendar": { "name": "日历", "desc": "追踪事件和日程变动" },
-      "webhook": { "name": "Webhook", "desc": "从外部服务接收数据" }
+      "imap": {
+        "name": "邮箱 (IMAP)",
+        "desc": "从任何 IMAP 兼容的邮箱读取邮件"
+      },
+      "rss": {
+        "name": "RSS 订阅",
+        "desc": "监控博客文章、新闻和网站更新"
+      },
+      "calendar": {
+        "name": "日历",
+        "desc": "追踪事件和日程变动"
+      },
+      "webhook": {
+        "name": "Webhook",
+        "desc": "从外部服务接收数据"
+      }
     }
   },
   "automations": {

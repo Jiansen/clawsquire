@@ -1,8 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams, Link } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useActiveTarget } from '../context/ActiveTargetContext';
+
+function NextStepCard({ to, icon, title, desc }: { to: string; icon: string; title: string; desc: string }) {
+  return (
+    <Link
+      to={to}
+      className="flex flex-col gap-1 rounded-lg border border-gray-100 dark:border-gray-700 p-3 hover:border-claw-300 hover:shadow-sm transition-all group"
+    >
+      <span className="text-2xl">{icon}</span>
+      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 group-hover:text-claw-700">{title}</span>
+      <span className="text-xs text-gray-400">{desc}</span>
+    </Link>
+  );
+}
 
 interface BootstrapStep {
   id: string;
@@ -97,6 +111,7 @@ export default function Bootstrap() {
   const { t } = useTranslation();
   const { target, setTarget } = useActiveTarget();
   const isRemote = target.mode === 'protocol';
+  const [searchParams] = useSearchParams();
 
   // Tabs
   const [tab, setTab] = useState<'auto' | 'manual' | 'verify'>('auto');
@@ -127,16 +142,18 @@ export default function Bootstrap() {
   const [error, setError] = useState<string | null>(null);
   const [remoteEnv, setRemoteEnv] = useState<RemoteEnvironment | null>(null);
 
-  // Load VPS instances
+  // Load VPS instances; pre-select the one from ?instanceId= query param if present
   useEffect(() => {
+    const preferredId = searchParams.get('instanceId');
     invoke<VpsInstance[]>('list_instances').then((list) => {
       setInstances(list);
       if (list.length > 0) {
-        const first = list[0];
-        setSelectedInstance(first.id);
-        fillFromInstance(first);
+        const target = (preferredId && list.find((i) => i.id === preferredId)) || list[0];
+        setSelectedInstance(target.id);
+        fillFromInstance(target);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fillFromInstance = (inst: VpsInstance) => {
@@ -466,8 +483,36 @@ export default function Bootstrap() {
           )}
 
           {bootstrapResult?.success && (
-            <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-3 text-center font-medium">
-              {t('bootstrap.autoSuccess')}
+            <div className="space-y-3">
+              <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-3 text-center font-medium">
+                {t('bootstrap.autoSuccess')}
+              </div>
+              {/* Next-step guidance cards */}
+              <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-3">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {t('bootstrap.nextStepsTitle', { defaultValue: '🚀 What to do next' })}
+                </p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <NextStepCard
+                    to="/"
+                    icon="📊"
+                    title={t('bootstrap.nextStepDashboard', { defaultValue: 'Dashboard' })}
+                    desc={t('bootstrap.nextStepDashboardDesc', { defaultValue: 'Install OpenClaw + start gateway' })}
+                  />
+                  <NextStepCard
+                    to="/onboard/llm-provider"
+                    icon="🧠"
+                    title={t('bootstrap.nextStepLlm', { defaultValue: 'Configure AI' })}
+                    desc={t('bootstrap.nextStepLlmDesc', { defaultValue: 'Set up your LLM provider (DeepSeek recommended)' })}
+                  />
+                  <NextStepCard
+                    to="/channels"
+                    icon="📡"
+                    title={t('bootstrap.nextStepChannels', { defaultValue: 'Add Channel' })}
+                    desc={t('bootstrap.nextStepChannelsDesc', { defaultValue: 'Connect Telegram, WhatsApp, Discord…' })}
+                  />
+                </div>
+              </div>
             </div>
           )}
 

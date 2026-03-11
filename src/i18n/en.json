@@ -190,16 +190,29 @@
     "confirmRestore": "Restore this backup? Current config will be backed up first.",
     "noBackups": "No backups yet. Create your first backup to protect your config.",
     "noDifferences": "No differences — config matches this backup.",
-    "diffOp": {"added": "Added", "removed": "Removed", "changed": "Changed"}
+    "diffOp": {
+      "added": "Added",
+      "removed": "Removed",
+      "changed": "Changed"
+    }
   },
   "onboard": {
     "title": "Setup Assistant",
     "chooseTemplate": "Choose a setup template",
     "nextSteps": "Next Steps",
     "navCards": {
-      "channels": { "name": "Add Channels", "desc": "Telegram, Discord, WhatsApp..." },
-      "automations": { "name": "Set Up Automations", "desc": "Email summaries, scheduled tasks..." },
-      "sources": { "name": "Configure Email", "desc": "IMAP settings for inbox monitoring" }
+      "channels": {
+        "name": "Add Channels",
+        "desc": "Telegram, Discord, WhatsApp..."
+      },
+      "automations": {
+        "name": "Set Up Automations",
+        "desc": "Email summaries, scheduled tasks..."
+      },
+      "sources": {
+        "name": "Configure Email",
+        "desc": "IMAP settings for inbox monitoring"
+      }
     },
     "step": "Step {{current}} of {{total}}",
     "back": "Back",
@@ -229,6 +242,10 @@
       "vps-headless": {
         "name": "VPS Headless Deploy",
         "description": "Deploy OpenClaw on a headless VPS server"
+      },
+      "vps-bootstrap": {
+        "name": "Remote VPS Setup",
+        "description": "Manage and deploy OpenClaw on a remote VPS server"
       }
     },
     "wizard": {
@@ -378,7 +395,6 @@
     "title": "Settings",
     "language": "Language",
     "theme": "Theme",
-    "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
     "system": "System",
@@ -403,7 +419,11 @@
       },
       "appResponsive": "Uninstalling OpenClaw... The app remains responsive.",
       "notes": "Notes:",
-      "result": {"daemon": "Stop daemon", "npm": "Uninstall package (npm)", "config": "Remove config files"}
+      "result": {
+        "daemon": "Stop daemon",
+        "npm": "Uninstall package (npm)",
+        "config": "Remove config files"
+      }
     },
     "safety": "Safety Level",
     "safetyApplying": "Applying safety preset to OpenClaw config...",
@@ -751,10 +771,22 @@
     "tipTitle": "How sources work with automations",
     "tipDesc": "Once a source is configured, create an Automation to periodically check it and send summaries to your channels.",
     "types": {
-      "imap": { "name": "Email (IMAP)", "desc": "Read emails from any IMAP-compatible inbox" },
-      "rss": { "name": "RSS Feeds", "desc": "Monitor blog posts, news, and website updates" },
-      "calendar": { "name": "Calendar", "desc": "Track events and scheduling changes" },
-      "webhook": { "name": "Webhooks", "desc": "Receive data from external services" }
+      "imap": {
+        "name": "Email (IMAP)",
+        "desc": "Read emails from any IMAP-compatible inbox"
+      },
+      "rss": {
+        "name": "RSS Feeds",
+        "desc": "Monitor blog posts, news, and website updates"
+      },
+      "calendar": {
+        "name": "Calendar",
+        "desc": "Track events and scheduling changes"
+      },
+      "webhook": {
+        "name": "Webhooks",
+        "desc": "Receive data from external services"
+      }
     }
   },
   "automations": {

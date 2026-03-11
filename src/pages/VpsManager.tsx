@@ -20,10 +20,18 @@ interface VpsInstance {
   serve_token?: string | null;
 }
 
+/** Must stay in sync with PROTOCOL_VERSION in crates/clawsquire-core/src/protocol.rs */
+const DESKTOP_PROTOCOL_VERSION = '0.3.0';
+
+function majorOf(v: string): number {
+  return parseInt(v.split('.')[0] ?? '0', 10);
+}
+
 interface ActiveTargetInfo {
   mode: string;
   instance_id?: string;
   host?: string;
+  serve_version?: string | null;
 }
 
 type AuthMethod = 'password' | 'key';
@@ -156,8 +164,8 @@ export default function VpsManager() {
 
   const handleConnect = async (inst: VpsInstance) => {
     if (!inst.serve_port || !inst.serve_token) {
-      // No stored serve info — guide user to Bootstrap
-      navigate('/bootstrap');
+      // No stored serve info — guide user to Bootstrap with this instance pre-selected
+      navigate(`/bootstrap?instanceId=${inst.id}`);
       return;
     }
     setConnecting(true);
@@ -177,8 +185,9 @@ export default function VpsManager() {
     setConnecting(false);
   };
 
-  const handleGoToBootstrap = () => {
-    navigate('/bootstrap');
+  const handleGoToBootstrap = (instId?: string) => {
+    const id = instId || selectedId;
+    navigate(id ? `/bootstrap?instanceId=${id}` : '/bootstrap');
   };
 
   const resetForm = () => {
@@ -409,21 +418,59 @@ export default function VpsManager() {
             </div>
 
             {/* Overview tab */}
-            {activeTab === 'overview' && (
-              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><span className="text-gray-500">{t('ssh.host')}:</span> <span className="font-mono">{selected.host}</span></div>
-                  <div><span className="text-gray-500">{t('ssh.port')}:</span> <span className="font-mono">{selected.port}</span></div>
-                  <div><span className="text-gray-500">{t('ssh.username')}:</span> <span className="font-mono">{selected.username}</span></div>
-                  <div><span className="text-gray-500">{t('ssh.authMethod')}:</span> <span>{selected.auth_method === 'password' ? t('ssh.password') : t('ssh.keyFile')}</span></div>
-                  <div><span className="text-gray-500">OpenClaw:</span> <span>{selected.openclaw_installed ? (selected.openclaw_version || 'Installed') : t('vps.notDeployed')}</span></div>
-                  <div><span className="text-gray-500">{t('vps.created')}:</span> <span className="font-mono text-xs">{selected.created_at}</span></div>
-                  {selected.last_connected && (
-                    <div><span className="text-gray-500">{t('vps.lastConnected')}:</span> <span className="font-mono text-xs">{selected.last_connected}</span></div>
+            {activeTab === 'overview' && (() => {
+              const sv = isConnectedTo(selected) ? activeTarget?.serve_version : null;
+              const versionMismatch =
+                sv != null &&
+                majorOf(sv) !== majorOf(DESKTOP_PROTOCOL_VERSION);
+              return (
+                <div className="space-y-3">
+                  {versionMismatch && (
+                    <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 flex items-center justify-between gap-3">
+                      <span className="text-sm text-amber-700 dark:text-amber-400">
+                        {t('vps.versionMismatch', {
+                          serve: sv,
+                          desktop: DESKTOP_PROTOCOL_VERSION,
+                          defaultValue: `serve v${sv} ≠ desktop v${DESKTOP_PROTOCOL_VERSION} — please upgrade clawsquire-serve`,
+                        })}
+                      </span>
+                      <button
+                        onClick={() => handleGoToBootstrap(selected.id)}
+                        className="shrink-0 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-3 py-1.5 transition-colors"
+                      >
+                        {t('vps.upgradeServe', { defaultValue: 'Upgrade' })}
+                      </button>
+                    </div>
                   )}
+                  <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-500">{t('ssh.host')}:</span> <span className="font-mono">{selected.host}</span></div>
+                      <div><span className="text-gray-500">{t('ssh.port')}:</span> <span className="font-mono">{selected.port}</span></div>
+                      <div><span className="text-gray-500">{t('ssh.username')}:</span> <span className="font-mono">{selected.username}</span></div>
+                      <div><span className="text-gray-500">{t('ssh.authMethod')}:</span> <span>{selected.auth_method === 'password' ? t('ssh.password') : t('ssh.keyFile')}</span></div>
+                      <div><span className="text-gray-500">OpenClaw:</span> <span>{selected.openclaw_installed ? (selected.openclaw_version || 'Installed') : t('vps.notDeployed')}</span></div>
+                      <div>
+                        <span className="text-gray-500">serve:</span>{' '}
+                        <span className="font-mono">
+                          {sv ? (
+                            <>
+                              {sv}
+                              {!versionMismatch && (
+                                <span className="ml-1 text-green-500 text-[10px]">✓</span>
+                              )}
+                            </>
+                          ) : '—'}
+                        </span>
+                      </div>
+                      <div><span className="text-gray-500">{t('vps.created')}:</span> <span className="font-mono text-xs">{selected.created_at}</span></div>
+                      {selected.last_connected && (
+                        <div><span className="text-gray-500">{t('vps.lastConnected')}:</span> <span className="font-mono text-xs">{selected.last_connected}</span></div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Setup tab — navigate to Bootstrap page */}
             {activeTab === 'setup' && (

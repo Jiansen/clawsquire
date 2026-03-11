@@ -6,6 +6,18 @@ export interface ActiveTarget {
   instanceId?: string;
   host?: string;
   username?: string;
+  /** Serve binary version reported after successful connection (e.g. "0.3.1"). */
+  serveVersion?: string;
+}
+
+/** Must match PROTOCOL_VERSION in crates/clawsquire-core/src/protocol.rs */
+export const DESKTOP_PROTOCOL_VERSION = '0.3.0';
+
+/** True if the serve version's major matches ours (breaking changes only). */
+export function isServeCompatible(serveVersion: string | undefined): boolean {
+  if (!serveVersion) return true; // unknown → optimistic
+  const majorOf = (v: string) => parseInt(v.split('.')[0] ?? '0', 10);
+  return majorOf(DESKTOP_PROTOCOL_VERSION) === majorOf(serveVersion);
 }
 
 export interface VpsInstance {

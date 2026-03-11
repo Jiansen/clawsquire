@@ -8,7 +8,7 @@ use tokio_tungstenite::tungstenite::Message;
 
 use clawsquire_core::protocol::{
     self, AuthHandshake, AuthResponse, AgentInfo, HeartbeatAck,
-    RpcRequest, PROTOCOL_VERSION,
+    RpcRequest, ServerCapabilities, PROTOCOL_VERSION, is_protocol_compatible,
 };
 
 use crate::dispatch;
@@ -73,11 +73,29 @@ async fn handle_connection(
     let handshake: AuthHandshake =
         serde_json::from_str(&auth_text).map_err(|e| format!("invalid auth: {}", e))?;
 
+    // --- Version check (before token, give a useful error message) ---
+    if !is_protocol_compatible(&handshake.protocol_version, PROTOCOL_VERSION) {
+        let resp = AuthResponse {
+            ok: false,
+            agent_info: None,
+            error: Some(format!(
+                "protocol version mismatch: client={} server={}; please upgrade clawsquire-serve",
+                handshake.protocol_version, PROTOCOL_VERSION
+            )),
+            server_capabilities: Some(ServerCapabilities::current()),
+        };
+        write
+            .send(Message::Text(serde_json::to_string(&resp)?))
+            .await?;
+        return Err("version incompatible".into());
+    }
+
     if handshake.token != expected_token {
         let resp = AuthResponse {
             ok: false,
             agent_info: None,
             error: Some("invalid token".into()),
+            server_capabilities: None,
         };
         write
             .send(Message::Text(serde_json::to_string(&resp)?))
@@ -90,6 +108,7 @@ async fn handle_connection(
         ok: true,
         agent_info: Some(agent_info),
         error: None,
+        server_capabilities: Some(ServerCapabilities::current()),
     };
     write
         .send(Message::Text(serde_json::to_string(&resp)?))

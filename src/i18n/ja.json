@@ -201,9 +201,18 @@
     "chooseTemplate": "セットアップテンプレートを選択",
     "nextSteps": "次のステップ",
     "navCards": {
-      "channels": { "name": "チャンネルを追加", "desc": "Telegram、Discord、WhatsApp..." },
-      "automations": { "name": "自動化を設定", "desc": "メール要約、スケジュールタスク..." },
-      "sources": { "name": "メール設定", "desc": "IMAP設定で受信トレイを監視" }
+      "channels": {
+        "name": "チャンネルを追加",
+        "desc": "Telegram、Discord、WhatsApp..."
+      },
+      "automations": {
+        "name": "自動化を設定",
+        "desc": "メール要約、スケジュールタスク..."
+      },
+      "sources": {
+        "name": "メール設定",
+        "desc": "IMAP設定で受信トレイを監視"
+      }
     },
     "step": "ステップ {{current}} / {{total}}",
     "back": "戻る",
@@ -233,6 +242,10 @@
       "vps-headless": {
         "name": "VPS ヘッドレスデプロイ",
         "description": "GUI のない VPS サーバーに OpenClaw をデプロイ"
+      },
+      "vps-bootstrap": {
+        "name": "VPS リモート設定",
+        "description": "リモート VPS サーバーで OpenClaw を管理・デプロイ"
       }
     },
     "wizard": {
@@ -381,7 +394,6 @@
   "settings": {
     "title": "設定",
     "language": "言語",
-    "theme": "テーマ",
     "theme": "テーマ",
     "light": "ライト",
     "dark": "ダーク",
@@ -584,7 +596,11 @@
     "title": "フィードバックを送信",
     "collecting": "診断情報を収集中...",
     "type": "問題の種類",
-    "types": { "bug": "バグ", "feature": "機能リクエスト", "question": "質問" },
+    "types": {
+      "bug": "バグ",
+      "feature": "機能リクエスト",
+      "question": "質問"
+    },
     "descriptionLabel": "説明",
     "descriptionPlaceholder": "何が起きたか、またはご要望をお聞かせください...",
     "autoCollected": "自動収集された診断情報",
@@ -725,7 +741,13 @@
     "save": "チャンネル追加",
     "cancel": "キャンセル",
     "noTokenGeneric": "このチャンネルはターミナルから手動設定が必要です。",
-    "types": { "telegram": "Telegram", "discord": "Discord", "whatsapp": "WhatsApp", "slack": "Slack", "webchat": "WebChat" },
+    "types": {
+      "telegram": "Telegram",
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "slack": "Slack",
+      "webchat": "WebChat"
+    },
     "setup": {
       "telegram": "Telegram の @BotFather でボットを作成し、トークンを下に貼り付けてください。",
       "discord": "Discord 開発者ポータルでアプリを作成し、Bot Token をコピーしてください。",
@@ -748,10 +770,22 @@
     "tipTitle": "入力ソースと自動化の連携",
     "tipDesc": "ソース設定後、自動化を作成して定期チェックし、結果をチャンネルに送信します。",
     "types": {
-      "imap": { "name": "メール (IMAP)", "desc": "IMAP対応の受信トレイからメールを読み取り" },
-      "rss": { "name": "RSSフィード", "desc": "ブログ投稿、ニュース、Webサイトの更新を監視" },
-      "calendar": { "name": "カレンダー", "desc": "イベントやスケジュール変更を追跡" },
-      "webhook": { "name": "Webhook", "desc": "外部サービスからデータを受信" }
+      "imap": {
+        "name": "メール (IMAP)",
+        "desc": "IMAP対応の受信トレイからメールを読み取り"
+      },
+      "rss": {
+        "name": "RSSフィード",
+        "desc": "ブログ投稿、ニュース、Webサイトの更新を監視"
+      },
+      "calendar": {
+        "name": "カレンダー",
+        "desc": "イベントやスケジュール変更を追跡"
+      },
+      "webhook": {
+        "name": "Webhook",
+        "desc": "外部サービスからデータを受信"
+      }
     }
   },
   "automations": {
@@ -782,11 +816,31 @@
     "saving": "作成中...",
     "save": "自動化を作成",
     "cancel": "キャンセル",
-    "intervals": { "5m": "5分", "15m": "15分", "30m": "30分", "1h": "1時間", "6h": "6時間", "24h": "24時間" },
+    "intervals": {
+      "5m": "5分",
+      "15m": "15分",
+      "30m": "30分",
+      "1h": "1時間",
+      "6h": "6時間",
+      "24h": "24時間"
+    },
     "presets": {
-      "email-summary": { "name": "メール要約", "desc": "新着メールを定期的に要約", "defaultName": "メール要約", "defaultMessage": "新しい未読メールを確認し、重要なものを簡潔に要約してください。新着がなければ何も表示しないでください。" },
-      "scheduled-reminder": { "name": "定期リマインダー", "desc": "定期的にリマインダーや更新を送信", "defaultName": "デイリーリマインダー", "defaultMessage": "今日の天気と重要なニュースの簡単な概要をください。" },
-      "custom": { "name": "カスタム", "desc": "ゼロから独自のタスクを定義" }
+      "email-summary": {
+        "name": "メール要約",
+        "desc": "新着メールを定期的に要約",
+        "defaultName": "メール要約",
+        "defaultMessage": "新しい未読メールを確認し、重要なものを簡潔に要約してください。新着がなければ何も表示しないでください。"
+      },
+      "scheduled-reminder": {
+        "name": "定期リマインダー",
+        "desc": "定期的にリマインダーや更新を送信",
+        "defaultName": "デイリーリマインダー",
+        "defaultMessage": "今日の天気と重要なニュースの簡単な概要をください。"
+      },
+      "custom": {
+        "name": "カスタム",
+        "desc": "ゼロから独自のタスクを定義"
+      }
     }
   }
 }

@@ -201,9 +201,18 @@
     "chooseTemplate": "Einrichtungsvorlage wählen",
     "nextSteps": "Nächste Schritte",
     "navCards": {
-      "channels": { "name": "Kanäle hinzufügen", "desc": "Telegram, Discord, WhatsApp..." },
-      "automations": { "name": "Automatisierung einrichten", "desc": "E-Mail-Zusammenfassungen, Zeitpläne..." },
-      "sources": { "name": "E-Mail konfigurieren", "desc": "IMAP-Einstellungen für Posteingang" }
+      "channels": {
+        "name": "Kanäle hinzufügen",
+        "desc": "Telegram, Discord, WhatsApp..."
+      },
+      "automations": {
+        "name": "Automatisierung einrichten",
+        "desc": "E-Mail-Zusammenfassungen, Zeitpläne..."
+      },
+      "sources": {
+        "name": "E-Mail konfigurieren",
+        "desc": "IMAP-Einstellungen für Posteingang"
+      }
     },
     "step": "Schritt {{current}} von {{total}}",
     "back": "Zurück",
@@ -233,6 +242,10 @@
       "vps-headless": {
         "name": "VPS Headless-Bereitstellung",
         "description": "OpenClaw auf einem VPS-Server ohne grafische Oberfläche bereitstellen"
+      },
+      "vps-bootstrap": {
+        "name": "VPS-Ferneinrichtung",
+        "description": "OpenClaw auf einem Remote-VPS-Server verwalten und bereitstellen"
       }
     },
     "wizard": {
@@ -381,7 +394,6 @@
   "settings": {
     "title": "Einstellungen",
     "language": "Sprache",
-    "theme": "Design",
     "theme": "Design",
     "light": "Hell",
     "dark": "Dunkel",
@@ -584,7 +596,11 @@
     "title": "Feedback senden",
     "collecting": "Diagnoseinformationen werden gesammelt...",
     "type": "Problemtyp",
-    "types": { "bug": "Fehler", "feature": "Funktionswunsch", "question": "Frage" },
+    "types": {
+      "bug": "Fehler",
+      "feature": "Funktionswunsch",
+      "question": "Frage"
+    },
     "descriptionLabel": "Beschreibung",
     "descriptionPlaceholder": "Erzählen Sie uns, was passiert ist oder was Sie sich wünschen...",
     "autoCollected": "Automatisch gesammelte Diagnosedaten",
@@ -725,7 +741,13 @@
     "save": "Kanal hinzufügen",
     "cancel": "Abbrechen",
     "noTokenGeneric": "Dieser Kanal erfordert manuelle Einrichtung über das Terminal.",
-    "types": { "telegram": "Telegram", "discord": "Discord", "whatsapp": "WhatsApp", "slack": "Slack", "webchat": "WebChat" },
+    "types": {
+      "telegram": "Telegram",
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "slack": "Slack",
+      "webchat": "WebChat"
+    },
     "setup": {
       "telegram": "Erstelle einen Bot über @BotFather auf Telegram und füge den Token unten ein.",
       "discord": "Erstelle eine App im Discord Developer Portal. Kopiere den Bot Token.",
@@ -748,10 +770,22 @@
     "tipTitle": "Wie Quellen mit Automatisierungen funktionieren",
     "tipDesc": "Nach der Quellkonfiguration erstelle eine Automatisierung, um sie regelmäßig zu prüfen und Zusammenfassungen an Kanäle zu senden.",
     "types": {
-      "imap": { "name": "E-Mail (IMAP)", "desc": "E-Mails aus jedem IMAP-kompatiblen Postfach lesen" },
-      "rss": { "name": "RSS-Feeds", "desc": "Blogbeiträge, Nachrichten und Website-Updates überwachen" },
-      "calendar": { "name": "Kalender", "desc": "Termine und Zeitplanänderungen verfolgen" },
-      "webhook": { "name": "Webhooks", "desc": "Daten von externen Diensten empfangen" }
+      "imap": {
+        "name": "E-Mail (IMAP)",
+        "desc": "E-Mails aus jedem IMAP-kompatiblen Postfach lesen"
+      },
+      "rss": {
+        "name": "RSS-Feeds",
+        "desc": "Blogbeiträge, Nachrichten und Website-Updates überwachen"
+      },
+      "calendar": {
+        "name": "Kalender",
+        "desc": "Termine und Zeitplanänderungen verfolgen"
+      },
+      "webhook": {
+        "name": "Webhooks",
+        "desc": "Daten von externen Diensten empfangen"
+      }
     }
   },
   "automations": {
@@ -782,11 +816,31 @@
     "saving": "Wird erstellt...",
     "save": "Automatisierung erstellen",
     "cancel": "Abbrechen",
-    "intervals": { "5m": "5 Minuten", "15m": "15 Minuten", "30m": "30 Minuten", "1h": "1 Stunde", "6h": "6 Stunden", "24h": "24 Stunden" },
+    "intervals": {
+      "5m": "5 Minuten",
+      "15m": "15 Minuten",
+      "30m": "30 Minuten",
+      "1h": "1 Stunde",
+      "6h": "6 Stunden",
+      "24h": "24 Stunden"
+    },
     "presets": {
-      "email-summary": { "name": "E-Mail-Zusammenfassung", "desc": "Neue E-Mails regelmäßig zusammenfassen", "defaultName": "E-Mail-Zusammenfassung", "defaultMessage": "Prüfe auf neue ungelesene E-Mails. Fasse wichtige kurz zusammen. Wenn nichts Neues, schweige." },
-      "scheduled-reminder": { "name": "Geplante Erinnerung", "desc": "Periodische Erinnerungen oder Updates senden", "defaultName": "Tägliche Erinnerung", "defaultMessage": "Gib mir eine kurze Zusammenfassung des heutigen Wetters und wichtiger Nachrichten." },
-      "custom": { "name": "Benutzerdefiniert", "desc": "Eigene Aufgabe von Grund auf definieren" }
+      "email-summary": {
+        "name": "E-Mail-Zusammenfassung",
+        "desc": "Neue E-Mails regelmäßig zusammenfassen",
+        "defaultName": "E-Mail-Zusammenfassung",
+        "defaultMessage": "Prüfe auf neue ungelesene E-Mails. Fasse wichtige kurz zusammen. Wenn nichts Neues, schweige."
+      },
+      "scheduled-reminder": {
+        "name": "Geplante Erinnerung",
+        "desc": "Periodische Erinnerungen oder Updates senden",
+        "defaultName": "Tägliche Erinnerung",
+        "defaultMessage": "Gib mir eine kurze Zusammenfassung des heutigen Wetters und wichtiger Nachrichten."
+      },
+      "custom": {
+        "name": "Benutzerdefiniert",
+        "desc": "Eigene Aufgabe von Grund auf definieren"
+      }
     }
   }
 }

@@ -201,9 +201,18 @@
     "chooseTemplate": "選擇設定範本",
     "nextSteps": "下一步",
     "navCards": {
-      "channels": { "name": "新增頻道", "desc": "Telegram、Discord、WhatsApp..." },
-      "automations": { "name": "設定自動化", "desc": "郵件摘要、定時任務..." },
-      "sources": { "name": "配置郵箱", "desc": "IMAP 設定，監控收件匣" }
+      "channels": {
+        "name": "新增頻道",
+        "desc": "Telegram、Discord、WhatsApp..."
+      },
+      "automations": {
+        "name": "設定自動化",
+        "desc": "郵件摘要、定時任務..."
+      },
+      "sources": {
+        "name": "配置郵箱",
+        "desc": "IMAP 設定，監控收件匣"
+      }
     },
     "step": "第 {{current}} 步，共 {{total}} 步",
     "back": "上一步",
@@ -233,6 +242,10 @@
       "vps-headless": {
         "name": "VPS 無頭部署",
         "description": "在無圖形介面的 VPS 伺服器上部署 OpenClaw"
+      },
+      "vps-bootstrap": {
+        "name": "VPS 遠端部署",
+        "description": "遠端管理和部署 VPS 伺服器上的 OpenClaw"
       }
     },
     "wizard": {
@@ -381,7 +394,6 @@
   "settings": {
     "title": "設定",
     "language": "語言",
-    "theme": "主題",
     "theme": "主題",
     "light": "淺色",
     "dark": "深色",
@@ -584,7 +596,11 @@
     "title": "傳送回饋",
     "collecting": "正在收集診斷資訊...",
     "type": "問題類型",
-    "types": { "bug": "Bug", "feature": "功能建議", "question": "提問" },
+    "types": {
+      "bug": "Bug",
+      "feature": "功能建議",
+      "question": "提問"
+    },
     "descriptionLabel": "描述",
     "descriptionPlaceholder": "告訴我們發生了什麼，或者您想要什麼功能...",
     "autoCollected": "自動收集的診斷資訊",
@@ -725,7 +741,13 @@
     "save": "新增頻道",
     "cancel": "取消",
     "noTokenGeneric": "此頻道需要透過終端手動設定。",
-    "types": { "telegram": "Telegram", "discord": "Discord", "whatsapp": "WhatsApp", "slack": "Slack", "webchat": "WebChat 網頁聊天" },
+    "types": {
+      "telegram": "Telegram",
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "slack": "Slack",
+      "webchat": "WebChat 網頁聊天"
+    },
     "setup": {
       "telegram": "在 Telegram 上透過 @BotFather 建立機器人，將 Token 貼到下方。",
       "discord": "在 Discord 開發者入口建立應用，複製 Bot Token。",
@@ -748,10 +770,22 @@
     "tipTitle": "輸入源如何與自動化配合",
     "tipDesc": "配置輸入源後，建立自動化定期檢查並將摘要傳送到頻道。",
     "types": {
-      "imap": { "name": "郵箱 (IMAP)", "desc": "從任何 IMAP 相容的郵箱讀取郵件" },
-      "rss": { "name": "RSS 訂閱", "desc": "監控部落格文章、新聞和網站更新" },
-      "calendar": { "name": "行事曆", "desc": "追蹤事件和日程變動" },
-      "webhook": { "name": "Webhook", "desc": "從外部服務接收資料" }
+      "imap": {
+        "name": "郵箱 (IMAP)",
+        "desc": "從任何 IMAP 相容的郵箱讀取郵件"
+      },
+      "rss": {
+        "name": "RSS 訂閱",
+        "desc": "監控部落格文章、新聞和網站更新"
+      },
+      "calendar": {
+        "name": "行事曆",
+        "desc": "追蹤事件和日程變動"
+      },
+      "webhook": {
+        "name": "Webhook",
+        "desc": "從外部服務接收資料"
+      }
     }
   },
   "automations": {
@@ -782,11 +816,31 @@
     "saving": "建立中...",
     "save": "建立自動化",
     "cancel": "取消",
-    "intervals": { "5m": "5 分鐘", "15m": "15 分鐘", "30m": "30 分鐘", "1h": "1 小時", "6h": "6 小時", "24h": "24 小時" },
+    "intervals": {
+      "5m": "5 分鐘",
+      "15m": "15 分鐘",
+      "30m": "30 分鐘",
+      "1h": "1 小時",
+      "6h": "6 小時",
+      "24h": "24 小時"
+    },
     "presets": {
-      "email-summary": { "name": "郵件摘要", "desc": "定期彙總新郵件", "defaultName": "郵件摘要", "defaultMessage": "檢查新的未讀郵件，簡要總結重要內容。如果沒有新郵件，保持沉默。" },
-      "scheduled-reminder": { "name": "定時提醒", "desc": "傳送定期提醒或更新", "defaultName": "每日提醒", "defaultMessage": "給我一個今天的天氣和重要新聞的簡短摘要。" },
-      "custom": { "name": "自訂", "desc": "從零開始定義自己的任務" }
+      "email-summary": {
+        "name": "郵件摘要",
+        "desc": "定期彙總新郵件",
+        "defaultName": "郵件摘要",
+        "defaultMessage": "檢查新的未讀郵件，簡要總結重要內容。如果沒有新郵件，保持沉默。"
+      },
+      "scheduled-reminder": {
+        "name": "定時提醒",
+        "desc": "傳送定期提醒或更新",
+        "defaultName": "每日提醒",
+        "defaultMessage": "給我一個今天的天氣和重要新聞的簡短摘要。"
+      },
+      "custom": {
+        "name": "自訂",
+        "desc": "從零開始定義自己的任務"
+      }
     }
   }
 }
