@@ -112,6 +112,8 @@ describe("VpsManager — with instances", () => {
       const cmd = args[0] as string;
       if (cmd === "list_instances") return [SAMPLE_INSTANCE];
       if (cmd === "get_active_target") return { mode: "local" };
+      if (cmd === "ssh_start_tunnel") return 19900;
+      if (cmd === "ssh_stop_tunnel") return undefined;
       return {};
     });
   });

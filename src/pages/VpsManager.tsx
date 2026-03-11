@@ -314,7 +314,7 @@ export default function VpsManager() {
 
   const handleDisconnect = async () => {
     try {
-      await invoke('set_active_target', { mode: 'local' });
+      await invoke('set_active_target', { mode: 'local' }); // also stops SSH tunnel
       await loadActiveTarget();
     } catch (e) {
       console.error('Failed to disconnect:', e);
@@ -329,7 +329,19 @@ export default function VpsManager() {
     setConnecting(true);
     setConnectError(null);
     try {
-      const url = `ws://${inst.host}:${inst.serve_port}`;
+      // Step 1: Create SSH port-forward tunnel (localhost:<port> → remote:<port>)
+      // This avoids exposing the serve port on the VPS firewall — only SSH (22) needed.
+      const localPort = await invoke<number>('ssh_start_tunnel', {
+        host: inst.host,
+        sshPort: inst.port,
+        username: inst.username,
+        authMethod: inst.auth_method,
+        password: inst.auth_method === 'password' ? (inst.password ?? null) : null,
+        keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
+        remotePort: inst.serve_port,
+      });
+      // Step 2: WebSocket to localhost tunnel
+      const url = `ws://127.0.0.1:${localPort}`;
       await invoke('set_active_target', {
         mode: 'protocol',
         url,

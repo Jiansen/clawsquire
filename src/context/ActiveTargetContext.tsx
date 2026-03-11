@@ -79,25 +79,12 @@ export function ActiveTargetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    invoke<ActiveTarget>('get_active_target')
-      .then(async (t) => {
-        if (t.mode === 'protocol') {
-          // Verify the connection is still alive. If the app was hot-reloaded
-          // (dev HMR) or the serve process died, the Rust in-memory state might
-          // still report Protocol even though the WS is gone.
-          // We use get_environment as a lightweight ping; on failure → reset Local.
-          try {
-            await invoke('get_environment');
-            setTargetState(t);
-          } catch {
-            await invoke('set_active_target', { mode: 'local', url: null, token: null, instanceId: null, host: null }).catch(() => {});
-            setTargetState(defaultTarget);
-          }
-        } else {
-          setTargetState(t);
-        }
-      })
-      .catch(() => setTargetState(defaultTarget));
+    // Always reset to Local on app mount. Protocol connections are ephemeral —
+    // they are not persisted and should not survive app restarts or HMR reloads.
+    // User reconnects explicitly from VPS Manager (stored credentials make it 1-click).
+    invoke('set_active_target', { mode: 'local', url: null, token: null, instanceId: null, host: null })
+      .catch(() => {})
+      .finally(() => setTargetState(defaultTarget));
     refreshInstances();
   }, [refreshInstances]);
 

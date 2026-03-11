@@ -2,6 +2,7 @@ mod active_target;
 mod protocol_runner;
 mod secure_store;
 mod sidecar;
+mod ssh_tunnel;
 
 use active_target::{ActiveTargetInfo, ActiveTargetState};
 use clawsquire_core::backup::{self, BackupEntry, DiffEntry};
@@ -260,6 +261,34 @@ async fn bootstrap_get_script(platform: String, arch: String) -> Result<String, 
 #[tauri::command]
 async fn bootstrap_get_cargo_script() -> Result<String, String> {
     Ok(bootstrap::cargo_install_script().to_string())
+}
+
+/// Start an SSH port-forward tunnel and connect to the remote serve via localhost.
+/// Returns the local port to use for WebSocket connection.
+#[tauri::command]
+async fn ssh_start_tunnel(
+    host: String,
+    ssh_port: u16,
+    username: String,
+    auth_method: String,
+    password: Option<String>,
+    key_path: Option<String>,
+    remote_port: u16,
+) -> Result<u16, String> {
+    let local_port = remote_port; // forward same port number locally
+    let params = ssh_tunnel::TunnelParams {
+        host, ssh_port, username, auth_method, password, key_path,
+        remote_port, local_port,
+    };
+    tauri::async_runtime::spawn_blocking(move || ssh_tunnel::start(&params))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Stop any active SSH tunnel.
+#[tauri::command]
+async fn ssh_stop_tunnel() {
+    ssh_tunnel::stop();
 }
 
 /// Quick SSH connectivity test for the Add Instance form.
@@ -575,6 +604,7 @@ async fn set_active_target(
 ) -> Result<ActiveTargetInfo, String> {
     match mode.as_str() {
         "local" => {
+            ssh_tunnel::stop(); // kill any active SSH tunnel when switching to local
             state.set_local();
         }
         "protocol" => {
@@ -716,6 +746,8 @@ pub fn run() {
             bootstrap_get_script,
             bootstrap_get_cargo_script,
             ssh_test_connection,
+            ssh_start_tunnel,
+            ssh_stop_tunnel,
             bootstrap_ssh_start,
             add_channel,
             remove_channel,
