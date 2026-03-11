@@ -196,12 +196,23 @@ export default function Bootstrap() {
       setBootstrapResult(result);
 
       if (result.success && result.token && result.port) {
+        // Persist serve token+port so VpsManager can reconnect without re-bootstrapping
+        const instanceId = selectedInstance || 'ssh-bootstrap';
+        try {
+          await invoke('set_instance_serve', {
+            id: instanceId,
+            servePort: result.port,
+            serveToken: result.token,
+          });
+        } catch (_) {
+          // Non-fatal: auto-connect still works even if persist fails
+        }
         // Auto-connect
         try {
           await setTarget('protocol', {
             url: `ws://${sshHost}:${result.port}`,
             token: result.token,
-            instanceId: selectedInstance || 'ssh-bootstrap',
+            instanceId,
             host: sshHost,
           });
           setTab('verify');

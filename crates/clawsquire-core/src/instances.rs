@@ -23,6 +23,12 @@ pub struct VpsInstance {
     pub openclaw_version: Option<String>,
     pub last_connected: Option<String>,
     pub created_at: String,
+    /// Port that clawsquire-serve is listening on after bootstrap.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub serve_port: Option<u16>,
+    /// Auth token for the serve WebSocket connection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub serve_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -76,11 +82,28 @@ pub fn update_instance(instance: VpsInstance) -> Result<VpsInstance, String> {
         existing.openclaw_installed = instance.openclaw_installed;
         existing.openclaw_version = instance.openclaw_version.clone();
         existing.last_connected = instance.last_connected.clone();
+        // Preserve serve connection info if not explicitly being updated
+        if instance.serve_port.is_some() { existing.serve_port = instance.serve_port; }
+        if instance.serve_token.is_some() { existing.serve_token = instance.serve_token.clone(); }
     } else {
         return Err(format!("Instance '{}' not found", instance.id));
     }
     store.save()?;
     Ok(instance)
+}
+
+/// Update only the serve connection info (port + token) for an instance.
+pub fn set_instance_serve(id: &str, serve_port: u16, serve_token: &str) -> Result<VpsInstance, String> {
+    let mut store = InstancesStore::load();
+    if let Some(inst) = store.instances.iter_mut().find(|i| i.id == id) {
+        inst.serve_port = Some(serve_port);
+        inst.serve_token = Some(serve_token.to_string());
+        let updated = inst.clone();
+        store.save()?;
+        Ok(updated)
+    } else {
+        Err(format!("Instance '{}' not found", id))
+    }
 }
 
 pub fn delete_instance(id: &str) -> Result<(), String> {
@@ -112,6 +135,8 @@ mod tests {
             openclaw_version: None,
             last_connected: None,
             created_at: "2026-03-10T00:00:00Z".to_string(),
+            serve_port: None,
+            serve_token: None,
         }
     }
 

@@ -16,6 +16,8 @@ interface VpsInstance {
   openclaw_version?: string | null;
   last_connected?: string | null;
   created_at: string;
+  serve_port?: number | null;
+  serve_token?: string | null;
 }
 
 interface ActiveTargetInfo {
@@ -153,14 +155,18 @@ export default function VpsManager() {
   };
 
   const handleConnect = async (inst: VpsInstance) => {
+    if (!inst.serve_port || !inst.serve_token) {
+      // No stored serve info — guide user to Bootstrap
+      navigate('/bootstrap');
+      return;
+    }
     setConnecting(true);
     try {
-      const wsPort = 9394;
-      const url = `ws://${inst.host}:${wsPort}`;
+      const url = `ws://${inst.host}:${inst.serve_port}`;
       await invoke('set_active_target', {
         mode: 'protocol',
         url,
-        token: 'bootstrap-token',
+        token: inst.serve_token,
         instanceId: inst.id,
         host: inst.host,
       });

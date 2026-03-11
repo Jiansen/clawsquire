@@ -525,6 +525,11 @@ async fn delete_instance(id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn set_instance_serve(id: String, serve_port: u16, serve_token: String) -> Result<VpsInstance, String> {
+    instances::set_instance_serve(&id, serve_port, &serve_token)
+}
+
+#[tauri::command]
 async fn store_secret(key: String, value: String) -> secure_store::SecureStoreResult {
     tauri::async_runtime::spawn_blocking(move || secure_store::store_secret(&key, &value))
         .await
@@ -725,6 +730,7 @@ pub fn run() {
             add_instance,
             update_instance,
             delete_instance,
+            set_instance_serve,
             get_active_target,
             set_active_target,
             detect_imap_preset,
