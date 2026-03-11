@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.3.0] — 2026-03-11
+
+Controller-Agent architecture: ClawSquire now communicates with remote servers via a lightweight WebSocket agent (`clawsquire-serve`) instead of raw SSH commands, enabling true cross-platform remote management.
+
+### Features
+
+- **Controller-Agent Architecture** — Desktop acts as controller; remote VPS runs `clawsquire-serve` agent via JSON-RPC 2.0 over WebSocket (ADR-002)
+- **`clawsquire-serve`** — Standalone headless Rust binary, zero dependencies, bundled inside the Desktop app (Tauri sidecar) and publishable as standalone release asset
+- **SSH Auto-Bootstrap** — 6-step wizard: check SSH → connect → probe OS/arch → install serve → `--init` → start daemon; one click from ClawSquire Desktop
+- **27 JSON-RPC Methods** — Complete protocol covering system info, OpenClaw lifecycle, configuration, backups, channels, automations, sources, community search, bootstrapping (ADR-003)
+- **Unified Path Architecture** — Local and remote modes use identical protocol path via `ProtocolRunner`; `ActiveTarget` simplified to connection-address selector (ADR-004)
+- **Cross-Platform Serve Binaries** — GitHub Releases now include `clawsquire-serve-{linux,darwin,windows}-{x86_64,aarch64}` binaries for all major platforms
+- **`VpsManager` Protocol UI** — Replaced SSH-direct deploy/terminal tabs with protocol-first Setup and Connect/Disconnect flow
+
+### Architecture
+
+- `clawsquire-core` workspace crate: protocol types, dispatch, bootstrap logic, SSH bootstrap
+- `clawsquire-serve` binary crate: tokio WebSocket server, JSON-RPC dispatch
+- `ProtocolRunner` in desktop: WebSocket client implementing `CliRunner` trait
+- `SshCliRunner` replaced by `ProtocolRunner` for all remote operations
+- 109 Vitest + 72 Rust + 30 protocol E2E + 7 WebdriverIO tests (218+ total)
+- CI: macOS / Ubuntu / Windows 3-platform matrix, all green
+
+### Breaking Changes
+
+- `SshCliRunner` and SSH-direct IPC handlers removed; replaced by Protocol path
+- VPS connections now require `clawsquire-serve` installed on remote (auto-installed via Bootstrap)
+
 ## [0.2.0] — 2026-03-10
 
 Remote VPS management: ClawSquire can now manage OpenClaw installations on remote servers, not just locally.
