@@ -1,4 +1,5 @@
 use crate::bootstrap;
+use crate::detect::cmd_with_path;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -65,11 +66,16 @@ fn build_ssh_args(cfg: &SshConfig) -> Vec<String> {
         "StrictHostKeyChecking=no".into(),
         "-o".into(),
         "ConnectTimeout=15".into(),
-        "-o".into(),
-        "BatchMode=yes".into(),
         "-p".into(),
         cfg.port.to_string(),
     ];
+
+    // BatchMode=yes disables password prompts — must NOT be set for password auth
+    // because sshpass injects the password via a PTY prompt that BatchMode suppresses.
+    if cfg.auth_method != "password" {
+        args.push("-o".into());
+        args.push("BatchMode=yes".into());
+    }
 
     if cfg.auth_method == "key" {
         if let Some(ref kp) = cfg.key_path {
@@ -88,7 +94,9 @@ fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
 
     let mut cmd = if cfg.auth_method == "password" {
         if let Some(ref pw) = cfg.password {
-            let mut c = Command::new("sshpass");
+            // cmd_with_path ensures /usr/local/bin (Homebrew) is on PATH
+            // so sshpass is found even in Tauri's restricted GUI environment.
+            let mut c = cmd_with_path("sshpass");
             c.args(["-p", pw, "ssh"]);
             c.args(&args);
             c
@@ -96,7 +104,7 @@ fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
             return Err("Password auth selected but no password provided".into());
         }
     } else {
-        let mut c = Command::new("ssh");
+        let mut c = cmd_with_path("ssh");
         c.args(&args);
         c
     };
@@ -124,7 +132,7 @@ fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
 /// Quick SSH connectivity test. Runs `echo ok` via SSH.
 pub fn test_connection(cfg: &SshConfig) -> Result<String, String> {
     if cfg.auth_method == "password" {
-        let has_sshpass = Command::new("which")
+        let has_sshpass = cmd_with_path("which")
             .arg("sshpass")
             .output()
             .map(|o| o.status.success())
@@ -161,7 +169,8 @@ pub fn run_bootstrap<F: FnMut(BootstrapEvent)>(
     // Step 1: Check local SSH client
     emit(BootstrapEvent::running("ssh_check", "Checking local SSH client..."));
     let ssh_bin = if cfg.auth_method == "password" { "sshpass" } else { "ssh" };
-    let which = Command::new("which").arg(ssh_bin).output();
+    // Use cmd_with_path so /usr/local/bin (Homebrew) is included — GUI apps get minimal PATH.
+    let which = cmd_with_path("which").arg(ssh_bin).output();
     match which {
         Ok(o) if o.status.success() => {
             emit(BootstrapEvent::ok("ssh_check", &format!("{} available", ssh_bin)));
