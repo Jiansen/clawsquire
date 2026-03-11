@@ -1157,33 +1157,57 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
     }
 
     // Step 2: Remove the npm package.
-    // Detect the npm prefix where openclaw binary actually lives so we uninstall
-    // from the right location (user prefix ~/.npm-global vs system prefix /usr).
-    let npm_prefix: Option<String> = (|| -> Option<String> {
-        let bin = std::process::Command::new("which")
-            .arg("openclaw")
-            .output()
-            .ok()
-            .filter(|o| o.status.success())
-            .and_then(|o| String::from_utf8(o.stdout).ok())
-            .map(|s| s.trim().to_string())?;
-        // e.g. /usr/bin/openclaw → parent /usr/bin → parent /usr
-        let path = std::path::Path::new(&bin);
-        path.parent()?.parent().map(|p| p.to_string_lossy().to_string())
-    })();
+    // Detect the npm prefix where openclaw binary actually lives.
+    // If it's a system prefix (e.g. /usr/lib/node_modules) the npm uninstall
+    // may fail with EACCES (requires root). In that case we skip and note it
+    // — the binary removal is best-effort; the service was already stopped by
+    // the `openclaw uninstall --service` call above.
+    let bin_path = std::process::Command::new("which")
+        .arg("openclaw")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string());
 
-    let mut npm_cmd = cmd_with_path("npm");
-    npm_cmd.args(["uninstall", "-g", OPENCLAW_NPM_PKG]);
-    if let Some(ref prefix) = npm_prefix {
-        npm_cmd.arg("--prefix").arg(prefix);
-    }
-    match npm_cmd.output() {
-        Ok(o) if o.status.success() => result.npm_uninstalled = true,
-        Ok(o) => {
-            let msg = String::from_utf8_lossy(&o.stderr).trim().to_string();
-            result.errors.push(format!("npm uninstall: {}", msg));
+    let npm_prefix: Option<String> = bin_path.as_deref().and_then(|bin| {
+        // e.g. /usr/bin/openclaw → parent /usr/bin → parent /usr
+        let path = std::path::Path::new(bin);
+        path.parent()?.parent().map(|p| p.to_string_lossy().to_string())
+    });
+
+    // Only attempt npm uninstall if the prefix is user-writable
+    let prefix_writable = npm_prefix.as_deref().map(|p| {
+        std::fs::metadata(std::path::Path::new(p).join("lib"))
+            .map(|m| !m.permissions().readonly())
+            .unwrap_or(false)
+    }).unwrap_or(true);
+
+    if prefix_writable {
+        let mut npm_cmd = cmd_with_path("npm");
+        npm_cmd.args(["uninstall", "-g", OPENCLAW_NPM_PKG]);
+        if let Some(ref prefix) = npm_prefix {
+            npm_cmd.arg("--prefix").arg(prefix);
         }
-        Err(e) => result.errors.push(format!("npm uninstall: {}", e)),
+        match npm_cmd.output() {
+            Ok(o) if o.status.success() => result.npm_uninstalled = true,
+            Ok(o) => {
+                let msg = String::from_utf8_lossy(&o.stderr).trim().to_string();
+                // EACCES = permission denied; treat as best-effort, not a fatal error
+                if msg.contains("EACCES") || msg.contains("permission denied") {
+                    result.errors.push(format!("npm uninstall skipped (permission denied — binary installed as root): {}", msg));
+                } else {
+                    result.errors.push(format!("npm uninstall: {}", msg));
+                }
+            }
+            Err(e) => result.errors.push(format!("npm uninstall: {}", e)),
+        }
+    } else {
+        // System-owned prefix — openclaw uninstall --service already handled service cleanup;
+        // the binary requires root to remove, which we cannot do without sudo.
+        result.errors.push(
+            "npm uninstall skipped: OpenClaw binary is in a system-owned prefix (e.g. /usr/lib/node_modules) and requires root to remove. The service has been uninstalled. To fully remove the binary: sudo npm uninstall -g openclaw".to_string()
+        );
     }
 
     // Step 3: If remove_config was not handled by `openclaw uninstall --state`,

@@ -397,7 +397,7 @@ async fn open_openclaw_portal(
         return Err("open_openclaw_portal is only available in remote mode".into());
     }
 
-    // Resolve SSH credentials from stored instance + Keychain
+    // Resolve SSH credentials: cached tunnel params > Keychain > stored instance
     let (host, ssh_port, username, auth_method, password, key_path) =
         tauri::async_runtime::spawn_blocking({
             let target = target.clone();
@@ -406,12 +406,18 @@ async fn open_openclaw_portal(
                     active_target::Target::Protocol { instance_id, .. } => instance_id.clone(),
                     _ => return Err("not in protocol mode".into()),
                 };
+
+                // Priority 1: use credentials cached from the active main tunnel
+                if let Some(creds) = ssh_tunnel::get_cached_ssh_creds() {
+                    return Ok((creds.host, creds.ssh_port, creds.username, creds.auth_method, creds.password, creds.key_path));
+                }
+
+                // Priority 2: look up instance and load password from OS Keychain
                 let inst = instances::list_instances()
                     .into_iter()
                     .find(|i| i.id == instance_id)
                     .ok_or_else(|| format!("instance {} not found", instance_id))?;
 
-                // Load password from OS Keychain if needed
                 let password = if inst.auth_method == "password" {
                     let key = secure_store::ssh_password_name(&instance_id);
                     secure_store::get_secret(&key).ok()

@@ -19,6 +19,39 @@ static TUNNEL: Mutex<Option<Child>> = Mutex::new(None);
 /// Separate tunnel for OpenClaw dashboard (port 18789).
 static DASHBOARD_TUNNEL: Mutex<Option<Child>> = Mutex::new(None);
 
+/// SSH credentials cached from the last successful main tunnel connection.
+/// Used by the dashboard tunnel so the user is not prompted for credentials again.
+static CACHED_SSH_CREDS: Mutex<Option<SshCreds>> = Mutex::new(None);
+
+#[derive(Clone)]
+pub struct SshCreds {
+    pub host: String,
+    pub ssh_port: u16,
+    pub username: String,
+    pub auth_method: String,
+    pub password: Option<String>,
+    pub key_path: Option<String>,
+}
+
+/// Cache SSH credentials after a successful main tunnel connection.
+pub fn cache_ssh_creds(params: &TunnelParams) {
+    if let Ok(mut guard) = CACHED_SSH_CREDS.lock() {
+        *guard = Some(SshCreds {
+            host: params.host.clone(),
+            ssh_port: params.ssh_port,
+            username: params.username.clone(),
+            auth_method: params.auth_method.clone(),
+            password: params.password.clone(),
+            key_path: params.key_path.clone(),
+        });
+    }
+}
+
+/// Retrieve cached SSH credentials (for dashboard tunnel reuse).
+pub fn get_cached_ssh_creds() -> Option<SshCreds> {
+    CACHED_SSH_CREDS.lock().ok()?.clone()
+}
+
 pub struct TunnelParams {
     pub host: String,
     pub ssh_port: u16,
@@ -149,6 +182,9 @@ pub fn start(params: &TunnelParams) -> Result<u16, String> {
     let mut guard = TUNNEL.lock().unwrap();
     *guard = Some(child);
     drop(guard);
+
+    // Cache credentials so the dashboard tunnel can reuse them without prompting
+    cache_ssh_creds(params);
 
     Ok(local_port)
 }
