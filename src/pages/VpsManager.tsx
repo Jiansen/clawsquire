@@ -328,6 +328,8 @@ export default function VpsManager() {
 
   const handleDeleteInstance = async (id: string) => {
     try {
+      // Clean up keychain entry before removing the instance
+      invoke('keychain_delete_ssh_password', { instanceId: id }).catch(() => {});
       await invoke('delete_instance', { id });
       const remaining = instances.filter(i => i.id !== id);
       if (selectedId === id) {
@@ -385,8 +387,14 @@ export default function VpsManager() {
       navigate(`/bootstrap?instanceId=${inst.id}`);
       return;
     }
-    // If password auth but no password available, prompt the user first
-    const resolvedPassword = passwordOverride ?? inst.password ?? null;
+    // Resolve password: override → keychain → in-memory (inst.password) → prompt
+    let resolvedPassword: string | null = passwordOverride ?? inst.password ?? null;
+    if (inst.auth_method === 'password' && !resolvedPassword) {
+      // Try loading from OS keychain (silently fails if unavailable)
+      try {
+        resolvedPassword = await invoke<string | null>('keychain_load_ssh_password', { instanceId: inst.id });
+      } catch { /* keychain unavailable */ }
+    }
     if (inst.auth_method === 'password' && !resolvedPassword) {
       setPendingPasswordInst(inst);
       setPendingPassword('');
@@ -418,6 +426,10 @@ export default function VpsManager() {
       await loadActiveTarget();
       await refreshTarget();       // ← updates TopBar + Dashboard
       await ctxRefreshInstances(); // ← updates TopBar instance list
+      // Step 4: Save password to OS keychain for next session (best-effort, silent on failure)
+      if (inst.auth_method === 'password' && resolvedPassword) {
+        invoke('keychain_save_ssh_password', { instanceId: inst.id, password: resolvedPassword }).catch(() => {});
+      }
     } catch (e) {
       setConnectError(String(e));
     }

@@ -637,6 +637,36 @@ async fn delete_secret(key: String) -> secure_store::SecureStoreResult {
         })
 }
 
+/// Save SSH password to OS keychain (macOS Keychain / Linux Secret Service / Windows CredMan).
+/// Silently fails if keychain is unavailable — fallback is manual prompt each session.
+#[tauri::command]
+async fn keychain_save_ssh_password(instance_id: String, password: String) -> bool {
+    let key = secure_store::ssh_password_name(&instance_id);
+    tauri::async_runtime::spawn_blocking(move || secure_store::store_secret(&key, &password))
+        .await
+        .map(|r| r.success)
+        .unwrap_or(false)
+}
+
+/// Load SSH password from OS keychain. Returns None if not stored or keychain unavailable.
+#[tauri::command]
+async fn keychain_load_ssh_password(instance_id: String) -> Option<String> {
+    let key = secure_store::ssh_password_name(&instance_id);
+    tauri::async_runtime::spawn_blocking(move || secure_store::get_secret(&key))
+        .await
+        .ok()
+        .and_then(|r| r.ok())
+}
+
+/// Delete SSH password from OS keychain (called on instance removal).
+#[tauri::command]
+async fn keychain_delete_ssh_password(instance_id: String) -> bool {
+    let key = secure_store::ssh_password_name(&instance_id);
+    tauri::async_runtime::spawn_blocking(move || secure_store::delete_secret(&key))
+        .await
+        .map(|r| r.success)
+        .unwrap_or(false)
+}
 
 #[tauri::command]
 async fn get_active_target(
@@ -839,6 +869,9 @@ pub fn run() {
             store_secret,
             get_secret,
             delete_secret,
+            keychain_save_ssh_password,
+            keychain_load_ssh_password,
+            keychain_delete_ssh_password,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
