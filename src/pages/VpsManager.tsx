@@ -452,7 +452,7 @@ export default function VpsManager() {
         keyPath: inst.key_path ?? null,
       });
     } catch (e) {
-      setError(`Dashboard: ${String(e)}`);
+      setConnectError(`Dashboard: ${String(e)}`);
     } finally {
       setOpeningPortal(false);
     }
