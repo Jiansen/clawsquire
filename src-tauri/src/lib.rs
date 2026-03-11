@@ -657,8 +657,15 @@ async fn set_active_target(
 ) -> Result<ActiveTargetInfo, String> {
     match mode.as_str() {
         "local" => {
-            ssh_tunnel::stop(); // kill any active SSH tunnel when switching to local
-            state.set_local();
+            // Both ssh_tunnel::stop() (Mutex) and set_local() (RwLock write) are blocking.
+            // Run them off the async executor to avoid starving Tauri's tokio runtime.
+            let state_clone = state.inner().clone();
+            tauri::async_runtime::spawn_blocking(move || {
+                ssh_tunnel::stop();
+                state_clone.set_local();
+            })
+            .await
+            .map_err(|e| format!("spawn_blocking panicked: {e}"))?;
         }
         "protocol" => {
             let url = url.ok_or("url required for protocol mode")?;
