@@ -123,6 +123,23 @@ fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
 
 /// Quick SSH connectivity test. Runs `echo ok` via SSH.
 pub fn test_connection(cfg: &SshConfig) -> Result<String, String> {
+    if cfg.auth_method == "password" {
+        let has_sshpass = Command::new("which")
+            .arg("sshpass")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
+        if !has_sshpass {
+            return Err(
+                "Password authentication requires `sshpass`, which is not installed.\n\
+                Install it with:\n\
+                  • macOS: brew install sshpass\n\
+                  • Ubuntu/Debian: sudo apt install sshpass\n\
+                Or switch to SSH key authentication (recommended)."
+                    .into(),
+            );
+        }
+    }
     ssh_exec(cfg, "echo ok")
 }
 

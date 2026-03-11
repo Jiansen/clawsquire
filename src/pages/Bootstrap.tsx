@@ -109,7 +109,7 @@ function stepStatusIcon(status: string) {
 
 export default function Bootstrap() {
   const { t } = useTranslation();
-  const { target, setTarget } = useActiveTarget();
+  const { target } = useActiveTarget();
   const isRemote = target.mode === 'protocol';
   const [searchParams] = useSearchParams();
 
@@ -222,20 +222,11 @@ export default function Bootstrap() {
             serveToken: result.token,
           });
         } catch (_) {
-          // Non-fatal: auto-connect still works even if persist fails
+          // Non-fatal: credentials saved best-effort; VpsManager will re-ask if missing
         }
-        // Auto-connect
-        try {
-          await setTarget('protocol', {
-            url: `ws://${sshHost}:${result.port}`,
-            token: result.token,
-            instanceId,
-            host: sshHost,
-          });
-          setTab('verify');
-        } catch (connectErr) {
-          setError(`Connected but auto-connect failed: ${connectErr}`);
-        }
+        // Do NOT auto-connect here — connecting resets ActiveTarget and causes TopBar
+        // to lock up while the WebSocket handshake completes.
+        // The instance now has serve_port + serve_token persisted; user connects from VpsManager.
       } else if (result.error) {
         setError(result.error);
       }
@@ -487,6 +478,12 @@ export default function Bootstrap() {
               <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-3 text-center font-medium">
                 {t('bootstrap.autoSuccess')}
               </div>
+              {/* Connect reminder */}
+              <div className="text-xs text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 rounded-lg px-4 py-2">
+                {t('bootstrap.connectReminder', {
+                  defaultValue: 'Credentials saved. Go to VPS Manager and click Connect to start managing the remote server.',
+                })}
+              </div>
               {/* Next-step guidance cards */}
               <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-3">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -494,10 +491,10 @@ export default function Bootstrap() {
                 </p>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <NextStepCard
-                    to="/"
-                    icon="📊"
-                    title={t('bootstrap.nextStepDashboard', { defaultValue: 'Dashboard' })}
-                    desc={t('bootstrap.nextStepDashboardDesc', { defaultValue: 'Install OpenClaw + start gateway' })}
+                    to="/vps"
+                    icon="☁️"
+                    title={t('bootstrap.nextStepVps', { defaultValue: 'VPS Manager' })}
+                    desc={t('bootstrap.nextStepVpsDesc', { defaultValue: 'Click Connect on your instance to go live' })}
                   />
                   <NextStepCard
                     to="/onboard/llm-provider"
