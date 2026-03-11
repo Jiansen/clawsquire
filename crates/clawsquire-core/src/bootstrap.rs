@@ -90,41 +90,36 @@ pub fn assess(env: &Environment) -> BootstrapStatus {
     }
 }
 
-/// Generate a shell script snippet to install clawsquire-serve on a remote machine.
-/// Assumes pre-built binaries are published at GitHub Releases.
-pub fn install_script(platform: &str, arch: &str) -> String {
-    let (os_label, binary_suffix) = match platform {
-        "windows" => ("windows", ".exe"),
-        "macos" | "darwin" => ("macos", ""),
-        _ => ("linux", ""),
+/// Asset name used in GitHub Releases (e.g. `clawsquire-serve-linux-x86_64`).
+pub fn asset_name(platform: &str, arch: &str) -> String {
+    let os_label = match platform {
+        "windows" => "windows",
+        "macos" | "darwin" => "darwin",
+        _ => "linux",
     };
-
     let arch_label = match arch {
         "aarch64" => "aarch64",
         _ => "x86_64",
     };
+    let ext = if platform == "windows" { ".exe" } else { "" };
+    format!("clawsquire-serve-{}-{}{}", os_label, arch_label, ext)
+}
 
-    let target_triple = match (os_label, arch_label) {
-        ("linux", "x86_64") => "x86_64-unknown-linux-gnu",
-        ("linux", "aarch64") => "aarch64-unknown-linux-gnu",
-        ("macos", "x86_64") => "x86_64-apple-darwin",
-        ("macos", "aarch64") => "aarch64-apple-darwin",
-        ("windows", "x86_64") => "x86_64-pc-windows-msvc",
-        ("windows", "aarch64") => "aarch64-pc-windows-msvc",
-        _ => "x86_64-unknown-linux-gnu",
-    };
+/// Generate a shell script snippet to install clawsquire-serve on a remote machine.
+/// Assumes pre-built binaries are published at GitHub Releases.
+pub fn install_script(platform: &str, arch: &str) -> String {
+    let name = asset_name(platform, arch);
 
     if platform == "windows" {
         format!(
             r#"# ClawSquire Serve — Windows install
-$url = "https://github.com/{repo}/releases/latest/download/clawsquire-serve-{triple}{ext}"
-$dest = "$env:USERPROFILE\.clawsquire\clawsquire-serve{ext}"
+$url = "https://github.com/{repo}/releases/latest/download/{name}"
+$dest = "$env:USERPROFILE\.clawsquire\{name}"
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.clawsquire" | Out-Null
 Invoke-WebRequest -Uri $url -OutFile $dest
 & $dest --init"#,
             repo = GITHUB_REPO,
-            triple = target_triple,
-            ext = binary_suffix,
+            name = name,
         )
     } else {
         format!(
@@ -133,11 +128,11 @@ Invoke-WebRequest -Uri $url -OutFile $dest
 set -e
 DEST="$HOME/.clawsquire/clawsquire-serve"
 mkdir -p "$HOME/.clawsquire"
-curl -fsSL "https://github.com/{repo}/releases/latest/download/clawsquire-serve-{triple}" -o "$DEST"
+curl -fsSL "https://github.com/{repo}/releases/latest/download/{name}" -o "$DEST"
 chmod +x "$DEST"
 "$DEST" --init"#,
             repo = GITHUB_REPO,
-            triple = target_triple,
+            name = name,
         )
     }
 }
@@ -199,9 +194,17 @@ mod tests {
     }
 
     #[test]
+    fn asset_name_variants() {
+        assert_eq!(asset_name("linux", "x86_64"), "clawsquire-serve-linux-x86_64");
+        assert_eq!(asset_name("linux", "aarch64"), "clawsquire-serve-linux-aarch64");
+        assert_eq!(asset_name("macos", "aarch64"), "clawsquire-serve-darwin-aarch64");
+        assert_eq!(asset_name("windows", "x86_64"), "clawsquire-serve-windows-x86_64.exe");
+    }
+
+    #[test]
     fn install_script_linux_x86() {
         let script = install_script("linux", "x86_64");
-        assert!(script.contains("x86_64-unknown-linux-gnu"));
+        assert!(script.contains("clawsquire-serve-linux-x86_64"));
         assert!(script.contains("curl"));
         assert!(script.contains("--init"));
     }
@@ -209,14 +212,14 @@ mod tests {
     #[test]
     fn install_script_macos_arm() {
         let script = install_script("macos", "aarch64");
-        assert!(script.contains("aarch64-apple-darwin"));
+        assert!(script.contains("clawsquire-serve-darwin-aarch64"));
     }
 
     #[test]
     fn install_script_windows() {
         let script = install_script("windows", "x86_64");
         assert!(script.contains("Invoke-WebRequest"));
-        assert!(script.contains(".exe"));
+        assert!(script.contains("clawsquire-serve-windows-x86_64.exe"));
     }
 
     #[test]

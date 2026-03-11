@@ -18,6 +18,15 @@ interface BootstrapStatus {
   steps: BootstrapStep[];
 }
 
+interface RemoteEnvironment {
+  platform: string;
+  arch: string;
+  node_version: string | null;
+  openclaw_version: string | null;
+  openclaw_installed: boolean;
+  npm_installed: boolean;
+}
+
 interface NodeInstallResult {
   success: boolean;
   version: string | null;
@@ -28,6 +37,15 @@ interface InstallResult {
   success: boolean;
   version: string | null;
   error: string | null;
+}
+
+function osLabel(platform: string): string {
+  switch (platform) {
+    case 'linux': return 'Linux';
+    case 'macos': case 'darwin': return 'macOS';
+    case 'windows': return 'Windows';
+    default: return platform;
+  }
 }
 
 export default function Bootstrap() {
@@ -42,11 +60,14 @@ export default function Bootstrap() {
   const [installScript, setInstallScript] = useState<string>('');
   const [scriptPlatform, setScriptPlatform] = useState<'linux' | 'macos' | 'windows'>('linux');
   const [copied, setCopied] = useState(false);
+  const [remoteEnv, setRemoteEnv] = useState<RemoteEnvironment | null>(null);
 
   const detect = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const env = await invoke<RemoteEnvironment>('get_environment');
+      setRemoteEnv(env);
       const result = await invoke<BootstrapStatus>('bootstrap_detect');
       setStatus(result);
     } catch (e) {
@@ -208,11 +229,25 @@ export default function Bootstrap() {
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">{t('bootstrap.step2Desc')}</p>
         {isRemote ? (
-          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            {t('bootstrap.connected', { host: target.host || 'remote' })}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              {t('bootstrap.connected', { host: target.host || 'remote' })}
+            </div>
+            {remoteEnv && (
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded px-3 py-1.5">
+                  <span className="text-gray-500 dark:text-gray-400">{t('bootstrap.remoteOS')}: </span>
+                  <span className="font-medium">{osLabel(remoteEnv.platform)} {remoteEnv.arch}</span>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded px-3 py-1.5">
+                  <span className="text-gray-500 dark:text-gray-400">Node: </span>
+                  <span className="font-medium">{remoteEnv.node_version || '—'}</span>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-4 py-2">

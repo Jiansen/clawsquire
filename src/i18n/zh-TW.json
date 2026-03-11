@@ -38,7 +38,8 @@
     "allReady": "所有依賴已安裝。遠端 agent 已就緒！",
     "copy": "複製",
     "copied": "已複製！",
-    "cargoFallback": "備選：從原始碼建置（需要 Rust）"
+    "cargoFallback": "備選：從原始碼建置（需要 Rust）",
+    "remoteOS": "遠端系統"
   },
   "dashboard": {
     "title": "儀表板",

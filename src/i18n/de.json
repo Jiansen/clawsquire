@@ -38,7 +38,8 @@
     "allReady": "Alle Abhängigkeiten sind installiert. Remote-Agent ist bereit!",
     "copy": "Kopieren",
     "copied": "Kopiert!",
-    "cargoFallback": "Alternative: Aus Quellcode bauen (erfordert Rust)"
+    "cargoFallback": "Alternative: Aus Quellcode bauen (erfordert Rust)",
+    "remoteOS": "Remote-OS"
   },
   "dashboard": {
     "title": "Dashboard",

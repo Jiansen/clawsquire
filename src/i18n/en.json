@@ -38,7 +38,8 @@
     "allReady": "All dependencies are installed. Remote agent is ready!",
     "copy": "Copy",
     "copied": "Copied!",
-    "cargoFallback": "Alternative: build from source (requires Rust)"
+    "cargoFallback": "Alternative: build from source (requires Rust)",
+    "remoteOS": "Remote OS"
   },
   "dashboard": {
     "title": "Dashboard",

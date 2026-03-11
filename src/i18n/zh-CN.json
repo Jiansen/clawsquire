@@ -38,7 +38,8 @@
     "allReady": "所有依赖已安装。远程 agent 已就绪！",
     "copy": "复制",
     "copied": "已复制！",
-    "cargoFallback": "备选：从源码构建（需要 Rust）"
+    "cargoFallback": "备选：从源码构建（需要 Rust）",
+    "remoteOS": "远程系统"
   },
   "dashboard": {
     "title": "仪表盘",

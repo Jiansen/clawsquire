@@ -37,7 +37,8 @@
     "allReady": "Todas as dependências estão instaladas. O agente remoto está pronto!",
     "copy": "Copiar",
     "copied": "Copiado!",
-    "cargoFallback": "Alternativa: compilar do código-fonte (requer Rust)"
+    "cargoFallback": "Alternativa: compilar do código-fonte (requer Rust)",
+    "remoteOS": "SO remoto"
   },
   "dashboard": {
     "title": "Painel",

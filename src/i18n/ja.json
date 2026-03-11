@@ -38,7 +38,8 @@
     "allReady": "すべての依存関係がインストールされました。リモート agent の準備ができています！",
     "copy": "コピー",
     "copied": "コピーしました！",
-    "cargoFallback": "代替：ソースからビルド（Rust が必要）"
+    "cargoFallback": "代替：ソースからビルド（Rust が必要）",
+    "remoteOS": "リモートOS"
   },
   "dashboard": {
     "title": "ダッシュボード",

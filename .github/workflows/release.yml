@@ -6,7 +6,75 @@ on:
       - 'v*'
 
 jobs:
-  build:
+  build-serve:
+    name: "Build serve (${{ matrix.target }})"
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+            binary: clawsquire-serve
+            asset: clawsquire-serve-linux-x86_64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-22.04
+            binary: clawsquire-serve
+            asset: clawsquire-serve-linux-aarch64
+            cross: true
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            binary: clawsquire-serve
+            asset: clawsquire-serve-darwin-x86_64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            binary: clawsquire-serve
+            asset: clawsquire-serve-darwin-aarch64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            binary: clawsquire-serve.exe
+            asset: clawsquire-serve-windows-x86_64.exe
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Install cross (Linux aarch64)
+        if: matrix.cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build (native)
+        if: ${{ !matrix.cross }}
+        run: cargo build --release --target ${{ matrix.target }} -p clawsquire-serve
+
+      - name: Build (cross)
+        if: matrix.cross
+        run: cross build --release --target ${{ matrix.target }} -p clawsquire-serve
+
+      - name: Rename artifact
+        shell: bash
+        run: |
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" "${{ matrix.asset }}"
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-desktop:
+    name: "Build desktop (${{ matrix.platform }})"
     permissions:
       contents: write
     strategy:
@@ -32,7 +100,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - run: pnpm install
@@ -44,7 +112,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri -> target
+          workspaces: ". -> target"
 
       - name: Install Linux system deps
         if: matrix.platform == 'ubuntu-22.04'
@@ -59,23 +127,35 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'ClawSquire ${{ github.ref_name }}'
           releaseBody: |
-            ## Quick Download Guide
+            ## Downloads
 
-            Pick **one** file based on your system:
+            ### Desktop App (GUI)
+            | System | File |
+            |--------|------|
+            | macOS Apple Silicon (M1+) | `ClawSquire_*_aarch64.dmg` |
+            | macOS Intel | `ClawSquire_*_x64.dmg` |
+            | Windows 10+ | `ClawSquire_*_x64_en-US.msi` |
+            | Linux (Debian/Ubuntu) | `ClawSquire_*_amd64.deb` |
+            | Linux (portable) | `ClawSquire_*_amd64.AppImage` |
 
-            - **Mac Apple Silicon (M1/M2/M3)** → `ClawSquire_*_aarch64.dmg`
-            - **Mac Intel** → `ClawSquire_*_x64.dmg`
-            - **Windows 10+** → `ClawSquire_*_x64_en-US.msi` (recommended)
-            - **Linux Debian/Ubuntu** → `ClawSquire_*_amd64.deb`
-            - **Linux (portable)** → `ClawSquire_*_amd64.AppImage`
+            ### Headless Agent (for remote servers, no GUI needed)
+            | System | File |
+            |--------|------|
+            | Linux x86_64 | `clawsquire-serve-linux-x86_64` |
+            | Linux ARM64 | `clawsquire-serve-linux-aarch64` |
+            | macOS Apple Silicon | `clawsquire-serve-darwin-aarch64` |
+            | macOS Intel | `clawsquire-serve-darwin-x86_64` |
+            | Windows x86_64 | `clawsquire-serve-windows-x86_64.exe` |
 
-            If you are not sure on macOS:
-            - Click Apple menu → **About This Mac**
-            - If chip says **Apple M1/M2/M3**, choose `aarch64.dmg`
-            - If chip says **Intel**, choose `x64.dmg`
+            ### Quick Start (headless agent)
+            ```sh
+            curl -fsSL "https://github.com/Jiansen/clawsquire/releases/latest/download/clawsquire-serve-linux-x86_64" -o clawsquire-serve
+            chmod +x clawsquire-serve
+            ./clawsquire-serve --init
+            ```
 
             ---
-            Full release notes: [CHANGELOG.md](https://github.com/Jiansen/clawsquire/blob/main/CHANGELOG.md)
+            [CHANGELOG.md](https://github.com/Jiansen/clawsquire/blob/main/CHANGELOG.md)
           releaseDraft: ${{ contains(github.ref_name, '-') }}
           prerelease: ${{ contains(github.ref_name, '-') }}
           args: ${{ matrix.args }}
