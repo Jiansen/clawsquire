@@ -8,6 +8,22 @@
     "core:window:allow-set-title",
     "core:window:allow-show",
     "core:window:allow-hide",
-    "opener:default"
+    "opener:default",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "binaries/clawsquire-serve",
+          "sidecar": true,
+          "args": [
+            "--port",
+            { "validator": "\\d+" },
+            "--token",
+            { "validator": "\\S+" }
+          ]
+        }
+      ]
+    },
+    "shell:allow-stdin-write"
   ]
 }

@@ -1,6 +1,7 @@
 mod active_target;
 mod protocol_runner;
 mod secure_store;
+mod sidecar;
 
 use active_target::{ActiveTargetInfo, ActiveTargetState};
 use clawsquire_core::backup::{self, BackupEntry, DiffEntry};
@@ -574,6 +575,7 @@ async fn check_for_updates() -> UpdateCheck {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_shell::init())
         .manage(ActiveTargetState::default())
         .setup(|app| {
             let show = MenuItemBuilder::with_id("show", "Show ClawSquire").build(app)?;
@@ -605,6 +607,8 @@ pub fn run() {
                     }
                 })
                 .build(app)?;
+
+            sidecar::spawn_sidecar(app);
 
             Ok(())
         })
@@ -672,9 +676,13 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_app_handle, event| {
-            if let tauri::RunEvent::ExitRequested { api, .. } = event {
+        .run(|app_handle, event| match event {
+            tauri::RunEvent::ExitRequested { api, .. } => {
                 api.prevent_exit();
             }
+            tauri::RunEvent::Exit => {
+                sidecar::kill_sidecar(app_handle);
+            }
+            _ => {}
         });
 }

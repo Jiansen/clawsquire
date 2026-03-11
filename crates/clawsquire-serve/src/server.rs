@@ -18,13 +18,25 @@ pub struct ServerConfig {
     pub token: String,
 }
 
+/// Returns the actual bound address (important when port=0).
 pub async fn run(config: ServerConfig) -> Result<(), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(&config.addr).await?;
+    let actual_addr = listener.local_addr()?;
     let token = Arc::new(config.token);
 
     eprintln!(
         "[clawsquire-serve] listening on ws://{}  (protocol {})",
-        config.addr, PROTOCOL_VERSION
+        actual_addr, PROTOCOL_VERSION
+    );
+
+    // Structured ready signal — sidecar launcher reads this from stdout
+    println!(
+        "{}",
+        serde_json::json!({
+            "ready": true,
+            "port": actual_addr.port(),
+            "protocol_version": PROTOCOL_VERSION,
+        })
     );
 
     loop {

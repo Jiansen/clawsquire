@@ -1,0 +1,3 @@
+# Sidecar binaries are build artifacts — built by scripts/copy-sidecar.sh
+*
+!.gitignore

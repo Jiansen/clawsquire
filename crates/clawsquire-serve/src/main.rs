@@ -94,11 +94,15 @@ async fn main() {
         return;
     }
 
-    eprintln!("token: {}", token);
+    eprintln!("[clawsquire-serve] token: {}", token);
 
     let addr: SocketAddr = ([0, 0, 0, 0], port).into();
-    let config = server::ServerConfig { addr, token };
+    let config = server::ServerConfig {
+        addr,
+        token: token.clone(),
+    };
 
+    // server::run prints the ready JSON (with actual port) to stdout
     if let Err(e) = server::run(config).await {
         eprintln!("fatal: {}", e);
         std::process::exit(1);
