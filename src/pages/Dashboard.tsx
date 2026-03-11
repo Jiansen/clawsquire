@@ -55,9 +55,32 @@ export default function Dashboard() {
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
-    checkUpdate().then((update) => {
-      if (update?.available) setPendingUpdate(update);
-    }).catch(() => {});
+    const UPDATE_CHECK_KEY = 'clawsquire.lastUpdateCheck';
+    const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+    const lastCheck = parseInt(localStorage.getItem(UPDATE_CHECK_KEY) ?? '0', 10);
+    if (Date.now() - lastCheck < CHECK_INTERVAL_MS) return;
+
+    // Jitter: spread requests across 0-30s to avoid simultaneous GitHub traffic spikes
+    const jitterMs = Math.floor(Math.random() * 30_000);
+    const timer = setTimeout(async () => {
+      try {
+        const update = await checkUpdate();
+        if (!update?.available) return;
+        // Only notify for stable minor/major releases (ignore pre-releases and patches)
+        const newVer = update.version ?? '';
+        if (newVer.includes('-')) return; // pre-release: skip
+        const [newMaj, newMin] = newVer.split('.').map(Number);
+        const [curMaj, curMin] = __APP_VERSION__.split('.').map(Number);
+        const isMinorOrMajorBump = newMaj > curMaj || (newMaj === curMaj && newMin > curMin);
+        if (!isMinorOrMajorBump) return; // patch only: skip
+        setPendingUpdate(update);
+        localStorage.setItem(UPDATE_CHECK_KEY, String(Date.now()));
+      } catch {
+        // silently ignore — network may be unavailable
+      }
+    }, jitterMs);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleInstallUpdate = useCallback(async () => {
