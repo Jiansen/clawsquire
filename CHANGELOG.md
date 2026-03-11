@@ -11,17 +11,27 @@ Controller-Agent architecture: ClawSquire now communicates with remote servers v
 - **SSH Auto-Bootstrap** — 6-step wizard: check SSH → connect → probe OS/arch → install serve → `--init` → start daemon; one click from ClawSquire Desktop
 - **27 JSON-RPC Methods** — Complete protocol covering system info, OpenClaw lifecycle, configuration, backups, channels, automations, sources, community search, bootstrapping (ADR-003)
 - **Unified Path Architecture** — Local and remote modes use identical protocol path via `ProtocolRunner`; `ActiveTarget` simplified to connection-address selector (ADR-004)
-- **Cross-Platform Serve Binaries** — GitHub Releases now include `clawsquire-serve-{linux,darwin,windows}-{x86_64,aarch64}` binaries for all major platforms
+- **Cross-Platform Serve Binaries** — GitHub Releases include `clawsquire-serve-{linux,darwin,windows}-{x86_64,aarch64}` binaries for all major platforms
 - **`VpsManager` Protocol UI** — Replaced SSH-direct deploy/terminal tabs with protocol-first Setup and Connect/Disconnect flow
+- **Protocol Version Negotiation** — LSP-style `initialize` handshake: server returns `ServerCapabilities` including `protocol_version`; major-version mismatch rejected with `VERSION_INCOMPATIBLE` error; VpsManager shows amber upgrade banner
+- **Bootstrap UX Improvements** — SSH form pre-fills from `?instanceId=` URL param (B1); completion page shows next-step guide cards — Dashboard / Configure AI / Add Channel (B3)
+- **Token Persistence** — Bootstrap persists `serve_port` + `serve_token` via `set_instance_serve` IPC; VpsManager Connect uses stored token without re-bootstrapping
+- **In-App Auto-Update** — Tauri native updater (`tauri-plugin-updater`): checks for updates on launch, shows download progress bar, relaunches after install; signed releases with minisign keypair
+- **Onboarding Redirect** — `vps-headless` onboarding wizard replaced by `vps-bootstrap` template that redirects to VPS Manager (B2)
 
 ### Architecture
 
-- `clawsquire-core` workspace crate: protocol types, dispatch, bootstrap logic, SSH bootstrap
-- `clawsquire-serve` binary crate: tokio WebSocket server, JSON-RPC dispatch
-- `ProtocolRunner` in desktop: WebSocket client implementing `CliRunner` trait
-- `SshCliRunner` replaced by `ProtocolRunner` for all remote operations
-- 109 Vitest + 72 Rust + 30 protocol E2E + 7 WebdriverIO tests (218+ total)
-- CI: macOS / Ubuntu / Windows 3-platform matrix, all green
+- `clawsquire-core`: `protocol.rs` adds `ServerCapabilities`, `is_protocol_compatible()`, `VERSION_INCOMPATIBLE` error code
+- `clawsquire-serve`: rejects incompatible clients, returns capabilities in `AuthResponse`
+- `active_target.rs`: `ActiveTargetInfo.serve_version` exposed for UI compatibility checks
+- CI: signed releases via `TAURI_SIGNING_PRIVATE_KEY`; `build-desktop` depends on `build-serve` (sidecar download step)
+- 109 Vitest + 33 Rust protocol + 32 E2E + 7 WebdriverIO tests (181+ total)
+
+### Bug Fixes
+
+- i18n: removed 7 orphaned v0.2 `vps.deploy*` keys; added missing v0.3 `vps.connect`, `vps.alreadySetup`, `vps.tab.setup` keys to all 7 locales
+- Dashboard "Update" button: was silently blocked by Tauri webview (`<a target=_blank>`); now uses `openUrl()` correctly
+- VpsManager TypeScript error: `onClick={handleGoToBootstrap}` type mismatch fixed
 
 ### Breaking Changes
 
