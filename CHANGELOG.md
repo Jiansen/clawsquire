@@ -32,6 +32,15 @@ Controller-Agent architecture: ClawSquire now communicates with remote servers v
 - i18n: removed 7 orphaned v0.2 `vps.deploy*` keys; added missing v0.3 `vps.connect`, `vps.alreadySetup`, `vps.tab.setup` keys to all 7 locales
 - Dashboard "Update" button: was silently blocked by Tauri webview (`<a target=_blank>`); now uses `openUrl()` correctly
 - VpsManager TypeScript error: `onClick={handleGoToBootstrap}` type mismatch fixed
+- SSH password auth: `sshpass` not found in Tauri GUI due to restricted PATH; fixed via `cmd_with_path()` + conditional `BatchMode=yes` removal for password auth
+- Bootstrap events duplicated in React StrictMode dev: fixed with `cancelled` flag + consecutive event deduplication
+- `ActiveTargetContext` not synced after connect/disconnect: TopBar and Dashboard stayed in "Local" mode; fixed via `refreshTarget()` propagation
+- `get_environment` always returned local platform even when connected to remote VPS; fixed by routing through `ActiveTargetState` Protocol path
+- SSH tunnel local port conflict (orphaned SSH processes on port 18790): fixed by using `remote_port + 10000` as local port + `kill_port_occupant` + 8s readiness polling
+- WebSocket connect hung indefinitely on unreachable host: fixed via `tokio::time::timeout(10s)` + `spawn_blocking`
+- Password not stored in `instances.json` (`#[serde(skip)]`): added inline password prompt when connecting with password auth but no stored credential
+- `add_instance` did not save password field to instance object (frontend bug)
+- Bootstrap `update_instance` now persists auth credentials alongside `serve_port/token`
 
 ### Breaking Changes
 
