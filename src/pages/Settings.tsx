@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import SafetyPresets, { type SafetyLevel } from '../components/shared/SafetyPresets';
 import InfoTooltip from '../components/shared/InfoTooltip';
+import { useActiveTarget } from '../context/ActiveTargetContext';
 
 const SAFETY_KEY = 'clawsquire.safetyLevel';
 
@@ -15,6 +16,9 @@ interface UninstallResult {
 
 export default function Settings() {
   const { t } = useTranslation();
+  const { target } = useActiveTarget();
+  const isRemote = target.mode === 'protocol';
+
   const [safetyLevel, setSafetyLevel] = useState<SafetyLevel>(() => {
     return (localStorage.getItem(SAFETY_KEY) as SafetyLevel) || 'conservative';
   });
@@ -71,7 +75,9 @@ export default function Settings() {
 
     try {
       setUninstallCurrentStep(0);
-      await invoke('create_backup', { label: 'pre-uninstall' }).catch(() => {});
+      if (!isRemote) {
+        await invoke('create_backup', { label: 'pre-uninstall' }).catch(() => {});
+      }
 
       setUninstallCurrentStep(1);
       await new Promise(r => setTimeout(r, 500));
@@ -142,6 +148,11 @@ export default function Settings() {
         {uninstallStep === 'idle' && (
           <>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('settings.uninstallDescription')}</p>
+            {isRemote && target.host && (
+              <div className="mb-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 p-2.5 text-xs text-orange-700 dark:text-orange-400">
+                ⚠️ This will uninstall OpenClaw on the remote VPS: <span className="font-mono font-medium">{target.host}</span>
+              </div>
+            )}
             <button
               onClick={() => setUninstallStep('confirm')}
               disabled={!env?.openclaw_installed}

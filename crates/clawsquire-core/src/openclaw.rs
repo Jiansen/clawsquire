@@ -130,7 +130,7 @@ pub fn daemon_start_with(runner: &dyn CliRunner) -> Result<String, String> {
 }
 
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UninstallResult {
     pub daemon_stopped: bool,
     pub npm_uninstalled: bool,

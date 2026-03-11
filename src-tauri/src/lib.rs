@@ -205,10 +205,24 @@ async fn install_openclaw() -> Result<InstallResult, String> {
 }
 
 #[tauri::command]
-async fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, String> {
-    tauri::async_runtime::spawn_blocking(move || openclaw::uninstall_openclaw(remove_config))
-        .await
-        .map_err(|e| e.to_string())?
+async fn uninstall_openclaw(
+    state: tauri::State<'_, ActiveTargetState>,
+    remove_config: bool,
+) -> Result<UninstallResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        if target.is_protocol() {
+            let val = target.protocol_call(
+                method::OPENCLAW_UNINSTALL,
+                serde_json::json!({ "remove_config": remove_config }),
+            )?;
+            serde_json::from_value(val).map_err(|e| format!("deserialize: {}", e))
+        } else {
+            openclaw::uninstall_openclaw(remove_config)
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 // --- Bootstrap: target-aware environment detection and installation ---
