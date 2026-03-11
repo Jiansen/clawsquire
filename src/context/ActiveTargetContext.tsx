@@ -34,7 +34,6 @@ export interface VpsInstance {
   last_connected?: string | null;
   created_at: string;
   serve_port?: number | null;
-  serve_token?: string | null;
 }
 
 interface ActiveTargetContextValue {

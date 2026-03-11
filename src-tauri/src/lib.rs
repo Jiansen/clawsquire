@@ -314,7 +314,6 @@ async fn ssh_restart_serve(
     password: Option<String>,
     key_path: Option<String>,
     serve_port: u16,
-    serve_token: String,
 ) -> Result<(), String> {
     let cfg = SshConfig { host, port: ssh_port, username, auth_method, password, key_path };
     tauri::async_runtime::spawn_blocking(move || {
@@ -323,10 +322,10 @@ async fn ssh_restart_serve(
             &cfg,
             "pkill -f clawsquire-serve 2>/dev/null; sleep 1",
         );
-        // Start fresh; wait 3s then verify it's listening on the port
+        // Start fresh without token (SSH-tunnel-as-auth mode); wait 3s then verify
         let start_cmd = format!(
-            "nohup $HOME/.clawsquire/clawsquire-serve --port {} --token {} > $HOME/.clawsquire/serve.log 2>&1 & sleep 3 && ss -tlnp 2>/dev/null | grep {} || netstat -tlnp 2>/dev/null | grep {}",
-            serve_port, serve_token, serve_port, serve_port
+            "nohup $HOME/.clawsquire/clawsquire-serve --port {} > $HOME/.clawsquire/serve.log 2>&1 & sleep 3 && ss -tlnp 2>/dev/null | grep {} || netstat -tlnp 2>/dev/null | grep {}",
+            serve_port, serve_port, serve_port
         );
         let out = clawsquire_core::ssh_bootstrap::ssh_exec(&cfg, &start_cmd)?;
         // If neither ss nor netstat shows the port, serve may have failed to start
@@ -607,8 +606,8 @@ async fn delete_instance(id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn set_instance_serve(id: String, serve_port: u16, serve_token: Option<String>) -> Result<VpsInstance, String> {
-    instances::set_instance_serve(&id, serve_port, serve_token.as_deref())
+async fn set_instance_serve(id: String, serve_port: u16) -> Result<VpsInstance, String> {
+    instances::set_instance_serve(&id, serve_port)
 }
 
 #[tauri::command]

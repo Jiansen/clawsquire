@@ -26,9 +26,6 @@ pub struct VpsInstance {
     /// Port that clawsquire-serve is listening on after bootstrap.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub serve_port: Option<u16>,
-    /// Auth token for the serve WebSocket connection.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub serve_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -84,7 +81,6 @@ pub fn update_instance(instance: VpsInstance) -> Result<VpsInstance, String> {
         existing.last_connected = instance.last_connected.clone();
         // Preserve serve connection info if not explicitly being updated
         if instance.serve_port.is_some() { existing.serve_port = instance.serve_port; }
-        if instance.serve_token.is_some() { existing.serve_token = instance.serve_token.clone(); }
     } else {
         return Err(format!("Instance '{}' not found", instance.id));
     }
@@ -93,11 +89,10 @@ pub fn update_instance(instance: VpsInstance) -> Result<VpsInstance, String> {
 }
 
 /// Update only the serve connection info (port + token) for an instance.
-pub fn set_instance_serve(id: &str, serve_port: u16, serve_token: Option<&str>) -> Result<VpsInstance, String> {
+pub fn set_instance_serve(id: &str, serve_port: u16) -> Result<VpsInstance, String> {
     let mut store = InstancesStore::load();
     if let Some(inst) = store.instances.iter_mut().find(|i| i.id == id) {
         inst.serve_port = Some(serve_port);
-        inst.serve_token = serve_token.map(|t| t.to_string());
         let updated = inst.clone();
         store.save()?;
         Ok(updated)

@@ -231,7 +231,6 @@ export default function Bootstrap() {
           await invoke('set_instance_serve', {
             id: instanceId,
             servePort: result.port,
-            serveToken: result.token,
           });
         } catch (_) {
           // Non-fatal: credentials saved best-effort

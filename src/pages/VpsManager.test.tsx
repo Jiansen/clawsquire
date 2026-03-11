@@ -171,8 +171,8 @@ describe("VpsManager — with instances", () => {
     });
   });
 
-  it("shows connect button when serve_port and serve_token are present", async () => {
-    const ready = { ...SAMPLE_INSTANCE, serve_port: 19900, serve_token: "tok123" };
+  it("shows connect button when serve_port is present", async () => {
+    const ready = { ...SAMPLE_INSTANCE, serve_port: 19900 };
     mockedInvoke.mockImplementation(async (...args: unknown[]) => {
       const cmd = args[0] as string;
       if (cmd === "list_instances") return [ready];
@@ -186,7 +186,7 @@ describe("VpsManager — with instances", () => {
   });
 
   it("shows setup button when serve credentials are missing", async () => {
-    const noServe = { ...SAMPLE_INSTANCE, serve_port: null, serve_token: null };
+    const noServe = { ...SAMPLE_INSTANCE, serve_port: null };
     mockedInvoke.mockImplementation(async (...args: unknown[]) => {
       const cmd = args[0] as string;
       if (cmd === "list_instances") return [noServe];

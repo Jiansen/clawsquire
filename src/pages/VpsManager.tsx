@@ -19,7 +19,6 @@ interface VpsInstance {
   last_connected?: string | null;
   created_at: string;
   serve_port?: number | null;
-  serve_token?: string | null;
 }
 
 /** Must stay in sync with PROTOCOL_VERSION in crates/clawsquire-core/src/protocol.rs */
@@ -106,11 +105,9 @@ function InlineSetup({
       });
       if (result.success && result.port && result.token) {
         // Save serve credentials
-        // v0.3.1+: token is null (SSH-tunnel-as-auth). Legacy v0.3.0 Bootstrap passes a token.
         await invoke('set_instance_serve', {
           id: instance.id,
           servePort: result.port,
-          serveToken: result.token ?? null,
         }).catch(() => {});
         // Also persist any updated auth credentials back to the instance
         // (e.g. user may have corrected password in this form)
@@ -124,7 +121,6 @@ function InlineSetup({
             password: sshAuthMethod === 'password' ? sshPassword : instance.password,
             key_path: sshAuthMethod === 'key' ? sshKeyPath : instance.key_path,
             serve_port: result.port,
-            serve_token: result.token,
           },
         }).catch(() => {});
         onSetupComplete(result.port, result.token);
@@ -363,7 +359,6 @@ export default function VpsManager() {
         password: inst.auth_method === 'password' ? resolvedPassword : null,
         keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
         servePort: inst.serve_port,
-        serveToken: inst.serve_token,
       });
       // Serve restarted — now try to connect
       await handleConnect(inst, passwordOverride);
@@ -410,13 +405,12 @@ export default function VpsManager() {
         keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
         remotePort: inst.serve_port,
       });
-      // Step 2: WebSocket via tunnel — no token needed (SSH tunnel is the auth, v0.3.1+)
-      // serve_token is kept for backward-compat with v0.3.0 serve; new installs have no token
+      // Step 2: WebSocket via tunnel — no token (SSH tunnel is the auth, v0.3.1+)
       const url = `ws://127.0.0.1:${localPort}`;
       await invoke('set_active_target', {
         mode: 'protocol',
         url,
-        token: inst.serve_token ?? null, // null = SSH-tunnel-as-auth; legacy installs still send token
+        token: null,
         instanceId: inst.id,
         host: inst.host,
       });
