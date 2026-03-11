@@ -65,7 +65,7 @@
     "viewConfig": "View Config",
     "updateAvailable": "ClawSquire v{{version}} is available!",
     "currentVersion": "You're on v{{version}}",
-    "downloadUpdate": "Download",
+    "downloadUpdate": "Update",
     "safetyLevel": "Safety Level",
     "safetyConservative": "Conservative",
     "safetyDescription": "Only basic features are enabled. Advanced features require manual activation.",

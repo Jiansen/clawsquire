@@ -50,12 +50,13 @@ export default function Dashboard() {
   const [daemonAction, setDaemonAction] = useState<'idle' | 'starting' | 'stopping'>('idle');
   const [updateInfo, setUpdateInfo] = useState<{
     update_available: boolean;
+    current_version: string;
     latest_version?: string | null;
     download_url?: string | null;
   } | null>(null);
 
   useEffect(() => {
-    invoke<{ update_available: boolean; latest_version: string | null; download_url: string | null }>(
+    invoke<{ update_available: boolean; current_version: string; latest_version: string | null; download_url: string | null }>(
       'check_for_updates'
     ).then(setUpdateInfo).catch(() => {});
   }, []);
@@ -179,19 +180,17 @@ export default function Dashboard() {
                 {t('dashboard.updateAvailable', { version: updateInfo.latest_version })}
               </p>
               <p className="text-xs text-blue-600">
-                {t('dashboard.currentVersion', { version: env?.openclaw_version || '0.1.0' })}
+                {t('dashboard.currentVersion', { version: updateInfo.current_version })}
               </p>
             </div>
           </div>
           {updateInfo.download_url && (
-            <a
-              href={updateInfo.download_url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => openUrl(updateInfo.download_url!)}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-all whitespace-nowrap"
             >
               {t('dashboard.downloadUpdate')}
-            </a>
+            </button>
           )}
         </div>
       )}

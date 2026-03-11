@@ -67,7 +67,7 @@
     "configDir": "設定ディレクトリ",
     "updateAvailable": "ClawSquire v{{version}} が利用可能です！",
     "currentVersion": "現在のバージョン v{{version}}",
-    "downloadUpdate": "ダウンロード",
+    "downloadUpdate": "アップデート",
     "safetyLevel": "セキュリティレベル",
     "safetyConservative": "保守的",
     "safetyDescription": "基本機能のみ有効です。高度な機能は手動で有効化する必要があります。",
@@ -686,16 +686,17 @@
     "lastConnected": "最終接続",
     "tab": {
       "overview": "概要",
-      "deploy": "OpenClawをデプロイ",
-      "terminal": "ターミナル"
+      "setup": "セットアップ"
     },
-    "deploying": "デプロイ中...",
-    "deployNow": "このVPSにOpenClawをデプロイ",
-    "sshFailed": "SSH接続に失敗しました",
-    "deploySuccess": "OpenClawのデプロイに成功しました！",
-    "deployFailed": "デプロイに失敗しました",
     "emptyTitle": "VPSインスタンスを管理",
-    "emptyDesc": "VPSを追加してOpenClawのデプロイ、コマンド実行、リモート監視を行います。"
+    "emptyDesc": "VPSを追加してOpenClawのデプロイ、コマンド実行、リモート監視を行います。",
+    "alreadySetup": "OpenClaw はすでにインストール・設定済みです。",
+    "connect": "接続",
+    "connected": "接続中",
+    "connecting": "接続しています...",
+    "disconnect": "切断",
+    "goToBootstrap": "Bootstrap へ",
+    "setupDesc": "SSH Bootstrap が clawsquire-serve をインストールし接続を設定します。"
   },
   "imap": {
     "title": "メール設定",

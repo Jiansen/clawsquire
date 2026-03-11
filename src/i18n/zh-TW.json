@@ -67,7 +67,7 @@
     "configDir": "設定目錄",
     "updateAvailable": "ClawSquire v{{version}} 已發佈！",
     "currentVersion": "目前版本 v{{version}}",
-    "downloadUpdate": "下載更新",
+    "downloadUpdate": "立即更新",
     "safetyLevel": "安全等級",
     "safetyConservative": "保守模式",
     "safetyDescription": "僅啟用基礎功能。進階功能需手動開啟。",
@@ -686,16 +686,17 @@
     "lastConnected": "最後連線",
     "tab": {
       "overview": "總覽",
-      "deploy": "部署 OpenClaw",
-      "terminal": "終端"
+      "setup": "設定"
     },
-    "deploying": "部署中...",
-    "deployNow": "部署 OpenClaw 到此 VPS",
-    "sshFailed": "SSH 連線失敗",
-    "deploySuccess": "OpenClaw 部署成功！",
-    "deployFailed": "部署失敗",
     "emptyTitle": "管理您的 VPS 實例",
-    "emptyDesc": "新增 VPS 以部署 OpenClaw、執行指令並進行遠端監控。"
+    "emptyDesc": "新增 VPS 以部署 OpenClaw、執行指令並進行遠端監控。",
+    "alreadySetup": "OpenClaw 已安裝並設定完成。",
+    "connect": "連接",
+    "connected": "已連接",
+    "connecting": "連接中...",
+    "disconnect": "中斷連接",
+    "goToBootstrap": "前往 Bootstrap",
+    "setupDesc": "SSH Bootstrap 將安裝 clawsquire-serve 並設定連線。"
   },
   "imap": {
     "title": "郵箱設定",

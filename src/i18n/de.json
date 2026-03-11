@@ -67,7 +67,7 @@
     "configDir": "Config-Verzeichnis",
     "updateAvailable": "ClawSquire v{{version}} ist verfügbar!",
     "currentVersion": "Aktuelle Version v{{version}}",
-    "downloadUpdate": "Herunterladen",
+    "downloadUpdate": "Aktualisieren",
     "safetyLevel": "Sicherheitsstufe",
     "safetyConservative": "Konservativ",
     "safetyDescription": "Nur grundlegende Funktionen sind aktiviert. Erweiterte Funktionen müssen manuell aktiviert werden.",
@@ -686,16 +686,17 @@
     "lastConnected": "Letzte Verbindung",
     "tab": {
       "overview": "Übersicht",
-      "deploy": "OpenClaw bereitstellen",
-      "terminal": "Terminal"
+      "setup": "Einrichtung"
     },
-    "deploying": "Bereitstellung...",
-    "deployNow": "OpenClaw auf diesem VPS bereitstellen",
-    "sshFailed": "SSH-Verbindung fehlgeschlagen",
-    "deploySuccess": "OpenClaw erfolgreich bereitgestellt!",
-    "deployFailed": "Bereitstellung fehlgeschlagen",
     "emptyTitle": "Verwalte deine VPS-Instanzen",
-    "emptyDesc": "Füge einen VPS hinzu, um OpenClaw bereitzustellen, Befehle auszuführen und aus der Ferne zu überwachen."
+    "emptyDesc": "Füge einen VPS hinzu, um OpenClaw bereitzustellen, Befehle auszuführen und aus der Ferne zu überwachen.",
+    "alreadySetup": "OpenClaw ist bereits installiert und konfiguriert.",
+    "connect": "Verbinden",
+    "connected": "Verbunden",
+    "connecting": "Verbinde...",
+    "disconnect": "Trennen",
+    "goToBootstrap": "Bootstrap starten",
+    "setupDesc": "SSH-Bootstrap installiert clawsquire-serve auf deinem VPS und richtet die Verbindung ein."
   },
   "imap": {
     "title": "E-Mail-Einrichtung",

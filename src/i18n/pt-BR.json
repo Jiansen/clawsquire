@@ -16,7 +16,8 @@
     "vps": "VPS",
     "sources": "Fontes",
     "imap": "E-mail",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "automations": "Automações"
   },
   "bootstrap": {
     "title": "Bootstrap remoto",
@@ -66,7 +67,7 @@
     "configDir": "Diretório de config",
     "updateAvailable": "ClawSquire v{{version}} está disponível!",
     "currentVersion": "Versão atual v{{version}}",
-    "downloadUpdate": "Baixar",
+    "downloadUpdate": "Atualizar",
     "safetyLevel": "Nível de segurança",
     "safetyConservative": "Conservador",
     "safetyDescription": "Apenas recursos básicos estão habilitados. Recursos avançados exigem ativação manual.",
@@ -685,16 +686,17 @@
     "lastConnected": "Última conexão",
     "tab": {
       "overview": "Visão geral",
-      "deploy": "Implantar OpenClaw",
-      "terminal": "Terminal"
+      "setup": "Configuração"
     },
-    "deploying": "Implantando...",
-    "deployNow": "Implantar OpenClaw neste VPS",
-    "sshFailed": "Conexão SSH falhou",
-    "deploySuccess": "OpenClaw implantado com sucesso!",
-    "deployFailed": "Implantação falhou",
     "emptyTitle": "Gerencie suas instâncias VPS",
-    "emptyDesc": "Adicione um VPS para implantar OpenClaw, executar comandos e monitorar remotamente."
+    "emptyDesc": "Adicione um VPS para implantar OpenClaw, executar comandos e monitorar remotamente.",
+    "alreadySetup": "OpenClaw já está instalado e configurado.",
+    "connect": "Conectar",
+    "connected": "Conectado",
+    "connecting": "Conectando...",
+    "disconnect": "Desconectar",
+    "goToBootstrap": "Ir para Bootstrap",
+    "setupDesc": "O SSH Bootstrap instalará o clawsquire-serve no seu VPS e configurará a conexão."
   },
   "imap": {
     "title": "Configuração de e-mail",

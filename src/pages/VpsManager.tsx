@@ -486,7 +486,7 @@ export default function VpsManager() {
                     </div>
                   ) : (
                     <button
-                      onClick={handleGoToBootstrap}
+                      onClick={() => handleGoToBootstrap()}
                       className="w-full py-3 bg-claw-600 hover:bg-claw-700 text-white rounded-lg font-medium transition-colors"
                     >
                       {t('vps.goToBootstrap')}
