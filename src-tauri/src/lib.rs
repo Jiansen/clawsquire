@@ -28,10 +28,22 @@ use tauri::{
 
 
 #[tauri::command]
-async fn get_environment() -> Result<Environment, String> {
-    tauri::async_runtime::spawn_blocking(|| Ok(detect::detect_environment()))
-        .await
-        .map_err(|e| e.to_string())?
+async fn get_environment(state: tauri::State<'_, ActiveTargetState>) -> Result<Environment, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        if target.is_protocol() {
+            // Route to remote via RPC
+            let raw = target.protocol_call(
+                clawsquire_core::protocol::method::ENVIRONMENT_DETECT,
+                serde_json::json!({}),
+            )?;
+            serde_json::from_value(raw).map_err(|e| e.to_string())
+        } else {
+            Ok(detect::detect_environment())
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
