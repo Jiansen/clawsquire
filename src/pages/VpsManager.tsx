@@ -71,7 +71,15 @@ function InlineSetup({
     let cancelled = false;
     let unlisten: UnlistenFn | null = null;
     listen<BootstrapEvent>('bootstrap-event', (e) => {
-      setEvents((prev) => [...prev, e.payload]);
+      setEvents((prev) => {
+        // Deduplicate: skip if the last event has the same step+status+message
+        // (guards against React StrictMode double-listener in dev)
+        const last = prev[prev.length - 1];
+        if (last && last.step === e.payload.step && last.status === e.payload.status && last.message === e.payload.message) {
+          return prev;
+        }
+        return [...prev, e.payload];
+      });
     }).then((fn) => {
       if (cancelled) fn();
       else unlisten = fn;
@@ -238,6 +246,9 @@ export default function VpsManager() {
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [restarting, setRestarting] = useState(false);
+  /** If password auth but no stored password, we hold the instance here and prompt. */
+  const [pendingPasswordInst, setPendingPasswordInst] = useState<VpsInstance | null>(null);
+  const [pendingPassword, setPendingPassword] = useState('');
 
   const loadInstances = useCallback(async () => {
     try {
@@ -332,8 +343,14 @@ export default function VpsManager() {
     }
   };
 
-  const handleRestartServe = async (inst: VpsInstance) => {
+  const handleRestartServe = async (inst: VpsInstance, passwordOverride?: string) => {
     if (!inst.serve_port || !inst.serve_token) return;
+    const resolvedPassword = passwordOverride ?? inst.password ?? null;
+    if (inst.auth_method === 'password' && !resolvedPassword) {
+      setPendingPasswordInst(inst);
+      setPendingPassword('');
+      return;
+    }
     setRestarting(true);
     setConnectError(null);
     try {
@@ -342,13 +359,13 @@ export default function VpsManager() {
         sshPort: inst.port,
         username: inst.username,
         authMethod: inst.auth_method,
-        password: inst.auth_method === 'password' ? (inst.password ?? null) : null,
+        password: inst.auth_method === 'password' ? resolvedPassword : null,
         keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
         servePort: inst.serve_port,
         serveToken: inst.serve_token,
       });
       // Serve restarted — now try to connect
-      await handleConnect(inst);
+      await handleConnect(inst, passwordOverride);
     } catch (e) {
       setConnectError(String(e));
     } finally {
@@ -367,9 +384,16 @@ export default function VpsManager() {
     }
   };
 
-  const handleConnect = async (inst: VpsInstance) => {
+  const handleConnect = async (inst: VpsInstance, passwordOverride?: string) => {
     if (!inst.serve_port || !inst.serve_token) {
       navigate(`/bootstrap?instanceId=${inst.id}`);
+      return;
+    }
+    // If password auth but no password available, prompt the user first
+    const resolvedPassword = passwordOverride ?? inst.password ?? null;
+    if (inst.auth_method === 'password' && !resolvedPassword) {
+      setPendingPasswordInst(inst);
+      setPendingPassword('');
       return;
     }
     setConnecting(true);
@@ -381,7 +405,7 @@ export default function VpsManager() {
         sshPort: inst.port,
         username: inst.username,
         authMethod: inst.auth_method,
-        password: inst.auth_method === 'password' ? (inst.password ?? null) : null,
+        password: inst.auth_method === 'password' ? resolvedPassword : null,
         keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
         remotePort: inst.serve_port,
       });
@@ -666,6 +690,51 @@ export default function VpsManager() {
                       >
                         {t('vps.upgradeServe', { defaultValue: 'Upgrade' })}
                       </button>
+                    </div>
+                  )}
+                  {/* Password prompt when connecting with password auth but no stored password */}
+                  {pendingPasswordInst?.id === selected.id && (
+                    <div className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-4 py-3 space-y-2">
+                      <p className="text-sm font-medium text-violet-700 dark:text-violet-300">
+                        Enter SSH password for {pendingPasswordInst.username}@{pendingPasswordInst.host}
+                      </p>
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          value={pendingPassword}
+                          onChange={e => setPendingPassword(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && pendingPassword) {
+                              const inst = pendingPasswordInst;
+                              setPendingPasswordInst(null);
+                              handleConnect(inst, pendingPassword);
+                            }
+                          }}
+                          placeholder="SSH password"
+                          className="flex-1 px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-violet-300 dark:border-violet-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400"
+                          autoFocus
+                        />
+                        <button
+                          disabled={!pendingPassword}
+                          onClick={() => {
+                            const inst = pendingPasswordInst;
+                            setPendingPasswordInst(null);
+                            handleConnect(inst, pendingPassword);
+                          }}
+                          className="px-3 py-1.5 text-sm font-medium bg-violet-600 hover:bg-violet-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                        >
+                          Connect
+                        </button>
+                        <button
+                          onClick={() => setPendingPasswordInst(null)}
+                          className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <p className="text-xs text-violet-500 dark:text-violet-400">
+                        Password is used only in memory and never stored to disk.
+                      </p>
                     </div>
                   )}
                   {connectError && (
