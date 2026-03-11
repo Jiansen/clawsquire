@@ -145,6 +145,41 @@ pub struct InstallResult {
     pub error: Option<String>,
 }
 
+/// Collect diagnostic info useful for debugging failed installs.
+fn collect_install_diagnostics() -> String {
+    let mut diags = Vec::new();
+
+    // which openclaw
+    if let Ok(o) = std::process::Command::new("which").arg("openclaw").output() {
+        let loc = String::from_utf8_lossy(&o.stdout).trim().to_string();
+        diags.push(format!("which openclaw: {}", if loc.is_empty() { "(not found)" } else { &loc }));
+    }
+
+    // openclaw --version
+    if let Ok(o) = cmd_with_path("openclaw").arg("--version").output() {
+        let ver = String::from_utf8_lossy(&o.stdout).trim().to_string();
+        if !ver.is_empty() {
+            diags.push(format!("openclaw --version: {}", ver));
+        }
+    }
+
+    // npm prefix
+    if let Ok(o) = std::process::Command::new("npm").arg("config").arg("get").arg("prefix").output() {
+        let prefix = String::from_utf8_lossy(&o.stdout).trim().to_string();
+        diags.push(format!("npm prefix: {}", prefix));
+    }
+
+    // node version
+    if let Ok(o) = cmd_with_path("node").arg("--version").output() {
+        let node_ver = String::from_utf8_lossy(&o.stdout).trim().to_string();
+        if !node_ver.is_empty() {
+            diags.push(format!("node: {}", node_ver));
+        }
+    }
+
+    diags.join(" | ")
+}
+
 pub fn install_openclaw_with(runner: &dyn CliRunner) -> Result<InstallResult, String> {
     // Use the official OpenClaw installer with --no-onboard (skips interactive wizard).
     // The installer automatically handles npm prefix: if the system prefix (/usr/lib) is
@@ -162,12 +197,19 @@ pub fn install_openclaw_with(runner: &dyn CliRunner) -> Result<InstallResult, St
             .map(|o| o.stdout.trim().to_string());
         Ok(InstallResult { success: true, version, error: None })
     } else {
-        let combined = format!(
+        let installer_output = format!(
             "{}{}",
             String::from_utf8_lossy(&output.stderr).trim(),
             String::from_utf8_lossy(&output.stdout).trim(),
         );
-        Ok(InstallResult { success: false, version: None, error: Some(combined) })
+        // Collect diagnostics to help debug / pass to local openclaw assistant
+        let diagnostics = collect_install_diagnostics();
+        let error_msg = if diagnostics.is_empty() {
+            installer_output
+        } else {
+            format!("{}\n\nDiagnostics: {}", installer_output, diagnostics)
+        };
+        Ok(InstallResult { success: false, version: None, error: Some(error_msg) })
     }
 }
 
