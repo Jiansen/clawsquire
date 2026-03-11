@@ -131,7 +131,6 @@ mod tests {
             last_connected: None,
             created_at: "2026-03-10T00:00:00Z".to_string(),
             serve_port: None,
-            serve_token: None,
         }
     }
 

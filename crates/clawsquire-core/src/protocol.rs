@@ -481,7 +481,7 @@ mod tests {
 
     #[test]
     fn test_method_count() {
-        assert_eq!(method::ALL.len(), 27);
+        assert_eq!(method::ALL.len(), 28);
     }
 
     #[test]
@@ -584,14 +584,25 @@ mod tests {
 
     #[test]
     fn test_auth_handshake_roundtrip() {
+        // With token (backward-compat mode)
         let hs = AuthHandshake {
             protocol_version: PROTOCOL_VERSION.into(),
-            token: "secret-token-123".into(),
+            token: Some("secret-token-123".into()),
         };
         let json = serde_json::to_string(&hs).unwrap();
         let parsed: AuthHandshake = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.protocol_version, PROTOCOL_VERSION);
-        assert_eq!(parsed.token, "secret-token-123");
+        assert_eq!(parsed.token, Some("secret-token-123".into()));
+
+        // Without token (SSH-tunnel-as-auth mode, v0.3.1+)
+        let hs_no_token = AuthHandshake {
+            protocol_version: PROTOCOL_VERSION.into(),
+            token: None,
+        };
+        let json_no = serde_json::to_string(&hs_no_token).unwrap();
+        assert!(!json_no.contains("token"), "token field should be omitted when None");
+        let parsed_no: AuthHandshake = serde_json::from_str(&json_no).unwrap();
+        assert_eq!(parsed_no.token, None);
     }
 
     #[test]
