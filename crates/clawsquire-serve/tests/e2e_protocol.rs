@@ -129,6 +129,48 @@ async fn test_auth_success() {
 }
 
 #[tokio::test]
+async fn test_auth_includes_server_capabilities() {
+    let serve = ServeProcess::start();
+    let (_write, _read, resp) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+
+    assert!(resp.ok);
+    let caps = resp.server_capabilities.expect("server_capabilities must be present");
+    assert_eq!(caps.protocol_version, PROTOCOL_VERSION);
+    // Must include all 27 methods
+    assert_eq!(caps.methods.len(), method::ALL.len());
+    assert!(caps.methods.contains(&"environment.detect".to_string()));
+    assert!(caps.methods.contains(&"cli.run".to_string()));
+}
+
+#[tokio::test]
+async fn test_version_mismatch_rejects_connection() {
+    let serve = ServeProcess::start();
+    let (ws, _) = tokio_tungstenite::connect_async(&serve.ws_url())
+        .await
+        .unwrap();
+    let (mut write, mut read) = ws.split();
+
+    // Send a client with an incompatible major version
+    let auth = AuthHandshake {
+        protocol_version: "99.0.0".into(),
+        token: TEST_TOKEN.into(),
+    };
+    write
+        .send(Message::Text(serde_json::to_string(&auth).unwrap()))
+        .await
+        .unwrap();
+
+    let msg = read.next().await.unwrap().unwrap();
+    let resp: AuthResponse = serde_json::from_str(&msg.into_text().unwrap()).unwrap();
+
+    assert!(!resp.ok);
+    let err = resp.error.expect("error message required on version mismatch");
+    assert!(err.contains("protocol version mismatch"), "error: {err}");
+    // Server still returns capabilities so client knows what version to upgrade to
+    assert!(resp.server_capabilities.is_some());
+}
+
+#[tokio::test]
 async fn test_auth_failure() {
     let serve = ServeProcess::start();
     let (ws, _) = tokio_tungstenite::connect_async(&serve.ws_url())
