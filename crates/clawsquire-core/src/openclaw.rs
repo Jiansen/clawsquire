@@ -1078,20 +1078,37 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
         errors: Vec::new(),
     };
 
-    match runner.run(&["daemon", "stop"]) {
+    // Step 1: Use the official `openclaw uninstall` command.
+    // This handles service teardown cleanly across platforms (launchd/systemd).
+    // `--service` stops and removes the daemon service.
+    // `--state` removes state/config; only done if remove_config is set.
+    let mut uninstall_args = vec!["uninstall", "--non-interactive", "--yes", "--service"];
+    if remove_config {
+        uninstall_args.push("--state");
+        uninstall_args.push("--workspace");
+    }
+    match runner.run(&uninstall_args) {
         Ok(o) if o.success => result.daemon_stopped = true,
         Ok(o) => {
+            // `openclaw uninstall` may print warnings but still succeed; treat as ok
             if !o.stderr.is_empty() {
-                result.errors.push(format!("daemon stop: {}", o.stderr));
+                result.errors.push(format!("openclaw uninstall: {}", o.stderr.trim()));
             }
             result.daemon_stopped = true;
         }
-        Err(e) => result.errors.push(format!("daemon stop: {}", e)),
+        Err(e) => {
+            // Fallback: try the old `daemon stop` if uninstall subcommand is unavailable
+            result.errors.push(format!("openclaw uninstall: {}", e));
+            match runner.run(&["daemon", "stop"]) {
+                Ok(_) => result.daemon_stopped = true,
+                Err(e2) => result.errors.push(format!("daemon stop fallback: {}", e2)),
+            }
+        }
     }
 
-    // Detect the npm prefix where openclaw is actually installed.
-    // The binary may live in a system prefix (e.g. /usr) rather than the user
-    // prefix (~/.npm-global), so we resolve `which openclaw` to find the right prefix.
+    // Step 2: Remove the npm package.
+    // Detect the npm prefix where openclaw binary actually lives so we uninstall
+    // from the right location (user prefix ~/.npm-global vs system prefix /usr).
     let npm_prefix: Option<String> = (|| -> Option<String> {
         let bin = std::process::Command::new("which")
             .arg("openclaw")
@@ -1100,7 +1117,7 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
             .filter(|o| o.status.success())
             .and_then(|o| String::from_utf8(o.stdout).ok())
             .map(|s| s.trim().to_string())?;
-        // bin is e.g. /usr/bin/openclaw → prefix is /usr
+        // e.g. /usr/bin/openclaw → parent /usr/bin → parent /usr
         let path = std::path::Path::new(&bin);
         path.parent()?.parent().map(|p| p.to_string_lossy().to_string())
     })();
@@ -1119,7 +1136,9 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
         Err(e) => result.errors.push(format!("npm uninstall: {}", e)),
     }
 
-    if remove_config {
+    // Step 3: If remove_config was not handled by `openclaw uninstall --state`,
+    // fall back to direct removal of the config directory.
+    if remove_config && !result.errors.is_empty() {
         let config_dir = if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
             std::path::PathBuf::from(dir)
         } else {
@@ -1133,6 +1152,8 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
         } else {
             result.config_removed = true;
         }
+    } else if remove_config {
+        result.config_removed = true; // handled by `openclaw uninstall --state`
     }
 
     Ok(result)
