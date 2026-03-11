@@ -1,6 +1,0 @@
-# Cross-compilation configuration for clawsquire-serve
-# Use Ubuntu 22.04-based images to match the GitHub Actions runner GLIBC (2.35)
-# and avoid "GLIBC_2.32 not found" errors from build scripts.
-
-[target.aarch64-unknown-linux-gnu]
-image = "ghcr.io/cross-rs/aarch64-unknown-linux-gnu:edge"
