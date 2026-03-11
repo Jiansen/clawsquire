@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { check as checkUpdate, type Update } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 import InfoTooltip from '../components/shared/InfoTooltip';
 import { useActiveTarget } from '../context/ActiveTargetContext';
 
@@ -48,18 +50,38 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [backingUp, setBackingUp] = useState(false);
   const [daemonAction, setDaemonAction] = useState<'idle' | 'starting' | 'stopping'>('idle');
-  const [updateInfo, setUpdateInfo] = useState<{
-    update_available: boolean;
-    current_version: string;
-    latest_version?: string | null;
-    download_url?: string | null;
-  } | null>(null);
+  const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null);
+  const [updateState, setUpdateState] = useState<'idle' | 'downloading' | 'ready'>('idle');
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
-    invoke<{ update_available: boolean; current_version: string; latest_version: string | null; download_url: string | null }>(
-      'check_for_updates'
-    ).then(setUpdateInfo).catch(() => {});
+    checkUpdate().then((update) => {
+      if (update?.available) setPendingUpdate(update);
+    }).catch(() => {});
   }, []);
+
+  const handleInstallUpdate = useCallback(async () => {
+    if (!pendingUpdate) return;
+    setUpdateState('downloading');
+    setDownloadProgress(0);
+    try {
+      let downloaded = 0;
+      let total = 0;
+      await pendingUpdate.downloadAndInstall((event) => {
+        if (event.event === 'Started') {
+          total = event.data.contentLength ?? 0;
+        } else if (event.event === 'Progress') {
+          downloaded += event.data.chunkLength;
+          if (total > 0) setDownloadProgress(Math.round((downloaded / total) * 100));
+        } else if (event.event === 'Finished') {
+          setUpdateState('ready');
+        }
+      });
+      await relaunch();
+    } catch {
+      setUpdateState('idle');
+    }
+  }, [pendingUpdate]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -171,26 +193,44 @@ export default function Dashboard() {
         </div>
       )}
 
-      {updateInfo?.update_available && (
+      {pendingUpdate?.available && (
         <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-xl">🆕</span>
             <div>
-              <p className="text-sm font-medium text-blue-800">
-                {t('dashboard.updateAvailable', { version: updateInfo.latest_version })}
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                {t('dashboard.updateAvailable', { version: pendingUpdate.version })}
               </p>
-              <p className="text-xs text-blue-600">
-                {t('dashboard.currentVersion', { version: updateInfo.current_version })}
-              </p>
+              {updateState === 'downloading' && (
+                <div className="mt-1 w-48">
+                  <div className="h-1.5 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500 transition-all duration-300"
+                      style={{ width: `${downloadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-blue-500 mt-0.5">{downloadProgress}%</p>
+                </div>
+              )}
+              {updateState === 'idle' && (
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  {pendingUpdate.body?.split('\n')[0] ?? t('dashboard.updateReady', { defaultValue: 'Update ready to install' })}
+                </p>
+              )}
             </div>
           </div>
-          {updateInfo.download_url && (
+          {updateState === 'idle' && (
             <button
-              onClick={() => openUrl(updateInfo.download_url!)}
+              onClick={handleInstallUpdate}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-all whitespace-nowrap"
             >
               {t('dashboard.downloadUpdate')}
             </button>
+          )}
+          {updateState === 'downloading' && (
+            <span className="text-xs text-blue-500 whitespace-nowrap">
+              {t('dashboard.updating', { defaultValue: 'Installing…' })}
+            </span>
           )}
         </div>
       )}

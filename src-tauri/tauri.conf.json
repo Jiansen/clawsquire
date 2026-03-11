@@ -38,5 +38,13 @@
     "externalBin": [
       "binaries/clawsquire-serve"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFRTlDNkU3NUI4NjZFRDQKUldUVWJvWmI1OGJwWGowU0VTN1RFd0d4T09QYXE3eDFlY3BaZ1BVSkgrRzJUaGthTlhMZGlBai8K",
+      "endpoints": [
+        "https://github.com/Jiansen/clawsquire/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

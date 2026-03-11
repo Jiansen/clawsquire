@@ -29,4 +29,6 @@ tokio = { version = "1", features = ["rt-multi-thread", "sync", "net", "time", "
 tokio-tungstenite = "0.24"
 futures-util = "0.3"
 clawsquire-core = { path = "../crates/clawsquire-core" }
+tauri-plugin-updater = "2.10.0"
+tauri-plugin-process = "2.3.1"
 

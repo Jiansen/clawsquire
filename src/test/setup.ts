@@ -17,3 +17,13 @@ vi.mock("@tauri-apps/api/window", () => ({
     onCloseRequested: vi.fn(),
   }),
 }));
+
+// Mock Tauri updater plugin (no real IPC in tests)
+vi.mock("@tauri-apps/plugin-updater", () => ({
+  check: vi.fn().mockResolvedValue(null),
+}));
+
+// Mock Tauri process plugin
+vi.mock("@tauri-apps/plugin-process", () => ({
+  relaunch: vi.fn().mockResolvedValue(undefined),
+}));
