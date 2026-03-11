@@ -173,7 +173,7 @@ fn connect_to_serve(port: u16, token: &str, app_handle: &tauri::AppHandle) {
     let app = app_handle.clone();
 
     std::thread::spawn(move || {
-        match ProtocolRunner::connect(&url, &token) {
+        match ProtocolRunner::connect(&url, Some(&token)) {
             Ok(runner) => {
                 let state = app.state::<ActiveTargetState>();
                 state.set(Target::Protocol {

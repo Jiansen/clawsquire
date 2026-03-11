@@ -359,7 +359,10 @@ pub struct CliRunParams {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthHandshake {
     pub protocol_version: String,
-    pub token: String,
+    /// Optional in v0.3.1+: when None, connection is trusted via SSH tunnel.
+    /// When Some, validated for backward-compatibility with v0.3.0 serve.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

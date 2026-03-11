@@ -31,17 +31,19 @@ pub struct ProtocolRunner {
 }
 
 impl ProtocolRunner {
-    pub fn connect(url: &str, token: &str) -> Result<Self, String> {
+    /// Connect to a clawsquire-serve instance.
+    /// `token` is optional: None = SSH-tunnel-as-auth (v0.3.1+); Some = legacy token auth (v0.3.0).
+    pub fn connect(url: &str, token: Option<&str>) -> Result<Self, String> {
         let rt = tokio::runtime::Runtime::new().map_err(|e| format!("runtime: {}", e))?;
 
         let url = url.to_string();
-        let token = token.to_string();
+        let token = token.map(|t| t.to_string());
         let pending: PendingMap = Arc::new(Mutex::new(HashMap::new()));
 
         let (agent_info, tx) = rt.block_on(async {
             tokio::time::timeout(
                 std::time::Duration::from_secs(10),
-                Self::connect_async(&url, &token, Arc::clone(&pending)),
+                Self::connect_async(&url, token.as_deref(), Arc::clone(&pending)),
             )
             .await
             .map_err(|_| "Connection timed out (10 s). Is clawsquire-serve running on that host/port?".to_string())?
@@ -57,7 +59,7 @@ impl ProtocolRunner {
 
     async fn connect_async(
         url: &str,
-        token: &str,
+        token: Option<&str>,
         pending: PendingMap,
     ) -> Result<
         (
@@ -72,10 +74,10 @@ impl ProtocolRunner {
 
         let (mut write, mut read) = ws_stream.split();
 
-        // Auth handshake
+        // Auth handshake — token is None for SSH-tunnel-as-auth (v0.3.1+)
         let auth = AuthHandshake {
             protocol_version: PROTOCOL_VERSION.into(),
-            token: token.into(),
+            token: token.map(|t| t.to_string()),
         };
         write
             .send(Message::Text(serde_json::to_string(&auth).unwrap()))

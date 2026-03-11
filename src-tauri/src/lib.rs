@@ -607,8 +607,8 @@ async fn delete_instance(id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn set_instance_serve(id: String, serve_port: u16, serve_token: String) -> Result<VpsInstance, String> {
-    instances::set_instance_serve(&id, serve_port, &serve_token)
+async fn set_instance_serve(id: String, serve_port: u16, serve_token: Option<String>) -> Result<VpsInstance, String> {
+    instances::set_instance_serve(&id, serve_port, serve_token.as_deref())
 }
 
 #[tauri::command]
@@ -669,14 +669,14 @@ async fn set_active_target(
         }
         "protocol" => {
             let url = url.ok_or("url required for protocol mode")?;
-            let token = token.ok_or("token required for protocol mode")?;
+            // token is optional in v0.3.1+: None = trust SSH tunnel; Some = legacy v0.3.0 compat
             let instance_id = instance_id.unwrap_or_default();
             let host = host.unwrap_or_default();
             // ProtocolRunner::connect blocks on WebSocket handshake; run it off the
             // async executor thread to avoid starving other Tauri commands.
             let state_clone = state.inner().clone();
             tauri::async_runtime::spawn_blocking(move || {
-                state_clone.set_protocol(&url, &token, instance_id, host)
+                state_clone.set_protocol(&url, token.as_deref(), instance_id, host)
             })
             .await
             .map_err(|e| format!("spawn_blocking panicked: {e}"))??;

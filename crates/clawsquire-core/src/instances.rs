@@ -93,11 +93,11 @@ pub fn update_instance(instance: VpsInstance) -> Result<VpsInstance, String> {
 }
 
 /// Update only the serve connection info (port + token) for an instance.
-pub fn set_instance_serve(id: &str, serve_port: u16, serve_token: &str) -> Result<VpsInstance, String> {
+pub fn set_instance_serve(id: &str, serve_port: u16, serve_token: Option<&str>) -> Result<VpsInstance, String> {
     let mut store = InstancesStore::load();
     if let Some(inst) = store.instances.iter_mut().find(|i| i.id == id) {
         inst.serve_port = Some(serve_port);
-        inst.serve_token = Some(serve_token.to_string());
+        inst.serve_token = serve_token.map(|t| t.to_string());
         let updated = inst.clone();
         store.save()?;
         Ok(updated)

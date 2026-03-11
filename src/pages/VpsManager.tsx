@@ -106,10 +106,11 @@ function InlineSetup({
       });
       if (result.success && result.port && result.token) {
         // Save serve credentials
+        // v0.3.1+: token is null (SSH-tunnel-as-auth). Legacy v0.3.0 Bootstrap passes a token.
         await invoke('set_instance_serve', {
           id: instance.id,
           servePort: result.port,
-          serveToken: result.token,
+          serveToken: result.token ?? null,
         }).catch(() => {});
         // Also persist any updated auth credentials back to the instance
         // (e.g. user may have corrected password in this form)
@@ -139,7 +140,7 @@ function InlineSetup({
 
   const inputCls = "w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:border-claw-500 focus:ring-2 focus:ring-claw-200 focus:outline-none";
 
-  const alreadySetup = !!(instance.serve_port && instance.serve_token);
+  const alreadySetup = !!instance.serve_port;
 
   return (
     <div className="space-y-4">
@@ -344,7 +345,7 @@ export default function VpsManager() {
   };
 
   const handleRestartServe = async (inst: VpsInstance, passwordOverride?: string) => {
-    if (!inst.serve_port || !inst.serve_token) return;
+    if (!inst.serve_port) return;
     const resolvedPassword = passwordOverride ?? inst.password ?? null;
     if (inst.auth_method === 'password' && !resolvedPassword) {
       setPendingPasswordInst(inst);
@@ -385,7 +386,7 @@ export default function VpsManager() {
   };
 
   const handleConnect = async (inst: VpsInstance, passwordOverride?: string) => {
-    if (!inst.serve_port || !inst.serve_token) {
+    if (!inst.serve_port) {
       navigate(`/bootstrap?instanceId=${inst.id}`);
       return;
     }
@@ -409,12 +410,13 @@ export default function VpsManager() {
         keyPath: inst.auth_method === 'key' ? (inst.key_path ?? null) : null,
         remotePort: inst.serve_port,
       });
-      // Step 2: WebSocket via tunnel
+      // Step 2: WebSocket via tunnel — no token needed (SSH tunnel is the auth, v0.3.1+)
+      // serve_token is kept for backward-compat with v0.3.0 serve; new installs have no token
       const url = `ws://127.0.0.1:${localPort}`;
       await invoke('set_active_target', {
         mode: 'protocol',
         url,
-        token: inst.serve_token,
+        token: inst.serve_token ?? null, // null = SSH-tunnel-as-auth; legacy installs still send token
         instanceId: inst.id,
         host: inst.host,
       });
@@ -617,7 +619,7 @@ export default function VpsManager() {
                   >
                     {t('vps.disconnect')}
                   </button>
-                ) : (selected.serve_port && selected.serve_token) ? (
+                ) : (selected.serve_port) ? (
                   <button
                     onClick={() => handleConnect(selected)}
                     disabled={connecting}
@@ -743,7 +745,7 @@ export default function VpsManager() {
                         <span className="font-medium">{t('vps.connectFailed', { defaultValue: 'Connection failed:' })}</span>{' '}
                         {connectError}
                       </div>
-                      {connectError.includes('Connection refused') && selected.serve_port && selected.serve_token && (
+                      {connectError.includes('Connection refused') && selected.serve_port && (
                         <div className="flex items-center gap-3">
                           <p className="text-xs text-red-600 dark:text-red-400">
                             {t('vps.serveNotRunning', { defaultValue: 'Remote serve is not running. Click to (re)start it via SSH:' })}
@@ -765,7 +767,7 @@ export default function VpsManager() {
                       <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
                       {t('vps.statusConnected', { defaultValue: 'Connected — managing remote OpenClaw' })}
                     </div>
-                  ) : (selected.serve_port && selected.serve_token) ? (
+                  ) : (selected.serve_port) ? (
                     <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-4 py-2.5 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400">
                       <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
                       {t('vps.statusReady', { defaultValue: 'Agent ready — click Connect above to start' })}

@@ -27,8 +27,9 @@ function TargetSwitcher() {
 
   const isLocal = target.mode === 'local';
 
+  // v0.3.1+: only serve_port needed (no token required — SSH-tunnel-as-auth)
   const readyInstances = instances.filter(
-    (i: VpsInstance) => i.serve_port && i.serve_token,
+    (i: VpsInstance) => i.serve_port,
   );
 
   return (

@@ -110,7 +110,7 @@ impl ActiveTargetState {
     pub fn set_protocol(
         &self,
         url: &str,
-        token: &str,
+        token: Option<&str>,
         instance_id: String,
         host: String,
     ) -> Result<(), String> {

@@ -20,11 +20,25 @@ struct ServeProcess {
 
 impl ServeProcess {
     fn start() -> Self {
+        Self::start_with_token(Some(TEST_TOKEN))
+    }
+
+    fn start_no_token() -> Self {
+        Self::start_with_token(None)
+    }
+
+    fn start_with_token(token: Option<&str>) -> Self {
         let port = PORT_COUNTER.fetch_add(1, Ordering::Relaxed);
         let binary = env!("CARGO_BIN_EXE_clawsquire-serve");
 
+        let mut args = vec!["--port".to_string(), port.to_string()];
+        if let Some(t) = token {
+            args.push("--token".to_string());
+            args.push(t.to_string());
+        }
+
         let child = Command::new(binary)
-            .args(["--port", &port.to_string(), "--token", TEST_TOKEN])
+            .args(&args)
             .stderr(std::process::Stdio::piped())
             .spawn()
             .expect("failed to start clawsquire-serve");
@@ -77,7 +91,7 @@ async fn connect_and_auth(
 
     let auth = AuthHandshake {
         protocol_version: PROTOCOL_VERSION.into(),
-        token: token.into(),
+        token: if token.is_empty() { None } else { Some(token.into()) },
     };
     write
         .send(Message::Text(serde_json::to_string(&auth).unwrap()))
@@ -114,6 +128,17 @@ async fn call(
 
     let msg = read.next().await.unwrap().unwrap();
     serde_json::from_str(&msg.into_text().unwrap()).unwrap()
+}
+
+/// v0.3.1 SSH-tunnel-as-auth: serve started without --token accepts connections with no token.
+#[tokio::test]
+async fn test_auth_no_token_ssh_tunnel_mode() {
+    let serve = ServeProcess::start_no_token();
+    // Connect with no token (v0.3.1+ Desktop)
+    let (_write, _read, resp) = connect_and_auth(&serve.ws_url(), "").await;
+    assert!(resp.ok, "no-token connection should be accepted in SSH-tunnel-as-auth mode");
+    let info = resp.agent_info.unwrap();
+    assert!(!info.os.is_empty());
 }
 
 #[tokio::test]
@@ -153,7 +178,7 @@ async fn test_version_mismatch_rejects_connection() {
     // Send a client with an incompatible major version
     let auth = AuthHandshake {
         protocol_version: "99.0.0".into(),
-        token: TEST_TOKEN.into(),
+        token: Some(TEST_TOKEN.into()),
     };
     write
         .send(Message::Text(serde_json::to_string(&auth).unwrap()))
@@ -180,7 +205,7 @@ async fn test_auth_failure() {
 
     let auth = AuthHandshake {
         protocol_version: PROTOCOL_VERSION.into(),
-        token: "wrong-token".into(),
+        token: Some("wrong-token".into()),
     };
     write
         .send(Message::Text(serde_json::to_string(&auth).unwrap()))

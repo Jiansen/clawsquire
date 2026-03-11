@@ -15,14 +15,16 @@ use crate::dispatch;
 
 pub struct ServerConfig {
     pub addr: SocketAddr,
-    pub token: String,
+    /// Expected token for v0.3.0 Desktop compatibility.
+    /// When None, all connections from localhost (SSH tunnel) are trusted (v0.3.1+ model).
+    pub token: Option<String>,
 }
 
 /// Returns the actual bound address (important when port=0).
 pub async fn run(config: ServerConfig) -> Result<(), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(&config.addr).await?;
     let actual_addr = listener.local_addr()?;
-    let token = Arc::new(config.token);
+    let token = Arc::new(config.token); // Option<String>
 
     eprintln!(
         "[clawsquire-serve] listening on ws://{}  (protocol {})",
@@ -41,7 +43,7 @@ pub async fn run(config: ServerConfig) -> Result<(), Box<dyn std::error::Error>>
 
     loop {
         let (stream, peer) = listener.accept().await?;
-        let token = Arc::clone(&token);
+        let token: Arc<Option<String>> = Arc::clone(&token);
         tokio::spawn(async move {
             if let Err(e) = handle_connection(stream, peer, &token).await {
                 eprintln!("[clawsquire-serve] connection error from {}: {}", peer, e);
@@ -53,7 +55,7 @@ pub async fn run(config: ServerConfig) -> Result<(), Box<dyn std::error::Error>>
 async fn handle_connection(
     stream: TcpStream,
     peer: SocketAddr,
-    expected_token: &str,
+    expected_token: &Option<String>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let ws_stream = tokio_tungstenite::accept_async(stream).await?;
     let (mut write, mut read) = ws_stream.split();
@@ -90,17 +92,36 @@ async fn handle_connection(
         return Err("version incompatible".into());
     }
 
-    if handshake.token != expected_token {
-        let resp = AuthResponse {
-            ok: false,
-            agent_info: None,
-            error: Some("invalid token".into()),
-            server_capabilities: None,
-        };
-        write
-            .send(Message::Text(serde_json::to_string(&resp)?))
-            .await?;
-        return Err("auth failed".into());
+    // --- Token check ---
+    // v0.3.1+ model: if serve has no expected_token (SSH-tunnel auth), accept all localhost connections.
+    // Backward compat: if serve has expected_token, validate client-provided token.
+    match (expected_token, &handshake.token) {
+        (Some(expected), Some(provided)) if provided != expected => {
+            let resp = AuthResponse {
+                ok: false,
+                agent_info: None,
+                error: Some("invalid token".into()),
+                server_capabilities: None,
+            };
+            write
+                .send(Message::Text(serde_json::to_string(&resp)?))
+                .await?;
+            return Err("auth failed".into());
+        }
+        (Some(expected), None) => {
+            // v0.3.0 serve with v0.3.1 Desktop: require token until serve is upgraded
+            let resp = AuthResponse {
+                ok: false,
+                agent_info: None,
+                error: Some(format!("token required by this serve (v0.3.0); expected len={}", expected.len())),
+                server_capabilities: Some(ServerCapabilities::current()),
+            };
+            write
+                .send(Message::Text(serde_json::to_string(&resp)?))
+                .await?;
+            return Err("auth failed: token required".into());
+        }
+        _ => {} // (None, _) = trust tunnel; (Some, Some(matching)) = valid
     }
 
     let agent_info = AgentInfo::from_current_machine();

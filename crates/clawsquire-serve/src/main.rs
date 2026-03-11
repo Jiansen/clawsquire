@@ -31,7 +31,7 @@ fn print_usage() {
     eprintln!("  --help           Show this message");
 }
 
-fn parse_args() -> Result<(u16, String, bool), String> {
+fn parse_args() -> Result<(u16, Option<String>, bool), String> {
     let args: Vec<String> = std::env::args().collect();
     let mut port = protocol::DEFAULT_PORT;
     let mut token: Option<String> = None;
@@ -70,7 +70,7 @@ fn parse_args() -> Result<(u16, String, bool), String> {
         i += 1;
     }
 
-    let token = token.unwrap_or_else(generate_token);
+    // token is None when not provided → SSH-tunnel-as-auth mode (v0.3.1+)
     Ok((port, token, init_only))
 }
 
@@ -90,16 +90,22 @@ async fn main() {
             "token": token,
             "port": port,
             "protocol_version": protocol::PROTOCOL_VERSION,
+            "ready": true,
         }));
         return;
     }
 
-    eprintln!("[clawsquire-serve] token: {}", token);
+    match &token {
+        Some(t) => eprintln!("[clawsquire-serve] token: {} (v0.3.0 compat mode)", t),
+        None => eprintln!("[clawsquire-serve] token: none (SSH-tunnel-as-auth mode)"),
+    }
 
-    let addr: SocketAddr = ([0, 0, 0, 0], port).into();
+    // Bind to localhost-only: SSH tunnel is the only entry point (SSH-as-auth model).
+    // This prevents direct internet access to the serve port even if the VPS firewall is open.
+    let addr: SocketAddr = ([127, 0, 0, 1], port).into();
     let config = server::ServerConfig {
         addr,
-        token: token.clone(),
+        token,
     };
 
     // server::run prints the ready JSON (with actual port) to stdout

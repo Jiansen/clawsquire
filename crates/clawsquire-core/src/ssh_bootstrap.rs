@@ -290,21 +290,17 @@ pub fn run_bootstrap<F: FnMut(BootstrapEvent)>(
         }
     }
 
-    // Step 5: Start serve with --init to get token/port
+    // Step 5: Start serve with --init to get port (no token in v0.3.1+ — SSH tunnel is the auth)
     emit(BootstrapEvent::running("start_serve", "Starting clawsquire-serve..."));
     let init_cmd = "$HOME/.clawsquire/clawsquire-serve --init";
     match ssh_exec(cfg, init_cmd) {
         Ok(output) => {
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(&output) {
-                let token = json
-                    .get("token")
-                    .and_then(|t| t.as_str())
-                    .map(|s| s.to_string());
                 let port = json.get("port").and_then(|p| p.as_u64()).map(|p| p as u16);
 
-                if let (Some(t), Some(p)) = (&token, port) {
-                    result.token = Some(t.clone());
+                if let Some(p) = port {
                     result.port = Some(p);
+                    result.token = None; // v0.3.1+: no token — SSH tunnel is auth
                     emit(BootstrapEvent::ok(
                         "start_serve",
                         &format!("clawsquire-serve ready (port {})", p),
@@ -312,7 +308,7 @@ pub fn run_bootstrap<F: FnMut(BootstrapEvent)>(
                 } else {
                     emit(BootstrapEvent::fail(
                         "start_serve",
-                        "Invalid init output — missing token or port",
+                        "Invalid init output — missing port",
                         Some(output),
                     ));
                     result.error = Some("Invalid clawsquire-serve init output".into());
@@ -339,13 +335,12 @@ pub fn run_bootstrap<F: FnMut(BootstrapEvent)>(
         }
     }
 
-    // Step 6: Start serve as background daemon
+    // Step 6: Start serve daemon WITHOUT --token (SSH-tunnel-as-auth mode)
     emit(BootstrapEvent::running("daemon", "Starting serve daemon..."));
-    let token = result.token.as_deref().unwrap();
     let port = result.port.unwrap();
     let daemon_cmd = format!(
-        "nohup $HOME/.clawsquire/clawsquire-serve --port {} --token {} > $HOME/.clawsquire/serve.log 2>&1 &",
-        port, token
+        "nohup $HOME/.clawsquire/clawsquire-serve --port {} > $HOME/.clawsquire/serve.log 2>&1 &",
+        port
     );
     match ssh_exec(cfg, &daemon_cmd) {
         Ok(_) => {
