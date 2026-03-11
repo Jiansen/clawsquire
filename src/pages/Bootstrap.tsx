@@ -280,27 +280,8 @@ export default function Bootstrap() {
     }
   }, [isRemote, tab, detect]);
 
-  const handleInstall = async (component: string) => {
-    setInstalling(component);
-    setError(null);
-    try {
-      if (component === 'node') {
-        const result = await invoke<NodeInstallResult>('bootstrap_install_node');
-        if (!result.success) setError(result.error || t('bootstrap.installFailed'));
-      } else if (component === 'openclaw') {
-        const result = await invoke<InstallResult>('bootstrap_install_openclaw');
-        if (!result.success) setError(result.error || t('bootstrap.installFailed'));
-      }
-      await detect();
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setInstalling(null);
-    }
-  };
-
-  const handleAskOpenClaw = async () => {
-    if (!error) return;
+  const askOpenClawAboutError = async (errorMsg: string) => {
+    if (!errorMsg) return;
     setAskingOc(true);
     setOcReply(null);
     try {
@@ -311,17 +292,47 @@ export default function Bootstrap() {
         'I am trying to install OpenClaw on a remote server and it failed.',
         sshInfo,
         platformInfo,
-        `Error: ${error}`,
+        `Error: ${errorMsg}`,
         'Official install docs: https://docs.openclaw.ai/start/getting-started',
         'Official install script: curl -fsSL https://openclaw.ai/install.sh | bash --no-onboard',
-        'Please suggest what is wrong and how to fix it.',
+        'Please suggest what is wrong and how to fix it. Be concise.',
       ].filter(Boolean).join('\n');
       const result = await invoke<AgentChatResult>('agent_chat_local', { message: prompt });
-      setOcReply(result.reply || result.error || 'No response from local OpenClaw.');
-    } catch (e) {
-      setOcReply(`Could not reach local OpenClaw: ${String(e)}`);
+      setOcReply(result.reply || null);
+    } catch {
+      // Silently degrade — local openclaw unavailable or not configured
     } finally {
       setAskingOc(false);
+    }
+  };
+
+  const handleInstall = async (component: string) => {
+    setInstalling(component);
+    setError(null);
+    setOcReply(null);
+    try {
+      if (component === 'node') {
+        const result = await invoke<NodeInstallResult>('bootstrap_install_node');
+        if (!result.success) {
+          const errMsg = result.error || t('bootstrap.installFailed');
+          setError(errMsg);
+          askOpenClawAboutError(errMsg); // auto-invoke, no await
+        }
+      } else if (component === 'openclaw') {
+        const result = await invoke<InstallResult>('bootstrap_install_openclaw');
+        if (!result.success) {
+          const errMsg = result.error || t('bootstrap.installFailed');
+          setError(errMsg);
+          askOpenClawAboutError(errMsg); // auto-invoke, no await
+        }
+      }
+      await detect();
+    } catch (e) {
+      const errMsg = String(e);
+      setError(errMsg);
+      askOpenClawAboutError(errMsg);
+    } finally {
+      setInstalling(null);
     }
   };
 
@@ -566,16 +577,14 @@ export default function Bootstrap() {
               <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 py-2">
                 {error}
               </div>
-              <button
-                onClick={handleAskOpenClaw}
-                disabled={askingOc}
-                className="text-xs px-3 py-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-200 disabled:opacity-50 transition-colors"
-              >
-                {askingOc ? '🦞 Asking local OpenClaw…' : '🦞 Ask Local OpenClaw for Help'}
-              </button>
+              {askingOc && (
+                <div className="text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
+                  <span className="animate-spin">🦞</span> OpenClaw is analyzing the error…
+                </div>
+              )}
               {ocReply && (
-                <div className="text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 whitespace-pre-wrap">
-                  <span className="text-violet-600 dark:text-violet-400 font-medium">OpenClaw: </span>
+                <div className="text-sm bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg px-4 py-3 whitespace-pre-wrap">
+                  <span className="text-violet-600 dark:text-violet-400 font-medium">🦞 OpenClaw: </span>
                   {ocReply}
                 </div>
               )}
@@ -722,16 +731,14 @@ export default function Bootstrap() {
               <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 py-2">
                 {error}
               </div>
-              <button
-                onClick={handleAskOpenClaw}
-                disabled={askingOc}
-                className="text-xs px-3 py-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-200 disabled:opacity-50 transition-colors"
-              >
-                {askingOc ? '🦞 Asking local OpenClaw…' : '🦞 Ask Local OpenClaw for Help'}
-              </button>
+              {askingOc && (
+                <div className="text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
+                  <span className="animate-spin">🦞</span> OpenClaw is analyzing the error…
+                </div>
+              )}
               {ocReply && (
-                <div className="text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 whitespace-pre-wrap">
-                  <span className="text-violet-600 dark:text-violet-400 font-medium">OpenClaw: </span>
+                <div className="text-sm bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg px-4 py-3 whitespace-pre-wrap">
+                  <span className="text-violet-600 dark:text-violet-400 font-medium">🦞 OpenClaw: </span>
                   {ocReply}
                 </div>
               )}
