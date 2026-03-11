@@ -205,15 +205,13 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h2>
         <div className="flex items-center gap-2">
-          {isRemote && (
-            <button
-              onClick={handleOpenPortal}
-              disabled={openingPortal}
-              className="rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white px-3 py-1.5 text-xs font-medium transition-all"
-            >
-              {openingPortal ? 'Opening…' : '🖥 OpenClaw Dashboard'}
-            </button>
-          )}
+          <button
+            onClick={handleOpenPortal}
+            disabled={openingPortal}
+            className="rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white px-3 py-1.5 text-xs font-medium transition-all"
+          >
+            {openingPortal ? 'Opening…' : `🖥 OpenClaw Dashboard${isRemote ? '' : ' (Local)'}`}
+          </button>
           <button
             onClick={refresh}
             disabled={loading}

@@ -380,21 +380,57 @@ async fn serve_update(
 }
 
 /// Open the remote OpenClaw dashboard in an embedded Tauri window.
-/// Open the remote OpenClaw Dashboard in an embedded WebviewWindow.
-/// Credentials are resolved automatically from the active target state and OS Keychain.
-/// 1. Looks up the active VPS instance from storage.
-/// 2. Loads SSH password from Keychain if auth_method == "password".
-/// 3. Calls cli.run ["dashboard", "--no-open"] via protocol to get dashboard URL + token.
-/// 4. Opens an SSH port-forward: remote 18789 → local 28789.
-/// 5. Creates a Tauri WebviewWindow pointing at http://127.0.0.1:28789/#token=...
+/// Open the OpenClaw Dashboard in an embedded WebviewWindow.
+///
+/// Local mode:
+///   Runs `openclaw dashboard --no-open` via the local CLI to obtain the URL + token,
+///   then opens a WebviewWindow at http://127.0.0.1:18789/#token=...
+///   Falls back to http://127.0.0.1:18789 (no token) if the command is unavailable.
+///
+/// Remote mode:
+///   1. Resolves SSH credentials (cached creds > Keychain > stored instance).
+///   2. Calls cli.run ["dashboard", "--no-open"] via the serve protocol to get the URL + token.
+///   3. Opens an SSH port-forward: remote 18789 → local 28789.
+///   4. Creates a Tauri WebviewWindow pointing at http://127.0.0.1:28789/#token=...
 #[tauri::command]
 async fn open_openclaw_portal(
     app: tauri::AppHandle,
     state: tauri::State<'_, ActiveTargetState>,
 ) -> Result<(), String> {
     let target = state.get();
+
+    // ── Local mode ─────────────────────────────────────────────────────────────
     if !target.is_protocol() {
-        return Err("open_openclaw_portal is only available in remote mode".into());
+        let url_str = tauri::async_runtime::spawn_blocking(|| {
+            use clawsquire_core::cli_runner::{CliRunner as _, RealCliRunner};
+            let runner = RealCliRunner;
+            match runner.run(&["dashboard", "--no-open"]) {
+                Ok(out) if out.success => {
+                    // Parse "Dashboard URL: http://127.0.0.1:18789/#token=..." from stdout
+                    out.stdout.lines()
+                        .find_map(|line| {
+                            line.strip_prefix("Dashboard URL:")
+                                .map(|rest| rest.trim().to_string())
+                        })
+                        .unwrap_or_else(|| "http://127.0.0.1:18789".to_string())
+                }
+                _ => "http://127.0.0.1:18789".to_string(),
+            }
+        })
+        .await
+        .map_err(|e| e.to_string())?;
+
+        let url: tauri::Url = url_str.parse().map_err(|e| format!("invalid url: {}", e))?;
+        if let Some(existing) = app.get_webview_window("openclaw-portal") {
+            let _ = existing.close();
+        }
+        tauri::WebviewWindowBuilder::new(&app, "openclaw-portal", tauri::WebviewUrl::External(url))
+            .title("OpenClaw Dashboard (Local)")
+            .inner_size(1280.0, 860.0)
+            .resizable(true)
+            .build()
+            .map_err(|e| e.to_string())?;
+        return Ok(());
     }
 
     // Resolve SSH credentials: cached tunnel params > Keychain > stored instance
