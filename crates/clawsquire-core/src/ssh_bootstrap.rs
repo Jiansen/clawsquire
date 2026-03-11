@@ -346,35 +346,57 @@ pub fn run_bootstrap<F: FnMut(BootstrapEvent)>(
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_ssh_args_key_auth() {
-        let cfg = SshConfig {
+    fn key_cfg() -> SshConfig {
+        SshConfig {
             host: "example.com".into(),
             port: 22,
             username: "root".into(),
             auth_method: "key".into(),
             password: None,
             key_path: Some("/home/user/.ssh/id_rsa".into()),
-        };
-        let args = build_ssh_args(&cfg);
-        assert!(args.contains(&"-i".to_string()));
-        assert!(args.contains(&"/home/user/.ssh/id_rsa".to_string()));
-        assert!(args.contains(&"root@example.com".to_string()));
+        }
     }
 
-    #[test]
-    fn test_ssh_args_password_auth() {
-        let cfg = SshConfig {
+    fn pw_cfg() -> SshConfig {
+        SshConfig {
             host: "192.168.1.1".into(),
             port: 2222,
             username: "admin".into(),
             auth_method: "password".into(),
             password: Some("secret".into()),
             key_path: None,
-        };
-        let args = build_ssh_args(&cfg);
+        }
+    }
+
+    #[test]
+    fn test_ssh_args_key_auth() {
+        let args = build_ssh_args(&key_cfg());
+        assert!(args.contains(&"-i".to_string()));
+        assert!(args.contains(&"/home/user/.ssh/id_rsa".to_string()));
+        assert!(args.contains(&"root@example.com".to_string()));
+    }
+
+    #[test]
+    fn test_ssh_args_key_auth_includes_options() {
+        let args = build_ssh_args(&key_cfg());
+        assert!(args.contains(&"StrictHostKeyChecking=no".to_string()));
+        assert!(args.contains(&"ConnectTimeout=15".to_string()));
+        assert!(args.contains(&"BatchMode=yes".to_string()));
+    }
+
+    #[test]
+    fn test_ssh_args_password_auth() {
+        let args = build_ssh_args(&pw_cfg());
         assert!(args.contains(&"2222".to_string()));
         assert!(args.contains(&"admin@192.168.1.1".to_string()));
+    }
+
+    #[test]
+    fn test_ssh_args_no_key_without_key_path() {
+        let mut cfg = key_cfg();
+        cfg.key_path = None;
+        let args = build_ssh_args(&cfg);
+        assert!(!args.contains(&"-i".to_string()));
     }
 
     #[test]
@@ -392,6 +414,15 @@ mod tests {
     }
 
     #[test]
+    fn test_bootstrap_event_serialization() {
+        let ev = BootstrapEvent::ok("connect", "Connected");
+        let json = serde_json::to_string(&ev).unwrap();
+        let parsed: BootstrapEvent = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.step, "connect");
+        assert_eq!(parsed.status, "ok");
+    }
+
+    #[test]
     fn test_bootstrap_result_default() {
         let r = BootstrapResult {
             success: false,
@@ -403,5 +434,71 @@ mod tests {
         };
         assert!(!r.success);
         assert!(r.port.is_none());
+    }
+
+    #[test]
+    fn test_bootstrap_result_serialization() {
+        let r = BootstrapResult {
+            success: true,
+            port: Some(18790),
+            token: Some("tok-123".into()),
+            platform: Some("linux".into()),
+            arch: Some("x86_64".into()),
+            error: None,
+        };
+        let json = serde_json::to_string(&r).unwrap();
+        let parsed: BootstrapResult = serde_json::from_str(&json).unwrap();
+        assert!(parsed.success);
+        assert_eq!(parsed.port, Some(18790));
+        assert_eq!(parsed.token, Some("tok-123".into()));
+    }
+
+    #[test]
+    fn test_ssh_config_serialization() {
+        let cfg = key_cfg();
+        let json = serde_json::to_string(&cfg).unwrap();
+        let parsed: SshConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.host, "example.com");
+        assert_eq!(parsed.port, 22);
+        assert_eq!(parsed.auth_method, "key");
+    }
+
+    #[test]
+    fn test_bootstrap_emits_events_on_missing_ssh() {
+        let cfg = SshConfig {
+            host: "nonexistent.example.com".into(),
+            port: 22,
+            username: "root".into(),
+            auth_method: "key".into(),
+            password: None,
+            key_path: None,
+        };
+
+        let mut events: Vec<BootstrapEvent> = Vec::new();
+        let result = run_bootstrap(&cfg, |ev| events.push(ev));
+
+        assert!(!result.success);
+        assert!(!events.is_empty());
+        // First event should be ssh_check
+        assert_eq!(events[0].step, "ssh_check");
+        assert_eq!(events[0].status, "running");
+    }
+
+    #[test]
+    fn test_bootstrap_password_no_password_fails() {
+        let cfg = SshConfig {
+            host: "example.com".into(),
+            port: 22,
+            username: "root".into(),
+            auth_method: "password".into(),
+            password: None,
+            key_path: None,
+        };
+
+        let mut events: Vec<BootstrapEvent> = Vec::new();
+        let result = run_bootstrap(&cfg, |ev| events.push(ev));
+
+        // sshpass should either be missing or password auth should fail
+        assert!(!result.success);
     }
 }

@@ -2,12 +2,16 @@ use clawsquire_core::cli_runner::{CliRunner, RealCliRunner};
 use clawsquire_core::protocol::{self, error_code, method, RpcRequest, RpcResponse};
 use clawsquire_core::{compat, detect, doctor, node_install, openclaw};
 
-fn runner() -> &'static dyn CliRunner {
+fn default_runner() -> &'static dyn CliRunner {
     static RUNNER: RealCliRunner = RealCliRunner;
     &RUNNER
 }
 
 pub fn handle(req: &RpcRequest) -> RpcResponse {
+    handle_with(req, default_runner())
+}
+
+pub fn handle_with(req: &RpcRequest, runner: &dyn CliRunner) -> RpcResponse {
     let id = req.id.clone();
 
     if !method::is_valid(&req.method) {
@@ -18,15 +22,14 @@ pub fn handle(req: &RpcRequest) -> RpcResponse {
         );
     }
 
-    match dispatch(req) {
+    match dispatch(req, runner) {
         Ok(value) => RpcResponse::success(id, value),
         Err(e) => RpcResponse::error(id, error_code::OPENCLAW_ERROR, e),
     }
 }
 
-fn dispatch(req: &RpcRequest) -> Result<serde_json::Value, String> {
+fn dispatch(req: &RpcRequest, r: &dyn CliRunner) -> Result<serde_json::Value, String> {
     let p = &req.params;
-    let r = runner();
 
     match req.method.as_str() {
         // ---- Query (11) ----
@@ -203,7 +206,42 @@ fn to_value<T: serde::Serialize>(v: T) -> Result<serde_json::Value, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use clawsquire_core::cli_runner::{CliOutput, CliRunner};
     use clawsquire_core::protocol::RpcId;
+    use std::collections::VecDeque;
+    use std::sync::Mutex;
+
+    struct MockCli {
+        responses: Mutex<VecDeque<CliOutput>>,
+    }
+    impl MockCli {
+        fn new() -> Self {
+            Self {
+                responses: Mutex::new(VecDeque::new()),
+            }
+        }
+        fn push(&self, success: bool, stdout: &str, stderr: &str) {
+            self.responses.lock().unwrap().push_back(CliOutput {
+                success,
+                stdout: stdout.into(),
+                stderr: stderr.into(),
+            });
+        }
+    }
+    impl CliRunner for MockCli {
+        fn run(&self, _args: &[&str]) -> Result<CliOutput, String> {
+            self.responses
+                .lock()
+                .unwrap()
+                .pop_front()
+                .ok_or_else(|| "no mock response".into())
+        }
+    }
+
+    fn call(mock: &MockCli, method_name: &str, params: serde_json::Value, id: i64) -> RpcResponse {
+        let req = RpcRequest::new(method_name, params, id);
+        handle_with(&req, mock)
+    }
 
     #[test]
     fn test_unknown_method_returns_not_found() {
@@ -239,5 +277,336 @@ mod tests {
         let req = RpcRequest::new(method::ENVIRONMENT_DETECT, serde_json::json!({}), "abc");
         let resp = handle(&req);
         assert_eq!(resp.id, Some(RpcId::Str("abc".into())));
+    }
+
+    // ----- Query methods with mock -----
+
+    #[test]
+    fn test_config_get() {
+        let mock = MockCli::new();
+        mock.push(true, "\"deepseek/deepseek-chat\"", "");
+        let resp = call(&mock, method::CONFIG_GET, serde_json::json!({"path": "models.default"}), 10);
+        assert!(resp.is_success());
+    }
+
+    #[test]
+    fn test_config_full_reads_file() {
+        let resp = call(&MockCli::new(), method::CONFIG_FULL, serde_json::json!({}), 11);
+        // May fail if no openclaw config exists — that's an error, not a panic
+        assert!(resp.id == Some(RpcId::Num(11)));
+    }
+
+    #[test]
+    fn test_gateway_status() {
+        let mock = MockCli::new();
+        mock.push(true, "running", "");
+        let resp = call(&mock, method::GATEWAY_STATUS, serde_json::json!({}), 12);
+        assert!(resp.id == Some(RpcId::Num(12)));
+    }
+
+    #[test]
+    fn test_providers_list() {
+        let mock = MockCli::new();
+        mock.push(true, "openai\nanthropic\ndeepseek", "");
+        let resp = call(&mock, method::PROVIDERS_LIST, serde_json::json!({}), 13);
+        assert!(resp.id == Some(RpcId::Num(13)));
+    }
+
+    #[test]
+    fn test_models_list() {
+        let mock = MockCli::new();
+        mock.push(true, "gpt-4\ngpt-3.5-turbo", "");
+        let resp = call(&mock, method::MODELS_LIST, serde_json::json!({"provider": "openai"}), 14);
+        assert!(resp.id == Some(RpcId::Num(14)));
+    }
+
+    #[test]
+    fn test_llm_check() {
+        let mock = MockCli::new();
+        mock.push(true, "{}", "");
+        let resp = call(&mock, method::LLM_CHECK, serde_json::json!({}), 15);
+        assert!(resp.id == Some(RpcId::Num(15)));
+    }
+
+    #[test]
+    fn test_llm_test_gateway() {
+        let mock = MockCli::new();
+        mock.push(true, "OK", "");
+        let resp = call(&mock, method::LLM_TEST_GATEWAY, serde_json::json!({}), 16);
+        assert!(resp.id == Some(RpcId::Num(16)));
+    }
+
+    #[test]
+    fn test_channels_list() {
+        let mock = MockCli::new();
+        mock.push(true, "telegram\ndiscord", "");
+        let resp = call(&mock, method::CHANNELS_LIST, serde_json::json!({}), 17);
+        assert!(resp.id == Some(RpcId::Num(17)));
+    }
+
+    #[test]
+    fn test_cron_list() {
+        let mock = MockCli::new();
+        mock.push(true, "[]", "");
+        let resp = call(&mock, method::CRON_LIST, serde_json::json!({}), 18);
+        assert!(resp.id == Some(RpcId::Num(18)));
+    }
+
+    #[test]
+    fn test_version_info() {
+        let mock = MockCli::new();
+        mock.push(true, "2026.3.8", "");
+        let resp = call(&mock, method::VERSION_INFO, serde_json::json!({}), 19);
+        assert!(resp.id == Some(RpcId::Num(19)));
+    }
+
+    // ----- Mutation methods with mock -----
+
+    #[test]
+    fn test_config_set() {
+        let mock = MockCli::new();
+        mock.push(true, "", "");
+        let resp = call(
+            &mock,
+            method::CONFIG_SET,
+            serde_json::json!({"path": "models.default", "value": "gpt-4"}),
+            20,
+        );
+        assert!(resp.is_success());
+    }
+
+    #[test]
+    fn test_gateway_start() {
+        let mock = MockCli::new();
+        mock.push(true, "started", "");
+        let resp = call(&mock, method::GATEWAY_START, serde_json::json!({}), 21);
+        assert!(resp.id == Some(RpcId::Num(21)));
+    }
+
+    #[test]
+    fn test_gateway_stop() {
+        let mock = MockCli::new();
+        mock.push(true, "stopped", "");
+        let resp = call(&mock, method::GATEWAY_STOP, serde_json::json!({}), 22);
+        assert!(resp.id == Some(RpcId::Num(22)));
+    }
+
+    #[test]
+    fn test_provider_setup() {
+        let mock = MockCli::new();
+        mock.push(true, "", "");
+        mock.push(true, "", "");
+        mock.push(true, "", "");
+        let resp = call(
+            &mock,
+            method::PROVIDER_SETUP,
+            serde_json::json!({"provider": "deepseek", "api_key": "sk-test"}),
+            23,
+        );
+        assert!(resp.id == Some(RpcId::Num(23)));
+    }
+
+    #[test]
+    fn test_channels_add() {
+        let mock = MockCli::new();
+        mock.push(true, "added telegram", "");
+        let resp = call(
+            &mock,
+            method::CHANNELS_ADD,
+            serde_json::json!({"channel": "telegram", "token": "bot-token"}),
+            24,
+        );
+        assert!(resp.id == Some(RpcId::Num(24)));
+    }
+
+    #[test]
+    fn test_channels_remove() {
+        let mock = MockCli::new();
+        mock.push(true, "removed", "");
+        let resp = call(
+            &mock,
+            method::CHANNELS_REMOVE,
+            serde_json::json!({"channel": "discord"}),
+            25,
+        );
+        assert!(resp.id == Some(RpcId::Num(25)));
+    }
+
+    #[test]
+    fn test_cron_add() {
+        let mock = MockCli::new();
+        mock.push(true, "added", "");
+        let resp = call(
+            &mock,
+            method::CRON_ADD,
+            serde_json::json!({
+                "name": "daily-email",
+                "every": "24h",
+                "message": "Send digest",
+                "channel": "telegram",
+                "announce": true
+            }),
+            26,
+        );
+        assert!(resp.id == Some(RpcId::Num(26)));
+    }
+
+    #[test]
+    fn test_cron_remove() {
+        let mock = MockCli::new();
+        mock.push(true, "removed", "");
+        let resp = call(
+            &mock,
+            method::CRON_REMOVE,
+            serde_json::json!({"name": "daily-email"}),
+            27,
+        );
+        assert!(resp.id == Some(RpcId::Num(27)));
+    }
+
+    #[test]
+    fn test_safety_apply() {
+        let mock = MockCli::new();
+        mock.push(true, "", "");
+        mock.push(true, "", "");
+        mock.push(true, "", "");
+        let resp = call(
+            &mock,
+            method::SAFETY_APPLY,
+            serde_json::json!({"level": "standard"}),
+            28,
+        );
+        assert!(resp.id == Some(RpcId::Num(28)));
+    }
+
+    #[test]
+    fn test_agent_chat() {
+        let mock = MockCli::new();
+        mock.push(true, "Hello!", "");
+        let resp = call(
+            &mock,
+            method::AGENT_CHAT,
+            serde_json::json!({"message": "Hi there"}),
+            29,
+        );
+        assert!(resp.id == Some(RpcId::Num(29)));
+    }
+
+    #[test]
+    fn test_email_monitor_setup() {
+        let mock = MockCli::new();
+        mock.push(true, "", "");
+        let resp = call(
+            &mock,
+            method::EMAIL_MONITOR_SETUP,
+            serde_json::json!({
+                "telegram_token": "bot-token",
+                "email_address": "test@example.com"
+            }),
+            30,
+        );
+        assert!(resp.id == Some(RpcId::Num(30)));
+    }
+
+    // ----- Lifecycle methods -----
+
+    #[test]
+    fn test_openclaw_install() {
+        let mock = MockCli::new();
+        mock.push(true, "installed", "");
+        let resp = call(&mock, method::OPENCLAW_INSTALL, serde_json::json!({}), 32);
+        assert!(resp.id == Some(RpcId::Num(32)));
+    }
+
+    #[test]
+    fn test_openclaw_uninstall() {
+        let mock = MockCli::new();
+        mock.push(true, "uninstalled", "");
+        let resp = call(
+            &mock,
+            method::OPENCLAW_UNINSTALL,
+            serde_json::json!({"remove_config": false}),
+            33,
+        );
+        assert!(resp.id == Some(RpcId::Num(33)));
+    }
+
+    // ----- Utility methods -----
+
+    #[test]
+    fn test_cli_run() {
+        let mock = MockCli::new();
+        mock.push(true, "status output", "");
+        let resp = call(
+            &mock,
+            method::CLI_RUN,
+            serde_json::json!({"args": ["status"]}),
+            34,
+        );
+        assert!(resp.is_success());
+        let result = resp.result.unwrap();
+        assert!(result.get("success").is_some());
+    }
+
+    #[test]
+    fn test_doctor_run() {
+        let resp = call(&MockCli::new(), method::DOCTOR_RUN, serde_json::json!({}), 35);
+        // doctor.run doesn't use CliRunner — uses its own logic
+        assert!(resp.id == Some(RpcId::Num(35)));
+    }
+
+    // ----- Error handling -----
+
+    #[test]
+    fn test_cli_failure_propagates() {
+        let mock = MockCli::new();
+        mock.push(false, "", "command failed");
+        let resp = call(
+            &mock,
+            method::CONFIG_GET,
+            serde_json::json!({"path": "test"}),
+            40,
+        );
+        assert!(!resp.is_success());
+        let err = resp.error.unwrap();
+        assert_eq!(err.code, error_code::OPENCLAW_ERROR);
+    }
+
+    #[test]
+    fn test_all_methods_have_dispatch_branch() {
+        let mock = MockCli::new();
+        // Queue enough responses for any method that needs CLI calls
+        for _ in 0..10 {
+            mock.push(true, "{}", "");
+        }
+        for m in method::ALL {
+            let params = match *m {
+                method::CONFIG_GET => serde_json::json!({"path": "test"}),
+                method::CONFIG_SET => serde_json::json!({"path": "test", "value": "v"}),
+                method::MODELS_LIST => serde_json::json!({"provider": "openai"}),
+                method::PROVIDER_SETUP => serde_json::json!({"provider": "test", "api_key": "k"}),
+                method::CHANNELS_ADD => serde_json::json!({"channel": "tg", "token": "t"}),
+                method::CHANNELS_REMOVE => serde_json::json!({"channel": "tg"}),
+                method::CRON_ADD => serde_json::json!({"name": "n", "every": "1h", "message": "m", "channel": "c"}),
+                method::CRON_REMOVE => serde_json::json!({"name": "n"}),
+                method::SAFETY_APPLY => serde_json::json!({"level": "standard"}),
+                method::AGENT_CHAT => serde_json::json!({"message": "hi"}),
+                method::EMAIL_MONITOR_SETUP => serde_json::json!({"telegram_token": "t", "email_address": "a@b.com"}),
+                method::OPENCLAW_UNINSTALL => serde_json::json!({"remove_config": false}),
+                method::CLI_RUN => serde_json::json!({"args": ["status"]}),
+                _ => serde_json::json!({}),
+            };
+            // Replenish mock responses for multi-call methods
+            for _ in 0..5 {
+                mock.push(true, "{}", "");
+            }
+            let resp = call(&mock, m, params, 100);
+            assert_ne!(
+                resp.error.as_ref().map(|e| e.code),
+                Some(error_code::METHOD_NOT_FOUND),
+                "method {} returned METHOD_NOT_FOUND — missing dispatch branch!",
+                m
+            );
+        }
     }
 }

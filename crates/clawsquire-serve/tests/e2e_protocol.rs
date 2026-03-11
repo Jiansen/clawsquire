@@ -230,7 +230,6 @@ async fn test_multiple_requests_sequential() {
     let serve = ServeProcess::start();
     let (mut write, mut read, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
 
-    // Send 3 requests sequentially
     for i in 10..13 {
         let resp = call(
             &mut write,
@@ -242,5 +241,242 @@ async fn test_multiple_requests_sequential() {
         .await;
         assert!(resp.is_success());
         assert_eq!(resp.id, Some(RpcId::Num(i)));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Full method coverage — verify every method is routed and returns valid
+// JSON-RPC. Methods that need OpenClaw may return OPENCLAW_ERROR, which
+// is fine; we're testing the protocol transport layer, not OpenClaw.
+// ---------------------------------------------------------------------------
+
+fn is_valid_response(resp: &RpcResponse) -> bool {
+    resp.jsonrpc == "2.0" && (resp.result.is_some() || resp.error.is_some())
+}
+
+#[tokio::test]
+async fn test_config_get_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CONFIG_GET, serde_json::json!({"path": "models.default"}), 100).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_config_full_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CONFIG_FULL, serde_json::json!({}), 101).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_gateway_status_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::GATEWAY_STATUS, serde_json::json!({}), 102).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_providers_list_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::PROVIDERS_LIST, serde_json::json!({}), 103).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_models_list_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::MODELS_LIST, serde_json::json!({"provider": "openai"}), 104).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_llm_check_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::LLM_CHECK, serde_json::json!({}), 105).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_channels_list_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CHANNELS_LIST, serde_json::json!({}), 106).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_cron_list_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CRON_LIST, serde_json::json!({}), 107).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_config_set_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CONFIG_SET, serde_json::json!({"path": "test.key", "value": "test_val"}), 110).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_safety_apply_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::SAFETY_APPLY, serde_json::json!({"level": "standard"}), 111).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_agent_chat_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::AGENT_CHAT, serde_json::json!({"message": "hello"}), 112).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_cli_run_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CLI_RUN, serde_json::json!({"args": ["--version"]}), 113).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_doctor_run_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::DOCTOR_RUN, serde_json::json!({}), 114).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_channels_add_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CHANNELS_ADD, serde_json::json!({"channel": "test", "token": "tok"}), 115).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_channels_remove_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CHANNELS_REMOVE, serde_json::json!({"channel": "test"}), 116).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_cron_add_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CRON_ADD, serde_json::json!({"name": "test", "every": "1h", "message": "m", "channel": "c"}), 117).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_cron_remove_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CRON_REMOVE, serde_json::json!({"name": "test"}), 118).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_provider_setup_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::PROVIDER_SETUP, serde_json::json!({"provider": "test", "api_key": "sk-test"}), 119).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_gateway_start_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::GATEWAY_START, serde_json::json!({}), 120).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_gateway_stop_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::GATEWAY_STOP, serde_json::json!({}), 121).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_email_monitor_setup_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::EMAIL_MONITOR_SETUP, serde_json::json!({"telegram_token": "t", "email_address": "a@b.com"}), 122).await;
+    assert!(is_valid_response(&resp));
+}
+
+#[tokio::test]
+async fn test_invalid_params_protocol() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+    let resp = call(&mut w, &mut r, method::CONFIG_GET, serde_json::json!({"wrong": 123}), 130).await;
+    assert!(!resp.is_success());
+    let err = resp.error.unwrap();
+    assert_eq!(err.code, error_code::OPENCLAW_ERROR);
+}
+
+#[tokio::test]
+async fn test_all_methods_routed() {
+    let serve = ServeProcess::start();
+    let (mut w, mut r, _) = connect_and_auth(&serve.ws_url(), TEST_TOKEN).await;
+
+    let test_cases: Vec<(&str, serde_json::Value)> = vec![
+        (method::ENVIRONMENT_DETECT, serde_json::json!({})),
+        (method::CONFIG_GET, serde_json::json!({"path": "test"})),
+        (method::CONFIG_FULL, serde_json::json!({})),
+        (method::GATEWAY_STATUS, serde_json::json!({})),
+        (method::PROVIDERS_LIST, serde_json::json!({})),
+        (method::MODELS_LIST, serde_json::json!({"provider": "openai"})),
+        (method::LLM_CHECK, serde_json::json!({})),
+        (method::CHANNELS_LIST, serde_json::json!({})),
+        (method::CRON_LIST, serde_json::json!({})),
+        (method::VERSION_INFO, serde_json::json!({})),
+        (method::CONFIG_SET, serde_json::json!({"path": "t", "value": "v"})),
+        (method::SAFETY_APPLY, serde_json::json!({"level": "full"})),
+        (method::AGENT_CHAT, serde_json::json!({"message": "test"})),
+        (method::CLI_RUN, serde_json::json!({"args": ["--help"]})),
+        (method::DOCTOR_RUN, serde_json::json!({})),
+        (method::CHANNELS_ADD, serde_json::json!({"channel": "t", "token": "t"})),
+        (method::CHANNELS_REMOVE, serde_json::json!({"channel": "t"})),
+        (method::CRON_ADD, serde_json::json!({"name": "n", "every": "1h", "message": "m", "channel": "c"})),
+        (method::CRON_REMOVE, serde_json::json!({"name": "n"})),
+        (method::PROVIDER_SETUP, serde_json::json!({"provider": "t", "api_key": "k"})),
+        (method::GATEWAY_START, serde_json::json!({})),
+        (method::GATEWAY_STOP, serde_json::json!({})),
+        (method::EMAIL_MONITOR_SETUP, serde_json::json!({"telegram_token": "t", "email_address": "a@b.com"})),
+        (method::OPENCLAW_UNINSTALL, serde_json::json!({"remove_config": false})),
+    ];
+
+    for (i, (m, params)) in test_cases.iter().enumerate() {
+        let id = (200 + i) as i64;
+        let resp = call(&mut w, &mut r, m, params.clone(), id).await;
+        assert!(
+            is_valid_response(&resp),
+            "method {} returned invalid response",
+            m
+        );
+        assert_ne!(
+            resp.error.as_ref().map(|e| e.code),
+            Some(error_code::METHOD_NOT_FOUND),
+            "method {} not routed in dispatch",
+            m
+        );
     }
 }
