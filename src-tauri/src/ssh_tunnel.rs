@@ -26,14 +26,43 @@ pub struct TunnelParams {
     pub local_port: u16,
 }
 
+/// Kill any process that is currently occupying a local TCP port.
+/// This handles orphaned SSH tunnel processes from previous sessions.
+fn kill_port_occupant(port: u16) {
+    #[cfg(unix)]
+    {
+        // lsof -ti :<port> outputs PIDs using the port
+        if let Ok(out) = std::process::Command::new("lsof")
+            .args(["-ti", &format!(":{port}")])
+            .output()
+        {
+            let pids = String::from_utf8_lossy(&out.stdout);
+            for pid_str in pids.split_whitespace() {
+                if let Ok(pid) = pid_str.trim().parse::<u32>() {
+                    let _ = std::process::Command::new("kill")
+                        .args(["-9", &pid.to_string()])
+                        .output();
+                }
+            }
+        }
+        // Small grace period for the OS to release the port
+        thread::sleep(Duration::from_millis(400));
+    }
+}
+
 /// Start an SSH local-port-forward tunnel.
 /// Returns the local port the WebSocket should connect to.
 pub fn start(params: &TunnelParams) -> Result<u16, String> {
-    stop_inner(); // kill any existing tunnel first
+    stop_inner(); // kill any ClawSquire-managed tunnel first
+
+    // Use remote_port + 10000 as the local port to avoid collisions with
+    // locally-running services (e.g. clawsquire-serve in test mode).
+    let local_port = params.remote_port.saturating_add(10000);
+    kill_port_occupant(local_port); // kill any orphaned SSH tunnel on that port
 
     let forward_spec = format!(
         "{}:localhost:{}",
-        params.local_port, params.remote_port
+        local_port, params.remote_port
     );
 
     let mut cmd = if params.auth_method == "password" {
@@ -81,14 +110,18 @@ pub fn start(params: &TunnelParams) -> Result<u16, String> {
     let mut child = child;
     if let Ok(Some(status)) = child.try_wait() {
         return Err(format!(
-            "SSH tunnel exited immediately (code {:?}). Check SSH credentials and that sshpass is installed for password auth.",
-            status.code()
+            "SSH tunnel failed (exit {:?}). Possible causes:\n\
+             • Wrong SSH credentials\n\
+             • sshpass not installed (brew install sshpass)\n\
+             • Port {} already in use on local machine\n\
+             • SSH key requires interactive passphrase",
+            status.code(), local_port
         ));
     }
     *guard = Some(child);
     drop(guard);
 
-    Ok(params.local_port)
+    Ok(local_port)
 }
 
 /// Stop the SSH tunnel if one is running.
