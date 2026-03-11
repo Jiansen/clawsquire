@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::process::Output;
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CliOutput {
     pub success: bool,
     pub stdout: String,

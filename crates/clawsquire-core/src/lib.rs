@@ -9,4 +9,5 @@ pub mod imap;
 pub mod instances;
 pub mod node_install;
 pub mod openclaw;
+pub mod protocol;
 pub mod remote;

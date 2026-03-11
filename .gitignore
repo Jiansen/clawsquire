@@ -1,3 +1,7 @@
+# Rust build artifacts
+/target
+/src-tauri/target
+
 # Logs
 logs
 *.log
