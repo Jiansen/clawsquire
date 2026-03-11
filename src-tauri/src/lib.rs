@@ -357,6 +357,28 @@ async fn ssh_restart_serve(
     .map_err(|e| e.to_string())?
 }
 
+/// Update clawsquire-serve on the remote VPS to the given version.
+/// Steps: (1) send serve.update RPC → serve downloads + re-spawns + exits,
+/// (2) wait briefly, (3) reconnect via ssh_restart_serve if still needed.
+#[tauri::command]
+async fn serve_update(
+    state: tauri::State<'_, ActiveTargetState>,
+    version: String,
+) -> Result<serde_json::Value, String> {
+    let target = state.get();
+    if !target.is_protocol() {
+        return Err("serve_update is only valid in remote (protocol) mode".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        target.protocol_call(
+            method::SERVE_UPDATE,
+            serde_json::json!({ "version": version, "repo": "" }),
+        )
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Quick SSH connectivity test for the Add Instance form.
 #[tauri::command]
 async fn ssh_test_connection(
@@ -852,6 +874,7 @@ pub fn run() {
             ssh_start_tunnel,
             ssh_stop_tunnel,
             ssh_restart_serve,
+            serve_update,
             bootstrap_ssh_start,
             add_channel,
             remove_channel,

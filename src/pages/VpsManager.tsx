@@ -21,12 +21,6 @@ interface VpsInstance {
   serve_port?: number | null;
 }
 
-/** Must stay in sync with PROTOCOL_VERSION in crates/clawsquire-core/src/protocol.rs */
-const DESKTOP_PROTOCOL_VERSION = '0.3.0';
-
-function majorOf(v: string): number {
-  return parseInt(v.split('.')[0] ?? '0', 10);
-}
 
 interface ActiveTargetInfo {
   mode: string;
@@ -247,6 +241,9 @@ export default function VpsManager() {
   const [pendingPasswordInst, setPendingPasswordInst] = useState<VpsInstance | null>(null);
   const [pendingPassword, setPendingPassword] = useState('');
 
+  const [updatingServe, setUpdatingServe] = useState(false);
+  const [serveUpdateMsg, setServeUpdateMsg] = useState<string | null>(null);
+
   const loadInstances = useCallback(async () => {
     try {
       const list = await invoke<VpsInstance[]>('list_instances');
@@ -439,6 +436,25 @@ export default function VpsManager() {
   const handleGoToBootstrap = (instId?: string) => {
     const id = instId || selectedId;
     navigate(id ? `/bootstrap?instanceId=${id}` : '/bootstrap');
+  };
+
+  const handleServeUpdate = async () => {
+    setUpdatingServe(true);
+    setServeUpdateMsg(null);
+    try {
+      const targetVersion = `v${__APP_VERSION__}`;
+      await invoke('serve_update', { version: targetVersion });
+      setServeUpdateMsg(`serve updated to ${targetVersion}. Reconnecting…`);
+      // Wait for serve to re-spawn, then trigger reconnect
+      await new Promise(r => setTimeout(r, 3000));
+      if (selected) {
+        await handleConnect(selected);
+      }
+    } catch (e) {
+      setServeUpdateMsg(`Update failed: ${String(e)}`);
+    } finally {
+      setUpdatingServe(false);
+    }
   };
 
   const resetForm = () => {
@@ -678,26 +694,35 @@ export default function VpsManager() {
             {/* Overview tab */}
             {activeTab === 'overview' && (() => {
               const sv = isConnectedTo(selected) ? activeTarget?.serve_version : null;
-              const versionMismatch =
-                sv != null &&
-                majorOf(sv) !== majorOf(DESKTOP_PROTOCOL_VERSION);
+              const appVer = __APP_VERSION__;
+              const versionMismatch = sv != null && sv !== appVer;
               return (
                 <div className="space-y-3">
                   {versionMismatch && (
-                    <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 flex items-center justify-between gap-3">
-                      <span className="text-sm text-amber-700 dark:text-amber-400">
-                        {t('vps.versionMismatch', {
-                          serve: sv,
-                          desktop: DESKTOP_PROTOCOL_VERSION,
-                          defaultValue: `serve v${sv} ≠ desktop v${DESKTOP_PROTOCOL_VERSION} — please upgrade clawsquire-serve`,
-                        })}
-                      </span>
-                      <button
-                        onClick={() => handleGoToBootstrap(selected.id)}
-                        className="shrink-0 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-3 py-1.5 transition-colors"
-                      >
-                        {t('vps.upgradeServe', { defaultValue: 'Upgrade' })}
-                      </button>
+                    <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm text-amber-700 dark:text-amber-400">
+                          serve <span className="font-mono">v{sv}</span> → desktop <span className="font-mono">v{appVer}</span>
+                        </span>
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={handleServeUpdate}
+                            disabled={updatingServe}
+                            className="rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 transition-colors"
+                          >
+                            {updatingServe ? 'Updating…' : 'Auto Update'}
+                          </button>
+                          <button
+                            onClick={() => handleGoToBootstrap(selected.id)}
+                            className="rounded-lg border border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-xs font-medium px-3 py-1.5 transition-colors"
+                          >
+                            Re-Bootstrap
+                          </button>
+                        </div>
+                      </div>
+                      {serveUpdateMsg && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">{serveUpdateMsg}</p>
+                      )}
                     </div>
                   )}
                   {/* Password prompt when connecting with password auth but no stored password */}

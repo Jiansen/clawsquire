@@ -180,6 +180,12 @@ fn dispatch(req: &RpcRequest, r: &dyn CliRunner) -> Result<serde_json::Value, St
             to_value(result)
         }
 
+        method::SERVE_UPDATE => {
+            let params: protocol::ServeUpdateParams = from_params(p)?;
+            let result = serve_self_update(&params)?;
+            to_value(result)
+        }
+
         _ => Err(format!("unhandled method: {}", req.method)),
     }
 }
@@ -193,6 +199,70 @@ fn openclaw_config_path() -> std::path::PathBuf {
             .join(clawsquire_core::constants::OPENCLAW_STATE_DIR_DEFAULT)
     }
     .join("openclaw.json")
+}
+
+fn serve_self_update(params: &protocol::ServeUpdateParams) -> Result<protocol::ServeUpdateResult, String> {
+    let previous_version = env!("CARGO_PKG_VERSION").to_string();
+    let repo = if params.repo.is_empty() { "Jiansen/clawsquire" } else { &params.repo };
+
+    let os = std::env::consts::OS;
+    let arch = std::env::consts::ARCH;
+    let suffix = match (os, arch) {
+        ("linux", "x86_64")  => "linux-x86_64",
+        ("linux", "aarch64") => "linux-aarch64",
+        ("macos", "x86_64")  => "darwin-x86_64",
+        ("macos", "aarch64") => "darwin-aarch64",
+        ("windows", _)       => "windows-x86_64.exe",
+        _                    => return Err(format!("unsupported platform: {os}/{arch}")),
+    };
+    let url = format!(
+        "https://github.com/{repo}/releases/download/{version}/clawsquire-serve-{suffix}",
+        version = params.version,
+    );
+
+    let current_exe = std::env::current_exe()
+        .map_err(|e| format!("cannot determine current exe: {e}"))?;
+    let tmp_path = current_exe.with_extension("tmp");
+
+    let bytes = reqwest::blocking::get(&url)
+        .map_err(|e| format!("download failed: {e}"))?
+        .error_for_status()
+        .map_err(|e| format!("download error status: {e}"))?
+        .bytes()
+        .map_err(|e| format!("read bytes: {e}"))?;
+
+    std::fs::write(&tmp_path, &bytes)
+        .map_err(|e| format!("write temp: {e}"))?;
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&tmp_path, std::fs::Permissions::from_mode(0o755))
+            .map_err(|e| format!("chmod: {e}"))?;
+    }
+
+    std::fs::rename(&tmp_path, &current_exe)
+        .map_err(|e| format!("rename: {e}"))?;
+
+    // Spawn the new binary detached, then exit this process.
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    std::process::Command::new(&current_exe)
+        .args(&args)
+        .spawn()
+        .map_err(|e| format!("re-spawn failed: {e}"))?;
+
+    // Signal Desktop to reconnect before we exit.
+    let result = protocol::ServeUpdateResult {
+        success: true,
+        previous_version,
+        error: None,
+    };
+    // Exit after a brief delay to allow the response to be serialized and sent.
+    std::thread::spawn(|| {
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        std::process::exit(0);
+    });
+    Ok(result)
 }
 
 fn from_params<T: serde::de::DeserializeOwned>(v: &serde_json::Value) -> Result<T, String> {
@@ -594,6 +664,7 @@ mod tests {
                 method::EMAIL_MONITOR_SETUP => serde_json::json!({"telegram_token": "t", "email_address": "a@b.com"}),
                 method::OPENCLAW_UNINSTALL => serde_json::json!({"remove_config": false}),
                 method::CLI_RUN => serde_json::json!({"args": ["status"]}),
+                method::SERVE_UPDATE => serde_json::json!({"version": "v0.0.0-test", "repo": "Jiansen/clawsquire"}),
                 _ => serde_json::json!({}),
             };
             // Replenish mock responses for multi-call methods

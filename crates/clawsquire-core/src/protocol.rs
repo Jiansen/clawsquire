@@ -218,7 +218,10 @@ pub mod method {
     pub const CLI_RUN: &str = "cli.run";
     pub const DOCTOR_RUN: &str = "doctor.run";
 
-    /// All 27 method names, for validation and dispatch.
+    // Serve self-update
+    pub const SERVE_UPDATE: &str = "serve.update";
+
+    /// All 28 method names, for validation and dispatch.
     pub const ALL: &[&str] = &[
         ENVIRONMENT_DETECT,
         CONFIG_GET,
@@ -247,6 +250,7 @@ pub mod method {
         OPENCLAW_UNINSTALL,
         CLI_RUN,
         DOCTOR_RUN,
+        SERVE_UPDATE,
     ];
 
     pub fn is_valid(name: &str) -> bool {
@@ -345,6 +349,22 @@ pub struct EmailMonitorSetupParams {
 pub struct OpenclawUninstallParams {
     #[serde(default)]
     pub remove_config: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServeUpdateParams {
+    /// The target version tag to download, e.g. "v0.3.1"
+    pub version: String,
+    /// GitHub repo, defaults to "Jiansen/clawsquire"
+    #[serde(default)]
+    pub repo: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServeUpdateResult {
+    pub success: bool,
+    pub previous_version: String,
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
