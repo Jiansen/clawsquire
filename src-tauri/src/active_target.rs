@@ -13,9 +13,9 @@ impl Default for Target {
 }
 
 impl Target {
-    pub fn runner(&self) -> Box<dyn crate::cli_runner::CliRunner> {
+    pub fn runner(&self) -> Box<dyn clawsquire_core::cli_runner::CliRunner> {
         match self {
-            Target::Local => Box::new(crate::cli_runner::RealCliRunner),
+            Target::Local => Box::new(clawsquire_core::cli_runner::RealCliRunner),
         }
     }
 }

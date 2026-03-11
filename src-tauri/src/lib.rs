@@ -1,28 +1,18 @@
 mod active_target;
-mod backup;
-mod cli_runner;
-mod community_search;
-mod compat;
-mod constants;
-mod detect;
-mod doctor;
-mod imap;
-mod instances;
-mod node_install;
-mod openclaw;
-mod remote;
 mod secure_store;
 
 use active_target::{ActiveTargetInfo, ActiveTargetState};
-use backup::{BackupEntry, DiffEntry};
-use community_search::{SearchResponse, SmartSearchResponse};
-use compat::VersionInfo;
-use detect::{Environment, UpdateCheck};
-use doctor::DoctorReport;
-use instances::VpsInstance;
-use node_install::NodeInstallResult;
-use openclaw::{AgentChatResult, ChannelAddResult, ChannelInfo, ChannelRemoveResult, CliOutput, CronAddResult, CronJob, CronRemoveResult, EmailMonitorResult, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
-use remote::RemoteInstallCommand;
+use clawsquire_core::backup::{self, BackupEntry, DiffEntry};
+use clawsquire_core::community_search::{self, SearchResponse, SmartSearchResponse};
+use clawsquire_core::compat::{self, VersionInfo};
+use clawsquire_core::constants;
+use clawsquire_core::detect::{self, Environment, UpdateCheck};
+use clawsquire_core::doctor::{self, DoctorReport};
+use clawsquire_core::imap;
+use clawsquire_core::instances::{self, VpsInstance};
+use clawsquire_core::node_install::{self, NodeInstallResult};
+use clawsquire_core::openclaw::{self, AgentChatResult, ChannelAddResult, ChannelInfo, ChannelRemoveResult, CliOutput, CronAddResult, CronJob, CronRemoveResult, EmailMonitorResult, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
+use clawsquire_core::remote::{self, RemoteInstallCommand};
 
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
@@ -221,7 +211,7 @@ async fn get_full_config() -> Result<String, String> {
         } else {
             dirs::home_dir()
                 .unwrap_or_default()
-                .join(crate::constants::OPENCLAW_STATE_DIR_DEFAULT)
+                .join(constants::OPENCLAW_STATE_DIR_DEFAULT)
         }
         .join("openclaw.json");
         if !config_path.exists() {

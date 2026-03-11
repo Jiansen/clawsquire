@@ -1,0 +1,12 @@
+pub mod backup;
+pub mod cli_runner;
+pub mod community_search;
+pub mod compat;
+pub mod constants;
+pub mod detect;
+pub mod doctor;
+pub mod imap;
+pub mod instances;
+pub mod node_install;
+pub mod openclaw;
+pub mod remote;
