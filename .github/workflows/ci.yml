@@ -55,7 +55,7 @@ jobs:
         run: cargo test -p clawsquire-core
 
       - name: Serve unit tests
-        run: cargo test -p clawsquire-serve --lib
+        run: cargo test -p clawsquire-serve --bin clawsquire-serve
 
       - name: Protocol E2E tests
         run: cargo test -p clawsquire-serve --test e2e_protocol
