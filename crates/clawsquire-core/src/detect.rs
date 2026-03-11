@@ -56,6 +56,10 @@ pub fn expanded_path() -> String {
             extra.push(home.join("n").join("bin"));
         }
 
+        // npm user-local global prefix (set by openclaw installer on systems with no
+        // write access to the system npm prefix, e.g. /usr/lib/node_modules)
+        extra.push(home.join(".npm-global").join("bin"));
+
         #[cfg(target_os = "linux")]
         extra.push(PathBuf::from("/snap/bin"));
     }

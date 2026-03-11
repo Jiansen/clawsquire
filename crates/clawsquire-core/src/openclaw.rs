@@ -146,20 +146,28 @@ pub struct InstallResult {
 }
 
 pub fn install_openclaw_with(runner: &dyn CliRunner) -> Result<InstallResult, String> {
-    let pkg = format!("{}@latest", OPENCLAW_NPM_PKG);
-    let output = cmd_with_path("npm")
-        .args(["install", "-g", &pkg])
+    // Use the official OpenClaw installer with --no-onboard (skips interactive wizard).
+    // The installer automatically handles npm prefix: if the system prefix (/usr/lib) is
+    // not user-writable, it switches to ~/.npm-global and updates .bashrc/.zshrc.
+    let install_cmd = "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --no-onboard 2>&1";
+    let output = std::process::Command::new("bash")
+        .arg("-c")
+        .arg(install_cmd)
         .output()
-        .map_err(|e| format!("Failed to run npm: {}", e))?;
+        .map_err(|e| format!("Failed to run installer: {}", e))?;
 
     if output.status.success() {
         let version = runner.run(&["--version"]).ok()
             .filter(|o| o.success)
-            .map(|o| o.stdout);
+            .map(|o| o.stdout.trim().to_string());
         Ok(InstallResult { success: true, version, error: None })
     } else {
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        Ok(InstallResult { success: false, version: None, error: Some(stderr) })
+        let combined = format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stderr).trim(),
+            String::from_utf8_lossy(&output.stdout).trim(),
+        );
+        Ok(InstallResult { success: false, version: None, error: Some(combined) })
     }
 }
 
