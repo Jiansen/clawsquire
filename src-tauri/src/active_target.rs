@@ -1,9 +1,34 @@
 use serde::{Deserialize, Serialize};
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
-#[derive(Debug, Clone)]
+use clawsquire_core::cli_runner::{CliOutput, CliRunner, RealCliRunner};
+
+use crate::protocol_runner::ProtocolRunner;
+
 pub enum Target {
     Local,
+    Protocol {
+        runner: Arc<ProtocolRunner>,
+        instance_id: String,
+        host: String,
+    },
+}
+
+impl Clone for Target {
+    fn clone(&self) -> Self {
+        match self {
+            Target::Local => Target::Local,
+            Target::Protocol {
+                runner,
+                instance_id,
+                host,
+            } => Target::Protocol {
+                runner: Arc::clone(runner),
+                instance_id: instance_id.clone(),
+                host: host.clone(),
+            },
+        }
+    }
 }
 
 impl Default for Target {
@@ -12,10 +37,20 @@ impl Default for Target {
     }
 }
 
+/// Thin wrapper so Arc<ProtocolRunner> can be returned as Box<dyn CliRunner>.
+struct ArcRunner(Arc<ProtocolRunner>);
+
+impl CliRunner for ArcRunner {
+    fn run(&self, args: &[&str]) -> Result<CliOutput, String> {
+        self.0.run(args)
+    }
+}
+
 impl Target {
-    pub fn runner(&self) -> Box<dyn clawsquire_core::cli_runner::CliRunner> {
+    pub fn runner(&self) -> Box<dyn CliRunner> {
         match self {
-            Target::Local => Box::new(clawsquire_core::cli_runner::RealCliRunner),
+            Target::Local => Box::new(RealCliRunner),
+            Target::Protocol { runner, .. } => Box::new(ArcRunner(Arc::clone(runner))),
         }
     }
 }
@@ -34,7 +69,10 @@ impl Default for ActiveTargetState {
 
 impl ActiveTargetState {
     pub fn get(&self) -> Target {
-        self.inner.read().expect("ActiveTarget lock poisoned").clone()
+        self.inner
+            .read()
+            .expect("ActiveTarget lock poisoned")
+            .clone()
     }
 
     pub fn set(&self, target: Target) {
@@ -43,6 +81,22 @@ impl ActiveTargetState {
 
     pub fn set_local(&self) {
         self.set(Target::Local);
+    }
+
+    pub fn set_protocol(
+        &self,
+        url: &str,
+        token: &str,
+        instance_id: String,
+        host: String,
+    ) -> Result<(), String> {
+        let runner = ProtocolRunner::connect(url, token)?;
+        self.set(Target::Protocol {
+            runner: Arc::new(runner),
+            instance_id,
+            host,
+        });
+        Ok(())
     }
 }
 
@@ -63,6 +117,14 @@ impl From<&Target> for ActiveTargetInfo {
                 host: None,
                 username: None,
             },
+            Target::Protocol {
+                instance_id, host, ..
+            } => ActiveTargetInfo {
+                mode: "protocol".into(),
+                instance_id: Some(instance_id.clone()),
+                host: Some(host.clone()),
+                username: None,
+            },
         }
     }
 }
@@ -76,6 +138,7 @@ mod tests {
         let state = ActiveTargetState::default();
         match state.get() {
             Target::Local => {}
+            _ => panic!("expected Local"),
         }
     }
 
@@ -85,6 +148,7 @@ mod tests {
         state.set_local();
         match state.get() {
             Target::Local => {}
+            _ => panic!("expected Local"),
         }
     }
 

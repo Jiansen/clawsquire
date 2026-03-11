@@ -24,5 +24,8 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dirs = "6"
 keyring = "3.6.3"
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "net", "time"] }
+tokio-tungstenite = "0.24"
+futures-util = "0.3"
 clawsquire-core = { path = "../crates/clawsquire-core" }
 

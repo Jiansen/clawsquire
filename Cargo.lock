@@ -462,12 +462,15 @@ version = "0.2.0"
 dependencies = [
  "clawsquire-core",
  "dirs",
+ "futures-util",
  "keyring",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
+ "tokio",
+ "tokio-tungstenite",
 ]
 
 [[package]]

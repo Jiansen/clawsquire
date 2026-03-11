@@ -1,4 +1,5 @@
 mod active_target;
+mod protocol_runner;
 mod secure_store;
 
 use active_target::{ActiveTargetInfo, ActiveTargetState};
@@ -438,10 +439,21 @@ async fn get_active_target(
 async fn set_active_target(
     state: tauri::State<'_, ActiveTargetState>,
     mode: String,
+    url: Option<String>,
+    token: Option<String>,
+    instance_id: Option<String>,
+    host: Option<String>,
 ) -> Result<ActiveTargetInfo, String> {
     match mode.as_str() {
         "local" => {
             state.set_local();
+        }
+        "protocol" => {
+            let url = url.ok_or("url required for protocol mode")?;
+            let token = token.ok_or("token required for protocol mode")?;
+            let instance_id = instance_id.unwrap_or_default();
+            let host = host.unwrap_or_default();
+            state.set_protocol(&url, &token, instance_id, host)?;
         }
         _ => return Err(format!("Unknown mode: {}", mode)),
     }
