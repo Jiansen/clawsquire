@@ -53,6 +53,23 @@ impl Target {
             Target::Protocol { runner, .. } => Box::new(ArcRunner(Arc::clone(runner))),
         }
     }
+
+    pub fn is_protocol(&self) -> bool {
+        matches!(self, Target::Protocol { .. })
+    }
+
+    /// Call a JSON-RPC method on the remote serve instance.
+    /// Returns Err if target is Local (caller should use local functions instead).
+    pub fn protocol_call(
+        &self,
+        method: &str,
+        params: serde_json::Value,
+    ) -> Result<serde_json::Value, String> {
+        match self {
+            Target::Local => Err("protocol_call not available in local mode".into()),
+            Target::Protocol { runner, .. } => runner.call_blocking(method, params),
+        }
+    }
 }
 
 pub struct ActiveTargetState {

@@ -18,6 +18,7 @@ import ImapWizard from './pages/ImapWizard';
 import Channels from './pages/Channels';
 import Automations from './pages/Automations';
 import Sources from './pages/Sources';
+import Bootstrap from './pages/Bootstrap';
 import Welcome from './pages/Welcome';
 import { useWindowTitle } from './lib/useWindowTitle';
 import { ActiveTargetProvider } from './context/ActiveTargetContext';
@@ -45,6 +46,7 @@ function AppShell() {
               <Route path="/channels" element={<Channels />} />
               <Route path="/automations" element={<Automations />} />
               <Route path="/sources" element={<Sources />} />
+              <Route path="/bootstrap" element={<Bootstrap />} />
               <Route path="/vps" element={<VpsManager />} />
               <Route path="/imap" element={<ImapWizard />} />
               <Route path="/settings" element={<Settings />} />

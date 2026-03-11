@@ -138,7 +138,7 @@ pub struct UninstallResult {
     pub errors: Vec<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct InstallResult {
     pub success: bool,
     pub version: Option<String>,

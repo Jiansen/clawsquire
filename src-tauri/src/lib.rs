@@ -4,6 +4,7 @@ mod secure_store;
 
 use active_target::{ActiveTargetInfo, ActiveTargetState};
 use clawsquire_core::backup::{self, BackupEntry, DiffEntry};
+use clawsquire_core::bootstrap::{self, BootstrapStatus};
 use clawsquire_core::community_search::{self, SearchResponse, SmartSearchResponse};
 use clawsquire_core::compat::{self, VersionInfo};
 use clawsquire_core::constants;
@@ -13,6 +14,7 @@ use clawsquire_core::imap;
 use clawsquire_core::instances::{self, VpsInstance};
 use clawsquire_core::node_install::{self, NodeInstallResult};
 use clawsquire_core::openclaw::{self, AgentChatResult, ChannelAddResult, ChannelInfo, ChannelRemoveResult, CliOutput, CronAddResult, CronJob, CronRemoveResult, EmailMonitorResult, FeedbackInfo, InstallResult, LlmConfigStatus, LlmTestResult, ModelInfo, ProviderInfo, SafetyApplyResult, UninstallResult};
+use clawsquire_core::protocol::method;
 use clawsquire_core::remote::{self, RemoteInstallCommand};
 
 use tauri::{
@@ -192,6 +194,70 @@ async fn uninstall_openclaw(remove_config: bool) -> Result<UninstallResult, Stri
     tauri::async_runtime::spawn_blocking(move || openclaw::uninstall_openclaw(remove_config))
         .await
         .map_err(|e| e.to_string())?
+}
+
+// --- Bootstrap: target-aware environment detection and installation ---
+
+#[tauri::command]
+async fn bootstrap_detect(
+    state: tauri::State<'_, ActiveTargetState>,
+) -> Result<BootstrapStatus, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        let env: Environment = if target.is_protocol() {
+            let val = target.protocol_call(method::ENVIRONMENT_DETECT, serde_json::json!({}))?;
+            serde_json::from_value(val).map_err(|e| format!("deserialize: {}", e))?
+        } else {
+            detect::detect_environment()
+        };
+        Ok(bootstrap::assess(&env))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn bootstrap_install_node(
+    state: tauri::State<'_, ActiveTargetState>,
+) -> Result<NodeInstallResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        if target.is_protocol() {
+            let val = target.protocol_call(method::NODE_INSTALL, serde_json::json!({}))?;
+            serde_json::from_value(val).map_err(|e| format!("deserialize: {}", e))
+        } else {
+            Ok(node_install::install_node())
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn bootstrap_install_openclaw(
+    state: tauri::State<'_, ActiveTargetState>,
+) -> Result<InstallResult, String> {
+    let target = state.get();
+    tauri::async_runtime::spawn_blocking(move || {
+        if target.is_protocol() {
+            let val = target.protocol_call(method::OPENCLAW_INSTALL, serde_json::json!({}))?;
+            serde_json::from_value(val).map_err(|e| format!("deserialize: {}", e))
+        } else {
+            openclaw::install_openclaw()
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn bootstrap_get_script(platform: String, arch: String) -> Result<String, String> {
+    Ok(bootstrap::install_script(&platform, &arch))
+}
+
+#[tauri::command]
+async fn bootstrap_get_cargo_script() -> Result<String, String> {
+    Ok(bootstrap::cargo_install_script().to_string())
 }
 
 #[tauri::command]
@@ -569,6 +635,11 @@ pub fn run() {
             install_node,
             install_openclaw,
             uninstall_openclaw,
+            bootstrap_detect,
+            bootstrap_install_node,
+            bootstrap_install_openclaw,
+            bootstrap_get_script,
+            bootstrap_get_cargo_script,
             add_channel,
             remove_channel,
             get_full_config,

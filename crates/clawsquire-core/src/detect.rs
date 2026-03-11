@@ -1,11 +1,11 @@
 use crate::constants::{CLAWSQUIRE_DATA_DIR, OPENCLAW_CLI, OPENCLAW_STATE_DIR_DEFAULT};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::Command;
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Environment {
     pub openclaw_installed: bool,
     pub openclaw_version: Option<String>,
@@ -15,6 +15,7 @@ pub struct Environment {
     pub node_version: Option<String>,
     pub config_dir: String,
     pub platform: String,
+    pub arch: String,
 }
 
 /// Build an expanded PATH that includes common Node.js / npm install locations.
@@ -139,6 +140,8 @@ pub fn detect_environment() -> Environment {
     let config_dir = detect_config_dir();
     let platform = std::env::consts::OS.to_string();
 
+    let arch = std::env::consts::ARCH.to_string();
+
     Environment {
         openclaw_installed: installed,
         openclaw_version: version,
@@ -148,6 +151,7 @@ pub fn detect_environment() -> Environment {
         node_version,
         config_dir,
         platform,
+        arch,
     }
 }
 

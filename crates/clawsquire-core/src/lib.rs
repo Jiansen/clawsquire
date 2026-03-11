@@ -1,4 +1,5 @@
 pub mod backup;
+pub mod bootstrap;
 pub mod cli_runner;
 pub mod community_search;
 pub mod compat;

@@ -1,11 +1,11 @@
 use crate::constants::CLAWSQUIRE_DATA_DIR;
 use crate::detect::hidden_cmd;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 const NODE_LTS_MAJOR: &str = "22";
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NodeInstallResult {
     pub success: bool,
     pub version: Option<String>,
