@@ -121,6 +121,11 @@ fn ssh_exec(cfg: &SshConfig, remote_cmd: &str) -> Result<String, String> {
     }
 }
 
+/// Quick SSH connectivity test. Runs `echo ok` via SSH.
+pub fn test_connection(cfg: &SshConfig) -> Result<String, String> {
+    ssh_exec(cfg, "echo ok")
+}
+
 /// Run the full SSH bootstrap sequence.
 /// `emit` is called for each progress event.
 pub fn run_bootstrap<F: FnMut(BootstrapEvent)>(

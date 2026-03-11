@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 
 interface VpsInstance {
   id: string;
@@ -17,46 +18,14 @@ interface VpsInstance {
   created_at: string;
 }
 
-interface SshExecResult {
-  success: boolean;
-  exit_code: number | null;
-  stdout: string;
-  stderr: string;
-  error: string | null;
-}
-
-interface DeployResult {
-  test_ok: boolean;
-  install_output: SshExecResult | null;
-  errors: string[];
+interface ActiveTargetInfo {
+  mode: string;
+  instance_id?: string;
+  host?: string;
 }
 
 type AuthMethod = 'password' | 'key';
-type Tab = 'overview' | 'deploy' | 'terminal';
-
-const PROVIDERS = [
-  { id: 'openai', label: 'OpenAI' },
-  { id: 'anthropic', label: 'Anthropic' },
-  { id: 'deepseek', label: 'DeepSeek' },
-  { id: 'google', label: 'Google Gemini' },
-  { id: 'groq', label: 'Groq' },
-  { id: 'zai', label: 'Zhipu GLM' },
-  { id: 'mistral', label: 'Mistral' },
-  { id: 'xai', label: 'xAI Grok' },
-];
-
-const CHANNELS = [
-  { id: 'telegram', label: 'Telegram Bot' },
-  { id: 'whatsapp', label: 'WhatsApp' },
-  { id: 'discord', label: 'Discord' },
-  { id: 'slack', label: 'Slack' },
-];
-
-const SAFETY_LEVELS = [
-  { id: 'conservative', labelKey: 'remote.safetyConservative' },
-  { id: 'standard', labelKey: 'remote.safetyStandard' },
-  { id: 'full', labelKey: 'remote.safetyFull' },
-];
+type Tab = 'overview' | 'setup';
 
 function generateId() {
   return `vps-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -64,13 +33,13 @@ function generateId() {
 
 export default function VpsManager() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [instances, setInstances] = useState<VpsInstance[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  // Add/Edit form state
   const [formName, setFormName] = useState('');
   const [formHost, setFormHost] = useState('');
   const [formPort, setFormPort] = useState('22');
@@ -79,21 +48,11 @@ export default function VpsManager() {
   const [formPassword, setFormPassword] = useState('');
   const [formKeyPath, setFormKeyPath] = useState('~/.ssh/id_ed25519');
 
-  // Connection test
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<SshExecResult | null>(null);
+  const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
 
-  // Deploy state
-  const [provider, setProvider] = useState('');
-  const [channel, setChannel] = useState('');
-  const [safety, setSafety] = useState('standard');
-  const [deploying, setDeploying] = useState(false);
-  const [deployResult, setDeployResult] = useState<DeployResult | null>(null);
-
-  // Terminal state
-  const [command, setCommand] = useState('');
-  const [running, setRunning] = useState(false);
-  const [cmdResult, setCmdResult] = useState<SshExecResult | null>(null);
+  const [activeTarget, setActiveTarget] = useState<ActiveTargetInfo | null>(null);
+  const [connecting, setConnecting] = useState(false);
 
   const loadInstances = useCallback(async () => {
     try {
@@ -107,39 +66,40 @@ export default function VpsManager() {
     }
   }, [selectedId]);
 
+  const loadActiveTarget = useCallback(async () => {
+    try {
+      const info = await invoke<ActiveTargetInfo>('get_active_target');
+      setActiveTarget(info);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     loadInstances();
-  }, [loadInstances]);
+    loadActiveTarget();
+  }, [loadInstances, loadActiveTarget]);
 
   const selected = instances.find(i => i.id === selectedId) ?? null;
 
-  const authPayload = (inst?: VpsInstance | null) => {
-    if (inst) {
-      return {
-        host: inst.host,
-        port: inst.port,
-        username: inst.username,
-        password: inst.auth_method === 'password' ? formPassword : null,
-        keyPath: inst.auth_method === 'key' ? inst.key_path : null,
-      };
-    }
-    return {
-      host: formHost,
-      port: parseInt(formPort, 10) || 22,
-      username: formUsername,
-      password: formAuth === 'password' ? formPassword : null,
-      keyPath: formAuth === 'key' ? formKeyPath : null,
-    };
-  };
+  const isConnectedTo = (inst: VpsInstance) =>
+    activeTarget?.mode === 'protocol' && activeTarget.instance_id === inst.id;
 
   const handleTestConnection = async () => {
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await invoke<SshExecResult>('ssh_test_connection', authPayload());
-      setTestResult(res);
+      await invoke<string>('ssh_test_connection', {
+        host: formHost,
+        port: parseInt(formPort, 10) || 22,
+        username: formUsername,
+        authMethod: formAuth,
+        password: formAuth === 'password' ? formPassword : null,
+        keyPath: formAuth === 'key' ? formKeyPath : null,
+      });
+      setTestResult({ success: true });
     } catch (e) {
-      setTestResult({ success: false, exit_code: null, stdout: '', stderr: '', error: String(e) });
+      setTestResult({ success: false, error: String(e) });
     }
     setTesting(false);
   };
@@ -183,55 +143,36 @@ export default function VpsManager() {
     }
   };
 
-  const handleDeploy = async () => {
-    if (!selected) return;
-    setDeploying(true);
-    setDeployResult(null);
+  const handleDisconnect = async () => {
     try {
-      const res = await invoke<DeployResult>('deploy_to_vps', {
-        host: selected.host,
-        port: selected.port,
-        username: selected.username,
-        password: selected.auth_method === 'password' ? formPassword : null,
-        keyPath: selected.auth_method === 'key' ? selected.key_path : null,
-        provider: provider || null,
-        channel: channel || null,
-        safety: safety || null,
-      });
-      setDeployResult(res);
-      if (res.test_ok && res.install_output?.success) {
-        const updated = { ...selected, openclaw_installed: true, last_connected: new Date().toISOString().replace(/\.\d+Z$/, 'Z') };
-        await invoke('update_instance', { instance: updated });
-        await loadInstances();
-      }
+      await invoke('set_active_target', { mode: 'local' });
+      await loadActiveTarget();
     } catch (e) {
-      setDeployResult({ test_ok: false, install_output: null, errors: [String(e)] });
+      console.error('Failed to disconnect:', e);
     }
-    setDeploying(false);
   };
 
-  const handleRunCommand = async () => {
-    if (!selected || !command.trim()) return;
-    setRunning(true);
-    setCmdResult(null);
+  const handleConnect = async (inst: VpsInstance) => {
+    setConnecting(true);
     try {
-      const res = await invoke<SshExecResult>('ssh_run_command', {
-        host: selected.host,
-        port: selected.port,
-        username: selected.username,
-        password: selected.auth_method === 'password' ? formPassword : null,
-        keyPath: selected.auth_method === 'key' ? selected.key_path : null,
-        command: command.trim(),
+      const wsPort = 9394;
+      const url = `ws://${inst.host}:${wsPort}`;
+      await invoke('set_active_target', {
+        mode: 'protocol',
+        url,
+        token: 'bootstrap-token',
+        instanceId: inst.id,
+        host: inst.host,
       });
-      setCmdResult(res);
-      if (res.success && selected) {
-        const updated = { ...selected, last_connected: new Date().toISOString().replace(/\.\d+Z$/, 'Z') };
-        await invoke('update_instance', { instance: updated }).catch(() => {});
-      }
+      await loadActiveTarget();
     } catch (e) {
-      setCmdResult({ success: false, exit_code: null, stdout: '', stderr: '', error: String(e) });
+      console.error('Failed to connect:', e);
     }
-    setRunning(false);
+    setConnecting(false);
+  };
+
+  const handleGoToBootstrap = () => {
+    navigate('/bootstrap');
   };
 
   const resetForm = () => {
@@ -290,7 +231,12 @@ export default function VpsManager() {
                 : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-gray-300'
             }`}
           >
-            <div className="font-medium truncate">{inst.name}</div>
+            <div className="font-medium truncate flex items-center gap-2">
+              {inst.name}
+              {isConnectedTo(inst) && (
+                <span className="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0" title="Connected" />
+              )}
+            </div>
             <div className="text-xs text-gray-400 font-mono truncate">{inst.username}@{inst.host}:{inst.port}</div>
             {inst.openclaw_installed && (
               <span className="inline-block mt-1 text-[10px] bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded px-1.5 py-0.5">
@@ -395,37 +341,53 @@ export default function VpsManager() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">{selected.name}</h2>
+                <h2 className="text-2xl font-bold flex items-center gap-3">
+                  {selected.name}
+                  {isConnectedTo(selected) && (
+                    <span className="text-xs font-normal bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full px-2 py-0.5">
+                      {t('vps.connected')}
+                    </span>
+                  )}
+                </h2>
                 <p className="text-sm text-gray-400 font-mono">{selected.username}@{selected.host}:{selected.port}</p>
               </div>
-              {confirmDeleteId === selected.id ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-red-500">{t('common.confirm')}?</span>
-                  <button onClick={() => handleDeleteInstance(selected.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">{t('common.confirm')}</button>
-                  <button onClick={() => setConfirmDeleteId(null)} className="text-gray-400 hover:text-gray-600 text-sm">{t('common.cancel')}</button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmDeleteId(selected.id)}
-                  className="text-red-500 hover:text-red-700 text-sm font-medium"
-                >
-                  {t('vps.delete')}
-                </button>
-              )}
-            </div>
-
-            {/* Auth prompt for this session */}
-            {selected.auth_method === 'password' && !formPassword && (
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                <label className="block text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">{t('vps.enterPassword')}</label>
-                <input type="password" value={formPassword} onChange={e => setFormPassword(e.target.value)} placeholder={t('ssh.password')} className={inputClass} />
-                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{t('vps.passwordSessionOnly')}</p>
+              <div className="flex items-center gap-2">
+                {isConnectedTo(selected) ? (
+                  <button
+                    onClick={handleDisconnect}
+                    className="rounded-lg border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
+                  >
+                    {t('vps.disconnect')}
+                  </button>
+                ) : selected.openclaw_installed ? (
+                  <button
+                    onClick={() => handleConnect(selected)}
+                    disabled={connecting}
+                    className="rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white hover:bg-claw-700 disabled:opacity-50 transition-all shadow-sm"
+                  >
+                    {connecting ? t('vps.connecting') : t('vps.connect')}
+                  </button>
+                ) : null}
+                {confirmDeleteId === selected.id ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-red-500">{t('common.confirm')}?</span>
+                    <button onClick={() => handleDeleteInstance(selected.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">{t('common.confirm')}</button>
+                    <button onClick={() => setConfirmDeleteId(null)} className="text-gray-400 hover:text-gray-600 text-sm">{t('common.cancel')}</button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(selected.id)}
+                    className="text-red-500 hover:text-red-700 text-sm font-medium"
+                  >
+                    {t('vps.delete')}
+                  </button>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Tabs */}
             <div className="flex border-b border-gray-200 dark:border-gray-800 gap-1">
-              {(['overview', 'deploy', 'terminal'] as Tab[]).map(tab => (
+              {(['overview', 'setup'] as Tab[]).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -457,124 +419,33 @@ export default function VpsManager() {
               </div>
             )}
 
-            {/* Deploy tab */}
-            {activeTab === 'deploy' && (
+            {/* Setup tab — navigate to Bootstrap page */}
+            {activeTab === 'setup' && (
               <div className="space-y-4">
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">{t('remote.securityNote')}</p>
-                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {t('vps.setupDesc')}
+                  </p>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">{t('remote.provider')}</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {PROVIDERS.map(p => (
-                      <button key={p.id} onClick={() => setProvider(provider === p.id ? '' : p.id)} className={`px-3 py-2 text-sm rounded-lg border transition-colors ${provider === p.id ? 'border-claw-500 bg-claw-50 dark:bg-claw-900/30 text-claw-700 dark:text-claw-300' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}>
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">{t('remote.channel')}</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {CHANNELS.map(ch => (
-                      <button key={ch.id} onClick={() => setChannel(channel === ch.id ? '' : ch.id)} className={`px-3 py-2 text-sm rounded-lg border transition-colors ${channel === ch.id ? 'border-claw-500 bg-claw-50 dark:bg-claw-900/30 text-claw-700 dark:text-claw-300' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}>
-                        {ch.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">{t('remote.safety')}</label>
-                  <div className="flex gap-2">
-                    {SAFETY_LEVELS.map(s => (
-                      <button key={s.id} onClick={() => setSafety(s.id)} className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors ${safety === s.id ? 'border-claw-500 bg-claw-50 dark:bg-claw-900/30 text-claw-700 dark:text-claw-300' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}>
-                        {t(s.labelKey)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleDeploy}
-                  disabled={deploying || (selected.auth_method === 'password' && !formPassword)}
-                  className="w-full py-3 bg-claw-600 hover:bg-claw-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                >
-                  {deploying ? t('vps.deploying') : t('vps.deployNow')}
-                </button>
-
-                {deployResult && (
-                  <div className="space-y-2">
-                    {!deployResult.test_ok && (
-                      <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-400">
-                        {t('vps.sshFailed')}: {deployResult.errors.join(', ')}
-                      </div>
-                    )}
-                    {deployResult.install_output && (
-                      <div className={`rounded-lg border p-3 text-sm ${deployResult.install_output.success ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400'}`}>
-                        {deployResult.install_output.success ? t('vps.deploySuccess') : t('vps.deployFailed')}
-                      </div>
-                    )}
-                    {deployResult.install_output?.stdout && (
-                      <pre className="rounded-lg bg-gray-900 text-green-400 p-3 text-xs overflow-auto max-h-64 font-mono">{deployResult.install_output.stdout}</pre>
-                    )}
-                    {deployResult.install_output?.stderr && (
-                      <pre className="rounded-lg bg-gray-900 text-red-400 p-3 text-xs overflow-auto max-h-40 font-mono">{deployResult.install_output.stderr}</pre>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Terminal tab */}
-            {activeTab === 'terminal' && (
-              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{t('ssh.command')}</label>
-                  <textarea
-                    value={command}
-                    onChange={e => setCommand(e.target.value)}
-                    placeholder={t('ssh.commandPlaceholder')}
-                    rows={3}
-                    className={`${inputClass} resize-y`}
-                  />
-                </div>
-
-                <button
-                  onClick={handleRunCommand}
-                  disabled={!command.trim() || running || (selected.auth_method === 'password' && !formPassword)}
-                  className="rounded-lg bg-claw-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-claw-700 disabled:opacity-50 transition-all shadow-sm"
-                >
-                  {running ? t('ssh.executing') : t('ssh.execute')}
-                </button>
-
-                {cmdResult && (
-                  <div className="space-y-2">
-                    <div className={`rounded-lg border p-1 text-xs ${cmdResult.success ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'}`}>
-                      <div className="flex items-center gap-2 px-2 py-1 text-gray-500 dark:text-gray-400">
-                        <span>{cmdResult.success ? '✅' : '❌'}</span>
-                        <span>{t('ssh.exitCode')}: {cmdResult.exit_code ?? '—'}</span>
-                      </div>
+                  {selected.openclaw_installed ? (
+                    <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 p-3 text-sm text-green-700 dark:text-green-400">
+                      {t('vps.alreadySetup')}
                     </div>
-                    {cmdResult.stdout && (
-                      <pre className="rounded-lg bg-gray-900 text-green-400 p-3 text-xs overflow-auto max-h-64 font-mono">{cmdResult.stdout}</pre>
-                    )}
-                    {cmdResult.stderr && (
-                      <pre className="rounded-lg bg-gray-900 text-red-400 p-3 text-xs overflow-auto max-h-40 font-mono">{cmdResult.stderr}</pre>
-                    )}
-                    {cmdResult.error && (
-                      <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-400">{cmdResult.error}</div>
-                    )}
-                  </div>
-                )}
+                  ) : (
+                    <button
+                      onClick={handleGoToBootstrap}
+                      className="w-full py-3 bg-claw-600 hover:bg-claw-700 text-white rounded-lg font-medium transition-colors"
+                    >
+                      {t('vps.goToBootstrap')}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Empty state when no instance selected and not adding */}
+        {/* Empty state */}
         {!showAddForm && !selected && instances.length === 0 && (
           <div className="text-center py-20 text-gray-400">
             <p className="text-lg mb-2">{t('vps.emptyTitle')}</p>

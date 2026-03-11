@@ -670,16 +670,17 @@
     "lastConnected": "最后连接",
     "tab": {
       "overview": "概览",
-      "deploy": "部署 OpenClaw",
-      "terminal": "终端"
+      "setup": "设置"
     },
-    "deploying": "部署中...",
-    "deployNow": "部署 OpenClaw 到此 VPS",
-    "sshFailed": "SSH 连接失败",
-    "deploySuccess": "OpenClaw 部署成功！",
-    "deployFailed": "部署失败",
-    "emptyTitle": "管理您的 VPS 实例",
-    "emptyDesc": "添加 VPS 以部署 OpenClaw、运行命令并进行远程监控。"
+    "connected": "已连接",
+    "disconnect": "断开连接",
+    "connecting": "连接中...",
+    "connect": "连接",
+    "setupDesc": "使用 Bootstrap 向导在远程机器上安装 clawsquire-serve 和 OpenClaw。",
+    "alreadySetup": "此实例已安装 OpenClaw。点击\"连接\"通过协议管理。",
+    "goToBootstrap": "打开 Bootstrap 向导",
+    "emptyTitle": "管理远程实例",
+    "emptyDesc": "添加实例以通过协议远程部署和管理 OpenClaw。"
   },
   "imap": {
     "title": "邮箱设置",

@@ -666,16 +666,17 @@
     "lastConnected": "Last connected",
     "tab": {
       "overview": "Overview",
-      "deploy": "Deploy OpenClaw",
-      "terminal": "Terminal"
+      "setup": "Setup"
     },
-    "deploying": "Deploying...",
-    "deployNow": "Deploy OpenClaw to this VPS",
-    "sshFailed": "SSH connection failed",
-    "deploySuccess": "OpenClaw deployed successfully!",
-    "deployFailed": "Deployment failed",
-    "emptyTitle": "Manage your VPS instances",
-    "emptyDesc": "Add a VPS to deploy OpenClaw, run commands, and monitor remotely."
+    "connected": "Connected",
+    "disconnect": "Disconnect",
+    "connecting": "Connecting...",
+    "connect": "Connect",
+    "setupDesc": "Use the Bootstrap wizard to install clawsquire-serve and OpenClaw on this remote machine.",
+    "alreadySetup": "OpenClaw is already installed on this instance. Use Connect to manage it via protocol.",
+    "goToBootstrap": "Open Bootstrap Wizard",
+    "emptyTitle": "Manage your remote instances",
+    "emptyDesc": "Add an instance to deploy and manage OpenClaw remotely via protocol."
   },
   "imap": {
     "title": "Email Setup",

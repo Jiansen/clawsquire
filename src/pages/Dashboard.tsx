@@ -164,7 +164,7 @@ export default function Dashboard() {
               Remote Mode — {target.host || 'VPS'}
             </p>
             <p className="text-xs text-blue-600 dark:text-blue-500">
-              Managing OpenClaw on remote server via SSH. Some local-only features are disabled.
+              Managing OpenClaw on remote server via protocol. Some local-only features are disabled.
             </p>
           </div>
         </div>

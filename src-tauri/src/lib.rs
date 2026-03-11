@@ -262,6 +262,31 @@ async fn bootstrap_get_cargo_script() -> Result<String, String> {
     Ok(bootstrap::cargo_install_script().to_string())
 }
 
+/// Quick SSH connectivity test for the Add Instance form.
+#[tauri::command]
+async fn ssh_test_connection(
+    host: String,
+    port: u16,
+    username: String,
+    auth_method: String,
+    password: Option<String>,
+    key_path: Option<String>,
+) -> Result<String, String> {
+    let cfg = SshConfig {
+        host,
+        port,
+        username,
+        auth_method,
+        password,
+        key_path,
+    };
+    tauri::async_runtime::spawn_blocking(move || {
+        ssh_bootstrap::test_connection(&cfg)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Run SSH bootstrap on a remote VPS. Emits "bootstrap-event" for each step.
 /// Returns the final result with token/port on success.
 #[tauri::command]
@@ -676,6 +701,7 @@ pub fn run() {
             bootstrap_install_openclaw,
             bootstrap_get_script,
             bootstrap_get_cargo_script,
+            ssh_test_connection,
             bootstrap_ssh_start,
             add_channel,
             remove_channel,

@@ -111,6 +111,7 @@ describe("VpsManager — with instances", () => {
     mockedInvoke.mockImplementation(async (...args: unknown[]) => {
       const cmd = args[0] as string;
       if (cmd === "list_instances") return [SAMPLE_INSTANCE];
+      if (cmd === "get_active_target") return { mode: "local" };
       return {};
     });
   });
@@ -145,27 +146,19 @@ describe("VpsManager — with instances", () => {
     expect(screen.getByText("vps.delete")).toBeDefined();
   });
 
-  it("switches to deploy tab", async () => {
+  it("switches to setup tab", async () => {
     renderVps();
     await waitForInstances();
-    fireEvent.click(screen.getByText("vps.tab.deploy"));
-    expect(screen.getByText("remote.securityNote")).toBeDefined();
+    fireEvent.click(screen.getByText("vps.tab.setup"));
+    expect(screen.getByText("vps.setupDesc")).toBeDefined();
   });
 
-  it("switches to terminal tab", async () => {
+  it("shows bootstrap button for uninstalled instance", async () => {
     renderVps();
     await waitForInstances();
-    fireEvent.click(screen.getByText("vps.tab.terminal"));
-    expect(screen.getByText("ssh.command")).toBeDefined();
-  });
-
-  it("deploy button disabled when password not entered for password auth", async () => {
-    renderVps();
-    await waitForInstances();
-    fireEvent.click(screen.getByText("vps.tab.deploy"));
-    const deployBtn = screen.getAllByRole("button").find(b => b.textContent === "vps.deployNow");
-    expect(deployBtn).toBeDefined();
-    expect(deployBtn!.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(screen.getByText("vps.tab.setup"));
+    const bootstrapBtn = screen.getAllByRole("button").find(b => b.textContent === "vps.goToBootstrap");
+    expect(bootstrapBtn).toBeDefined();
   });
 
   it("confirms and deletes instance", async () => {
@@ -178,5 +171,19 @@ describe("VpsManager — with instances", () => {
     await waitFor(() => {
       expect(mockedInvoke).toHaveBeenCalledWith("delete_instance", { id: "vps-test-1" });
     });
+  });
+
+  it("shows connect button for installed instance", async () => {
+    const installed = { ...SAMPLE_INSTANCE, openclaw_installed: true, openclaw_version: "0.3.0" };
+    mockedInvoke.mockImplementation(async (...args: unknown[]) => {
+      const cmd = args[0] as string;
+      if (cmd === "list_instances") return [installed];
+      if (cmd === "get_active_target") return { mode: "local" };
+      return {};
+    });
+    renderVps();
+    await waitForInstances();
+    const connectBtn = screen.getAllByRole("button").find(b => b.textContent === "vps.connect");
+    expect(connectBtn).toBeDefined();
   });
 });
