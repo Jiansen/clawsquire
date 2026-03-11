@@ -48,6 +48,19 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
+      - name: Build sidecar binary
+        run: cargo build -p clawsquire-serve
+
+      - name: Place sidecar for Tauri build
+        shell: bash
+        run: |
+          TRIPLE=$(rustc --print host-tuple)
+          EXT=""
+          if [[ "$TRIPLE" == *windows* ]]; then EXT=".exe"; fi
+          mkdir -p src-tauri/binaries
+          cp "target/debug/clawsquire-serve${EXT}" "src-tauri/binaries/clawsquire-serve-${TRIPLE}${EXT}"
+          ls -la src-tauri/binaries/
+
       - name: Cargo check (full workspace)
         run: cargo check
 
