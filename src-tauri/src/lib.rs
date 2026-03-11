@@ -12,8 +12,6 @@ mod node_install;
 mod openclaw;
 mod remote;
 mod secure_store;
-mod ssh;
-mod util;
 
 use active_target::{ActiveTargetInfo, ActiveTargetState};
 use backup::{BackupEntry, DiffEntry};
@@ -34,33 +32,10 @@ use tauri::{
 
 
 #[tauri::command]
-async fn get_environment(state: tauri::State<'_, ActiveTargetState>) -> Result<Environment, String> {
-    let target = state.get();
-    tauri::async_runtime::spawn_blocking(move || {
-        match &target {
-            active_target::Target::Local => Ok(detect::detect_environment()),
-            active_target::Target::Vps(_) => {
-                let runner = target.runner();
-                let r = runner.as_ref();
-                let (installed, version) = match r.run(&["--version"]) {
-                    Ok(o) if o.success => (true, Some(o.stdout.trim().to_string())),
-                    _ => (false, None),
-                };
-                Ok(Environment {
-                    openclaw_installed: installed,
-                    openclaw_version: version,
-                    openclaw_path: Some("(remote)".into()),
-                    npm_installed: true,
-                    npm_version: None,
-                    node_version: None,
-                    config_dir: "(remote)".into(),
-                    platform: "linux".into(),
-                })
-            }
-        }
-    })
-    .await
-    .map_err(|e| e.to_string())?
+async fn get_environment() -> Result<Environment, String> {
+    tauri::async_runtime::spawn_blocking(|| Ok(detect::detect_environment()))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -101,51 +76,19 @@ async fn daemon_status(state: tauri::State<'_, ActiveTargetState>) -> Result<ope
 }
 
 #[tauri::command]
-async fn create_backup(state: tauri::State<'_, ActiveTargetState>, label: Option<String>) -> Result<BackupEntry, String> {
-    let target = state.get();
+async fn create_backup(label: Option<String>) -> Result<BackupEntry, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let (remote_tag, prefetched) = match &target {
-            active_target::Target::Vps(conn) => {
-                let rt = tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                    .map_err(|e| format!("Runtime error: {}", e))?;
-                let result = rt.block_on(crate::ssh::ssh_exec(
-                    &conn.host,
-                    conn.port,
-                    &conn.username,
-                    conn.password.as_deref(),
-                    conn.key_path.as_deref(),
-                    "cat ~/.openclaw/openclaw.json",
-                ));
-                if let Some(err) = result.error {
-                    return Err(format!("SSH error: {}", err));
-                }
-                if !result.success {
-                    return Err(format!("Remote config read failed: {}", result.stderr));
-                }
-                (Some(conn.instance_id.clone()), Some(result.stdout))
-            }
-            _ => (None, None),
-        };
-        backup::create_backup_with(label.as_deref(), remote_tag.as_deref(), prefetched)
+        backup::create_backup_with(label.as_deref(), None, None)
     })
     .await
     .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-async fn list_backups(state: tauri::State<'_, ActiveTargetState>) -> Result<Vec<BackupEntry>, String> {
-    let target = state.get();
-    tauri::async_runtime::spawn_blocking(move || {
-        let remote_tag = match &target {
-            active_target::Target::Vps(conn) => Some(conn.instance_id.as_str()),
-            _ => None,
-        };
-        backup::list_backups_for(remote_tag)
-    })
-    .await
-    .map_err(|e| e.to_string())?
+async fn list_backups() -> Result<Vec<BackupEntry>, String> {
+    tauri::async_runtime::spawn_blocking(|| backup::list_backups_for(None))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -271,47 +214,21 @@ async fn add_channel(state: tauri::State<'_, ActiveTargetState>, channel: String
 }
 
 #[tauri::command]
-async fn get_full_config(state: tauri::State<'_, ActiveTargetState>) -> Result<String, String> {
-    let target = state.get();
-    tauri::async_runtime::spawn_blocking(move || {
-        match &target {
-            active_target::Target::Local => {
-                let config_path = if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
-                    std::path::PathBuf::from(dir)
-                } else {
-                    dirs::home_dir()
-                        .unwrap_or_default()
-                        .join(crate::constants::OPENCLAW_STATE_DIR_DEFAULT)
-                }
-                .join("openclaw.json");
-                if !config_path.exists() {
-                    return Err("Config file not found. Is OpenClaw installed?".to_string());
-                }
-                std::fs::read_to_string(&config_path)
-                    .map_err(|e| format!("Failed to read config: {}", e))
-            }
-            active_target::Target::Vps(conn) => {
-                let rt = tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                    .map_err(|e| format!("Runtime error: {}", e))?;
-                let result = rt.block_on(crate::ssh::ssh_exec(
-                    &conn.host,
-                    conn.port,
-                    &conn.username,
-                    conn.password.as_deref(),
-                    conn.key_path.as_deref(),
-                    "cat ~/.openclaw/openclaw.json",
-                ));
-                if let Some(err) = result.error {
-                    Err(format!("SSH error: {}", err))
-                } else if result.success {
-                    Ok(result.stdout)
-                } else {
-                    Err(result.stderr)
-                }
-            }
+async fn get_full_config() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let config_path = if let Ok(dir) = std::env::var("OPENCLAW_STATE_DIR") {
+            std::path::PathBuf::from(dir)
+        } else {
+            dirs::home_dir()
+                .unwrap_or_default()
+                .join(crate::constants::OPENCLAW_STATE_DIR_DEFAULT)
         }
+        .join("openclaw.json");
+        if !config_path.exists() {
+            return Err("Config file not found. Is OpenClaw installed?".to_string());
+        }
+        std::fs::read_to_string(&config_path)
+            .map_err(|e| format!("Failed to read config: {}", e))
     })
     .await
     .map_err(|e| e.to_string())?
@@ -473,45 +390,6 @@ async fn generate_install_command(
 }
 
 #[tauri::command]
-async fn ssh_test_connection(
-    host: String,
-    port: Option<u16>,
-    username: String,
-    password: Option<String>,
-    key_path: Option<String>,
-) -> ssh::SshExecResult {
-    ssh::ssh_exec(
-        &host,
-        port.unwrap_or(22),
-        &username,
-        password.as_deref(),
-        key_path.as_deref(),
-        "echo ok",
-    )
-    .await
-}
-
-#[tauri::command]
-async fn ssh_run_command(
-    host: String,
-    port: Option<u16>,
-    username: String,
-    password: Option<String>,
-    key_path: Option<String>,
-    command: String,
-) -> ssh::SshExecResult {
-    ssh::ssh_exec(
-        &host,
-        port.unwrap_or(22),
-        &username,
-        password.as_deref(),
-        key_path.as_deref(),
-        &command,
-    )
-    .await
-}
-
-#[tauri::command]
 async fn list_instances() -> Vec<VpsInstance> {
     instances::list_instances()
 }
@@ -529,67 +407,6 @@ async fn update_instance(instance: VpsInstance) -> Result<VpsInstance, String> {
 #[tauri::command]
 async fn delete_instance(id: String) -> Result<(), String> {
     instances::delete_instance(&id)
-}
-
-#[derive(serde::Serialize)]
-pub struct DeployResult {
-    pub test_ok: bool,
-    pub install_output: Option<ssh::SshExecResult>,
-    pub errors: Vec<String>,
-}
-
-#[tauri::command]
-async fn deploy_to_vps(
-    host: String,
-    port: Option<u16>,
-    username: String,
-    password: Option<String>,
-    key_path: Option<String>,
-    provider: Option<String>,
-    channel: Option<String>,
-    safety: Option<String>,
-) -> DeployResult {
-    let p = port.unwrap_or(22);
-
-    let test = ssh::ssh_exec(
-        &host, p, &username,
-        password.as_deref(), key_path.as_deref(),
-        "echo ok",
-    ).await;
-
-    if !test.success {
-        return DeployResult {
-            test_ok: false,
-            install_output: None,
-            errors: vec![test.error.unwrap_or_else(|| "SSH connection failed".into())],
-        };
-    }
-
-    let cmd = remote::generate_install_command(
-        provider.as_deref(),
-        channel.as_deref(),
-        safety.as_deref(),
-        false,
-    );
-
-    let install = ssh::ssh_exec(
-        &host, p, &username,
-        password.as_deref(), key_path.as_deref(),
-        &cmd.command,
-    ).await;
-
-    let mut errors = Vec::new();
-    if !install.success {
-        if let Some(ref e) = install.error {
-            errors.push(e.clone());
-        }
-    }
-
-    DeployResult {
-        test_ok: true,
-        install_output: Some(install),
-        errors,
-    }
 }
 
 #[tauri::command]
@@ -631,16 +448,10 @@ async fn get_active_target(
 async fn set_active_target(
     state: tauri::State<'_, ActiveTargetState>,
     mode: String,
-    instance_id: Option<String>,
-    password: Option<String>,
 ) -> Result<ActiveTargetInfo, String> {
     match mode.as_str() {
         "local" => {
             state.set_local();
-        }
-        "vps" => {
-            let id = instance_id.ok_or("instance_id required for VPS mode")?;
-            state.set_vps(&id, password)?;
         }
         _ => return Err(format!("Unknown mode: {}", mode)),
     }
@@ -774,13 +585,10 @@ pub fn run() {
             get_version_info,
             generate_install_command,
             setup_email_monitor,
-            ssh_test_connection,
-            ssh_run_command,
             list_instances,
             add_instance,
             update_instance,
             delete_instance,
-            deploy_to_vps,
             get_active_target,
             set_active_target,
             detect_imap_preset,

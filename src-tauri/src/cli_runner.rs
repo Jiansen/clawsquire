@@ -38,66 +38,6 @@ pub fn default_runner() -> &'static dyn CliRunner {
     &RUNNER
 }
 
-
-/// CLI runner that executes openclaw commands on a remote VPS via SSH.
-/// Creates a dedicated tokio runtime per call to avoid conflicts with
-/// the Tauri async runtime (safe from spawn_blocking threads).
-pub struct SshCliRunner {
-    host: String,
-    port: u16,
-    username: String,
-    password: Option<String>,
-    key_path: Option<String>,
-}
-
-impl SshCliRunner {
-    pub fn new(conn: crate::active_target::VpsConnection) -> Self {
-        Self {
-            host: conn.host,
-            port: conn.port,
-            username: conn.username,
-            password: conn.password,
-            key_path: conn.key_path,
-        }
-    }
-}
-
-impl CliRunner for SshCliRunner {
-    fn run(&self, args: &[&str]) -> Result<CliOutput, String> {
-        let cmd = format!(
-            "openclaw {}",
-            args.iter()
-                .map(|a| crate::util::shell_escape(a))
-                .collect::<Vec<_>>()
-                .join(" ")
-        );
-
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .map_err(|e| format!("Failed to create SSH runtime: {}", e))?;
-
-        let result = rt.block_on(crate::ssh::ssh_exec(
-            &self.host,
-            self.port,
-            &self.username,
-            self.password.as_deref(),
-            self.key_path.as_deref(),
-            &cmd,
-        ));
-
-        if let Some(err) = result.error {
-            Err(format!("SSH error: {}", err))
-        } else {
-            Ok(CliOutput {
-                success: result.success,
-                stdout: result.stdout.trim().to_string(),
-                stderr: result.stderr.trim().to_string(),
-            })
-        }
-    }
-}
-
 #[cfg(test)]
 pub mod mock {
     use super::*;
