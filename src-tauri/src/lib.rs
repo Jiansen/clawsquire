@@ -379,6 +379,80 @@ async fn serve_update(
     .map_err(|e| e.to_string())?
 }
 
+/// Open the remote OpenClaw dashboard in an embedded Tauri window.
+/// 1. Calls cli.run ["dashboard", "--no-open"] via protocol to get dashboard URL + token.
+/// 2. Opens an SSH port-forward: remote 18789 → local 28789.
+/// 3. Creates a Tauri WebviewWindow pointing at http://127.0.0.1:28789/#token=...
+#[tauri::command]
+async fn open_openclaw_portal(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, ActiveTargetState>,
+    host: String,
+    ssh_port: u16,
+    username: String,
+    auth_method: String,
+    password: Option<String>,
+    key_path: Option<String>,
+) -> Result<(), String> {
+    let target = state.get();
+    if !target.is_protocol() {
+        return Err("open_openclaw_portal is only available in remote mode".into());
+    }
+
+    // 1. Get dashboard token from remote
+    let cli_result = tauri::async_runtime::spawn_blocking({
+        let target = target.clone();
+        move || target.protocol_call(method::CLI_RUN, serde_json::json!({ "args": ["dashboard", "--no-open"] }))
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    let stdout = cli_result
+        .get("stdout")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let token = stdout
+        .lines()
+        .find_map(|line| {
+            line.strip_prefix("Dashboard URL:")
+                .and_then(|rest| rest.trim().split("#token=").nth(1))
+                .map(|t| t.trim().to_string())
+        })
+        .ok_or_else(|| format!("Could not parse dashboard token from: {}", stdout))?;
+
+    // 2. Start SSH port-forward for the dashboard
+    let params = ssh_tunnel::TunnelParams {
+        host,
+        ssh_port,
+        username,
+        auth_method,
+        password,
+        key_path,
+        remote_port: ssh_tunnel::DASHBOARD_REMOTE_PORT,
+        local_port: ssh_tunnel::DASHBOARD_LOCAL_PORT,
+    };
+    tauri::async_runtime::spawn_blocking(move || ssh_tunnel::start_dashboard(&params))
+        .await
+        .map_err(|e| e.to_string())??;
+
+    // 3. Open embedded webview window
+    let local_port = ssh_tunnel::DASHBOARD_LOCAL_PORT;
+    let url_str = format!("http://127.0.0.1:{}/#token={}", local_port, token);
+    let url: tauri::Url = url_str.parse::<tauri::Url>().map_err(|e| e.to_string())?;
+    // Close existing portal window if open, then create new one
+    if let Some(existing) = app.get_webview_window("openclaw-portal") {
+        let _ = existing.close();
+    }
+    tauri::WebviewWindowBuilder::new(&app, "openclaw-portal", tauri::WebviewUrl::External(url))
+        .title("OpenClaw Dashboard")
+        .inner_size(1280.0, 860.0)
+        .resizable(true)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 /// Quick SSH connectivity test for the Add Instance form.
 #[tauri::command]
 async fn ssh_test_connection(
@@ -727,6 +801,7 @@ async fn set_active_target(
             let state_clone = state.inner().clone();
             tauri::async_runtime::spawn_blocking(move || {
                 ssh_tunnel::stop();
+                ssh_tunnel::stop_dashboard();
                 state_clone.set_local();
             })
             .await
@@ -875,6 +950,7 @@ pub fn run() {
             ssh_stop_tunnel,
             ssh_restart_serve,
             serve_update,
+            open_openclaw_portal,
             bootstrap_ssh_start,
             add_channel,
             remove_channel,

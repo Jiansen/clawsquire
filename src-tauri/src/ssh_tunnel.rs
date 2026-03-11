@@ -13,8 +13,11 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
 
-/// Global tunnel child process. Only one tunnel at a time.
+/// Global tunnel child process for clawsquire-serve. Only one at a time.
 static TUNNEL: Mutex<Option<Child>> = Mutex::new(None);
+
+/// Separate tunnel for OpenClaw dashboard (port 18789).
+static DASHBOARD_TUNNEL: Mutex<Option<Child>> = Mutex::new(None);
 
 pub struct TunnelParams {
     pub host: String,
@@ -159,6 +162,96 @@ fn stop_inner() {
     if let Ok(mut guard) = TUNNEL.lock() {
         if let Some(mut child) = guard.take() {
             let _ = child.kill();
+        }
+    }
+}
+
+/// OpenClaw dashboard is served on port 18789 on the remote.
+/// We forward it to local port 28789.
+pub const DASHBOARD_REMOTE_PORT: u16 = 18789;
+pub const DASHBOARD_LOCAL_PORT: u16 = 28789;
+
+/// Start a port-forward tunnel specifically for the OpenClaw dashboard.
+/// Returns the local port the dashboard is accessible on.
+pub fn start_dashboard(params: &TunnelParams) -> Result<u16, String> {
+    let local_port = DASHBOARD_LOCAL_PORT;
+
+    // Stop any existing dashboard tunnel
+    if let Ok(mut g) = DASHBOARD_TUNNEL.lock() {
+        if let Some(mut c) = g.take() {
+            let _ = c.kill();
+        }
+    }
+    kill_port_occupant(local_port);
+
+    let forward_spec = format!("{}:localhost:{}", local_port, DASHBOARD_REMOTE_PORT);
+
+    let mut cmd = if params.auth_method == "password" {
+        if let Some(ref pw) = params.password {
+            let mut c = cmd_with_path("sshpass");
+            c.args(["-p", pw, "ssh"]);
+            c
+        } else {
+            return Err("Password auth selected but no password provided".into());
+        }
+    } else {
+        cmd_with_path("ssh")
+    };
+
+    cmd.args([
+        "-N",
+        "-o", "StrictHostKeyChecking=no",
+        "-o", "ConnectTimeout=15",
+        "-o", "ExitOnForwardFailure=yes",
+        "-L", &forward_spec,
+        "-p", &params.ssh_port.to_string(),
+    ]);
+
+    if params.auth_method == "key" {
+        if let Some(ref kp) = params.key_path {
+            cmd.args(["-i", kp]);
+        }
+    }
+
+    cmd.arg(format!("{}@{}", params.username, params.host));
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000);
+    }
+
+    let mut child = cmd.spawn().map_err(|e| format!("dashboard tunnel spawn: {e}"))?;
+
+    let deadline = Instant::now() + Duration::from_secs(8);
+    loop {
+        if let Ok(Some(status)) = child.try_wait() {
+            return Err(format!("dashboard tunnel exited (code {:?})", status.code()));
+        }
+        if TcpStream::connect_timeout(
+            &format!("127.0.0.1:{local_port}").parse().unwrap(),
+            Duration::from_millis(300),
+        ).is_ok() {
+            break;
+        }
+        if Instant::now() >= deadline {
+            let _ = child.kill();
+            return Err(format!(
+                "Dashboard tunnel timed out — is OpenClaw gateway running on the VPS?",
+            ));
+        }
+        thread::sleep(Duration::from_millis(300));
+    }
+
+    *DASHBOARD_TUNNEL.lock().unwrap() = Some(child);
+    Ok(local_port)
+}
+
+/// Stop the dashboard tunnel if running.
+pub fn stop_dashboard() {
+    if let Ok(mut g) = DASHBOARD_TUNNEL.lock() {
+        if let Some(mut c) = g.take() {
+            let _ = c.kill();
         }
     }
 }
