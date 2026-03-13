@@ -143,3 +143,9 @@ We welcome contributions of all kinds:
 - **Discussions** — [Join the conversation](https://github.com/Jiansen/clawsquire/discussions)
 
 If you find ClawSquire useful, please ⭐ star the repo — it helps others discover us!
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Jiansen/clawsquire&type=Date)](https://star-history.com/#Jiansen/clawsquire&Date)

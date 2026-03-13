@@ -65,7 +65,10 @@ export default function App() {
   );
 
   useEffect(() => {
-    getCurrentWindow().show().catch(() => {});
+    // Only call Tauri APIs if running in Tauri context
+    if (window.__TAURI_INTERNALS__) {
+      getCurrentWindow().show().catch(() => {});
+    }
   }, []);
 
   if (!hasChosenLocale) {
