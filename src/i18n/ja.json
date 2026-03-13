@@ -417,6 +417,7 @@
         "verify": "アンインストールを検証中...",
         "done": "完了！"
       },
+      "remoteWarning": "リモート VPS 上の OpenClaw をアンインストールします：{{host}}",
       "appResponsive": "OpenClaw をアンインストール中... アプリは応答し続けます。",
       "notes": "備考：",
       "result": {
@@ -431,15 +432,15 @@
     "safetyPresets": {
       "conservative": {
         "name": "保守的",
-        "description": "チャットと設定管理のみ。初心者におすすめ。"
+        "description": "メッセージツールのみ。ファイルやシステム操作なし。自分だけがbotを制御。初心者や情報まとめのみのシナリオに推奨。"
       },
       "standard": {
         "name": "標準",
-        "description": "ブラウザ制御、ファイルアクセス、スキルを追加。技術的な知識があるユーザー向け。"
+        "description": "ファイルとブラウザツールを有効化。アクセスはホワイトリストに限定。スラッシュコマンドはプラットフォームに自動対応。"
       },
       "full": {
         "name": "フルアクセス",
-        "description": "すべての機能を有効。開発者と上級ユーザー向け。"
+        "description": "すべてのツールとコマンドを有効化。ホワイトリストを完全管理する上級ユーザー向け。"
       },
       "custom": {
         "name": "カスタム",
@@ -447,21 +448,17 @@
       }
     },
     "permissions": {
-      "chat": "チャット（Telegram / WhatsApp）",
-      "configManagement": "設定管理",
-      "browserControl": "ブラウザ制御",
-      "fileAccess": "ファイルシステムアクセス（ワークスペース外）",
-      "camera": "カメラ / 画面キャプチャ",
-      "voiceWake": "音声ウェイクワード",
-      "autoExec": "コマンド自動実行（確認をスキップ）",
-      "canvas": "Canvas（AI 表示パネル）",
-      "cronJobs": "スケジュールタスク（Cron）",
-      "skillInstall": "スキルインストール"
+      "slashCommands": "スラッシュコマンド（/models, /status など）",
+      "botRestart": "Bot 再起動（/restart）",
+      "accessControl": "アクセスグループの許可リストを強制",
+      "fileTools": "ファイル＆システムツール（ワークスペースアクセス）",
+      "commandExec": "システムコマンド実行",
+      "browserScript": "ブラウザ JavaScript 実行",
+      "advancedConfig": "高度な設定（/config, /debug）"
     },
     "permissionLevels": {
-      "basic": "基本（デフォルトで有効）",
-      "advanced": "高度（手動で有効化）",
-      "expert": "エキスパート（経験を積んでからおすすめ）"
+      "basic": "コマンドアクセス",
+      "advanced": "ツールアクセス"
     }
   },
   "welcome": {

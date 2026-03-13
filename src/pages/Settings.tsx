@@ -150,7 +150,7 @@ export default function Settings() {
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{t('settings.uninstallDescription')}</p>
             {isRemote && target.host && (
               <div className="mb-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 p-2.5 text-xs text-orange-700 dark:text-orange-400">
-                ⚠️ This will uninstall OpenClaw on the remote VPS: <span className="font-mono font-medium">{target.host}</span>
+                ⚠️ {t('settings.uninstall.remoteWarning', { host: target.host })}
               </div>
             )}
             <button
@@ -227,7 +227,7 @@ export default function Settings() {
           </div>
             <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-red-50 dark:bg-red-950/300 rounded-full transition-all duration-500"
+                className="h-full bg-red-500 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(((uninstallCurrentStep + 1) / UNINSTALL_STEP_KEYS.length) * 100, 95)}%` }}
               />
             </div>

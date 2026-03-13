@@ -417,6 +417,7 @@
         "verify": "Verificando desinstalación...",
         "done": "¡Completado!"
       },
+      "remoteWarning": "Esto desinstalará OpenClaw en el VPS remoto: {{host}}",
       "appResponsive": "Desinstalando OpenClaw... La aplicación permanece activa.",
       "notes": "Notas:",
       "result": {
@@ -431,15 +432,15 @@
     "safetyPresets": {
       "conservative": {
         "name": "Conservador",
-        "description": "Solo chat y gestión de configuración. Recomendado para principiantes."
+        "description": "Solo herramientas de mensajería, sin acceso a archivos ni al sistema. Solo tú puedes controlar el bot. Recomendado para principiantes."
       },
       "standard": {
         "name": "Estándar",
-        "description": "Añade control del navegador, acceso a archivos y habilidades. Para usuarios con algo de experiencia técnica."
+        "description": "Herramientas de archivos y navegador habilitadas. Acceso restringido a tu lista de permitidos. Los comandos slash se adaptan automáticamente a cada plataforma."
       },
       "full": {
         "name": "Acceso completo",
-        "description": "Todas las funciones habilitadas. Para desarrolladores y usuarios avanzados."
+        "description": "Todas las herramientas y comandos habilitados. Para usuarios avanzados con control total de la lista de permitidos."
       },
       "custom": {
         "name": "Personalizado",
@@ -447,21 +448,17 @@
       }
     },
     "permissions": {
-      "chat": "Chat (Telegram / WhatsApp)",
-      "configManagement": "Gestión de configuración",
-      "browserControl": "Control del navegador",
-      "fileAccess": "Acceso al sistema de archivos (más allá del espacio de trabajo)",
-      "camera": "Cámara / Captura de pantalla",
-      "voiceWake": "Palabra de activación por voz",
-      "autoExec": "Ejecución automática de comandos (omitir confirmación)",
-      "canvas": "Canvas (panel de visualización de IA)",
-      "cronJobs": "Tareas programadas (Cron)",
-      "skillInstall": "Instalación de habilidades"
+      "slashCommands": "Comandos slash (/models, /status, etc.)",
+      "botRestart": "Reinicio del bot (/restart)",
+      "accessControl": "Forzar lista de acceso por grupos",
+      "fileTools": "Herramientas de archivos y sistema (acceso al workspace)",
+      "commandExec": "Ejecución de comandos del sistema",
+      "browserScript": "Ejecución de JavaScript en el navegador",
+      "advancedConfig": "Configuración avanzada (/config, /debug)"
     },
     "permissionLevels": {
-      "basic": "Básico (habilitado por defecto)",
-      "advanced": "Avanzado (habilitar manualmente)",
-      "expert": "Experto (recomendado después de ganar experiencia)"
+      "basic": "Acceso a comandos",
+      "advanced": "Acceso a herramientas"
     }
   },
   "welcome": {

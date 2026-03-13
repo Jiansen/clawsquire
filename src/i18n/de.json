@@ -417,6 +417,7 @@
         "verify": "Deinstallation wird überprüft...",
         "done": "Fertig!"
       },
+      "remoteWarning": "Dies wird OpenClaw auf dem Remote-VPS deinstallieren: {{host}}",
       "appResponsive": "OpenClaw wird deinstalliert... Die App bleibt reaktionsfähig.",
       "notes": "Hinweise:",
       "result": {
@@ -431,15 +432,15 @@
     "safetyPresets": {
       "conservative": {
         "name": "Konservativ",
-        "description": "Nur Chat und Konfigurationsverwaltung. Empfohlen für Einsteiger."
+        "description": "Nur Messaging-Tools, keine Datei- oder Systemoperationen. Nur du kannst den Bot steuern. Empfohlen für Einsteiger."
       },
       "standard": {
         "name": "Standard",
-        "description": "Zusätzlich Browsersteuerung, Dateizugriff und Skills. Für Nutzer mit technischem Hintergrund."
+        "description": "Datei- und Browser-Tools aktiviert. Zugriff auf deine Allowlist beschränkt. Slash-Befehle passen sich automatisch der Plattform an."
       },
       "full": {
         "name": "Voller Zugriff",
-        "description": "Alle Funktionen aktiviert. Für Entwickler und fortgeschrittene Nutzer."
+        "description": "Alle Tools und Befehle aktiviert. Für fortgeschrittene Nutzer mit vollständiger Allowlist-Kontrolle."
       },
       "custom": {
         "name": "Benutzerdefiniert",
@@ -447,21 +448,17 @@
       }
     },
     "permissions": {
-      "chat": "Chat (Telegram / WhatsApp)",
-      "configManagement": "Konfigurationsverwaltung",
-      "browserControl": "Browsersteuerung",
-      "fileAccess": "Dateisystemzugriff (außerhalb des Arbeitsbereichs)",
-      "camera": "Kamera / Bildschirmaufnahme",
-      "voiceWake": "Sprach-Wake-Word",
-      "autoExec": "Automatische Befehlsausführung (Bestätigung überspringen)",
-      "canvas": "Canvas (KI-Anzeigepanel)",
-      "cronJobs": "Geplante Aufgaben (Cron)",
-      "skillInstall": "Skill-Installation"
+      "slashCommands": "Slash-Befehle (/models, /status usw.)",
+      "botRestart": "Bot-Neustart (/restart)",
+      "accessControl": "Zugriffsgruppen-Allowlist erzwingen",
+      "fileTools": "Datei- & Systemtools (Workspace-Zugriff)",
+      "commandExec": "Systembefehle ausführen",
+      "browserScript": "Browser-JavaScript-Ausführung",
+      "advancedConfig": "Erweiterte Konfiguration (/config, /debug)"
     },
     "permissionLevels": {
-      "basic": "Basis (standardmäßig aktiviert)",
-      "advanced": "Erweitert (manuell aktivieren)",
-      "expert": "Experte (empfohlen nach etwas Erfahrung)"
+      "basic": "Befehlszugriff",
+      "advanced": "Toolzugriff"
     }
   },
   "welcome": {

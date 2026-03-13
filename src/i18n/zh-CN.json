@@ -419,6 +419,7 @@
         "verify": "正在验证卸载...",
         "done": "完成！"
       },
+      "remoteWarning": "这将在远程 VPS 上卸载 OpenClaw：{{host}}",
       "appResponsive": "正在卸载 OpenClaw... 应用保持响应。",
       "notes": "备注：",
       "result": {
@@ -433,15 +434,15 @@
     "safetyPresets": {
       "conservative": {
         "name": "保守模式",
-        "description": "仅开启聊天和配置管理。推荐新手使用。"
+        "description": "仅限消息工具，不涉及文件和系统操作。只有你能控制 bot。推荐新手或只需要信息摘要的场景。"
       },
       "standard": {
         "name": "标准模式",
-        "description": "额外开启浏览器控制、文件访问和技能。适合有一定技术背景的用户。"
+        "description": "开启文件和浏览器工具。访问权限限定在你的白名单。Slash 命令自动适配各平台。"
       },
       "full": {
         "name": "完全开放",
-        "description": "所有功能均已开启。适合开发者和高级用户。"
+        "description": "所有工具和命令均已开启。适合掌控完整白名单的高级用户。"
       },
       "custom": {
         "name": "自定义",
@@ -449,21 +450,17 @@
       }
     },
     "permissions": {
-      "chat": "聊天（Telegram / WhatsApp）",
-      "configManagement": "配置管理",
-      "browserControl": "浏览器控制",
-      "fileAccess": "文件系统访问（工作目录之外）",
-      "camera": "相机 / 屏幕录制",
-      "voiceWake": "语音唤醒",
-      "autoExec": "自动执行命令（跳过确认）",
-      "canvas": "Canvas（AI 显示面板）",
-      "cronJobs": "定时任务",
-      "skillInstall": "技能安装"
+      "slashCommands": "Slash 命令（/models, /status 等）",
+      "botRestart": "Bot 重启（/restart）",
+      "accessControl": "强制白名单访问控制",
+      "fileTools": "文件与系统工具（工作目录访问）",
+      "commandExec": "系统命令执行",
+      "browserScript": "浏览器 JavaScript 执行",
+      "advancedConfig": "高级配置（/config, /debug）"
     },
     "permissionLevels": {
-      "basic": "基础功能（默认开启）",
-      "advanced": "进阶功能（需手动开启）",
-      "expert": "高级功能（建议有经验后再开启）"
+      "basic": "命令访问",
+      "advanced": "工具访问"
     }
   },
   "welcome": {

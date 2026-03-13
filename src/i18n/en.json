@@ -420,6 +420,7 @@
         "verify": "Verifying removal...",
         "done": "Complete!"
       },
+      "remoteWarning": "This will uninstall OpenClaw on the remote VPS: {{host}}",
       "appResponsive": "Uninstalling OpenClaw... The app remains responsive.",
       "notes": "Notes:",
       "result": {
@@ -434,15 +435,15 @@
     "safetyPresets": {
       "conservative": {
         "name": "Conservative",
-        "description": "Only chat and config management. Recommended for beginners."
+        "description": "Messaging only — no file or system tools. Only you can control the bot. Recommended for beginners or read-only workflows."
       },
       "standard": {
         "name": "Standard",
-        "description": "Adds browser control, file access, and skills. For users with some technical background."
+        "description": "File and browser tools enabled. Access restricted to your allowlist. Slash commands adapt to each platform automatically."
       },
       "full": {
         "name": "Full Access",
-        "description": "All features enabled. For developers and advanced users."
+        "description": "All tools and commands enabled. For advanced users who control their full allowlist."
       },
       "custom": {
         "name": "Custom",
@@ -450,21 +451,17 @@
       }
     },
     "permissions": {
-      "chat": "Chat (Telegram / WhatsApp)",
-      "configManagement": "Config management",
-      "browserControl": "Browser control",
-      "fileAccess": "File system access (beyond workspace)",
-      "camera": "Camera / Screen capture",
-      "voiceWake": "Voice wake word",
-      "autoExec": "Auto-execute commands (skip confirmation)",
-      "canvas": "Canvas (AI display panel)",
-      "cronJobs": "Scheduled tasks (Cron)",
-      "skillInstall": "Skill installation"
+      "slashCommands": "Slash commands (/models, /status, etc.)",
+      "botRestart": "Bot restart (/restart)",
+      "accessControl": "Enforce access group allowlist",
+      "fileTools": "File & system tools (workspace access)",
+      "commandExec": "System command execution",
+      "browserScript": "Browser JavaScript execution",
+      "advancedConfig": "Advanced config (/config, /debug)"
     },
     "permissionLevels": {
-      "basic": "Basic (enabled by default)",
-      "advanced": "Advanced (enable manually)",
-      "expert": "Expert (recommended after gaining experience)"
+      "basic": "Command access",
+      "advanced": "Tool access"
     }
   },
   "welcome": {
