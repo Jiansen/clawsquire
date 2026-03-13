@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        platform: ${{ fromJSON(github.event_name == 'pull_request' && '["macos-latest","ubuntu-22.04","windows-latest"]' || '["ubuntu-22.04"]') }}
     runs-on: ${{ matrix.platform }}
 
     steps:
