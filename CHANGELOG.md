@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.3.4] — 2026-03-13
+
+Safety Presets redesign: permissions matrix stripped from 11 phantom entries to 7 real ones, each backed by actual OpenClaw config writes.
+
+### Features
+
+- **Safety Presets Redesign** — Permissions matrix reduced to 7 real entries (Slash Commands, Bot Restart, Access Control, File Tools, Command Execution, Browser Scripts, Advanced Config), each backed by actual `config_set` IPC calls
+  - **Conservative** — messaging-only profile: exec denied, fs workspace-only, browser JS disabled, all slash/config/debug/bash off
+  - **Standard** — exec via allowlist, fs unrestricted, browser JS enabled, slash commands auto-adapt, config/debug off
+  - **Full** — Standard plus advanced config and debug enabled, slash commands always on
+  - **Custom** — each toggle maps to a real `config_set` IPC call for granular control
+  - All tiers explicitly set every key to prevent residual settings from a previous preset
+
+### Bug Fixes
+
+- Fixed hardcoded English remote-VPS warning → now i18n-localized across all 7 languages
+- Fixed CSS typo in safety preset warning banner (`bg-red-950/300` → `bg-red-500`)
+- Removed empty "expert" permission group
+- Standard vs Full visually differentiated by Advanced Config toggle state
+
+### CI
+
+- Cross-platform tests run only on PRs; push events trigger Linux-only tests (faster CI, lower cost)
+- Added `Window.__TAURI_INTERNALS__` type declaration for CI compatibility
+- Guarded Tauri API calls for non-Tauri environments
+
+## [0.3.3] — 2026-03-11
+
+### Features
+
+- **OpenClaw Dashboard Portal** — Dashboard button now available in both local and remote modes; remote mode opens through SSH tunnel with auto-loaded Keychain credentials
+
+## [0.3.2] — 2026-03-11
+
+Maintenance release (version bump only).
+
+## [0.3.1] — 2026-03-11
+
+SSH tunnel as sole authentication, OS keychain integration, embedded OpenClaw dashboard, and one-click serve self-update.
+
+### Features
+
+- **SSH Tunnel as Auth** — Replaced token-based auth; `clawsquire-serve` binds 127.0.0.1 only, `serve_token` removed entirely; SSH tunnel proves identity
+- **Cross-Platform Keychain** — SSH passwords stored in OS keychain (macOS Keychain, Windows Credential Manager, Linux Secret Service) with save/load/delete
+- **Embedded OpenClaw Dashboard** — Full OpenClaw web dashboard inside ClawSquire via Tauri WebviewWindow, loaded through SSH tunnel
+- **Serve Self-Update** — One-click serve self-update via protocol RPC; auto-triggered on version mismatch
+- **OpenClaw Installer Improvements** — Uses official installer script; adds `~/.npm-global` to PATH; collects diagnostics on failure; auto-invokes local openclaw when remote install fails
+
+### Bug Fixes
+
+- Local mode switch wrapped in `spawn_blocking` to prevent tokio starvation
+- `uninstall_openclaw` routes through protocol layer in remote mode
+- Portal auto-loads SSH credentials from Keychain
+- Serve release no longer marked as draft (was blocking sidecar download)
+- Updater rate-limited to 24h with jitter; ignores pre-releases
+- Skip root-owned npm uninstall to avoid permission errors
+- Use `gh release upload` for serve assets to avoid CI race condition
+- Updated method count to 28 after protocol changes
+
+### CI
+
+- Cross.toml with edge image for aarch64-linux cross builds
+- Native ubuntu-22.04-arm runner for linux aarch64 serve
+
 ## [0.3.0] — 2026-03-11
 
 Controller-Agent architecture: ClawSquire now communicates with remote servers via a lightweight WebSocket agent (`clawsquire-serve`) instead of raw SSH commands, enabling true cross-platform remote management.
@@ -76,6 +140,29 @@ Remote VPS management: ClawSquire can now manage OpenClaw installations on remot
 - `ActiveTargetState` with `RwLock<Target>` for thread-safe target management
 - 22+ IPC handlers routed through `ActiveTargetState`
 - Frontend `ActiveTargetContext` React context + `useActiveTarget` hook
+
+## [0.1.2] — 2026-03-09
+
+### Features
+
+- **Dark Mode** — Full dark mode support across every page (Dashboard, Config, Health Check, Backup, Setup Wizard, Settings, and all modal dialogs); respects system preference with manual override
+
+## [0.1.1] — 2026-03-09
+
+### Features
+
+- **Community Search in Health Check** — Search 11,000+ OpenClaw issues directly from ClawSquire's Health Check page
+- **AI Smart Search** — Describe your problem in any language; the AI extracts English keywords, searches GitHub, then summarizes the best solutions in your language (requires a working OpenClaw Gateway with an LLM provider configured; falls back to basic search when unavailable)
+
+### UI Improvements
+
+- Health Check auto-runs on page load (no more confusing empty state)
+- Clear segmented control for AI / Basic search mode
+- Always-visible search section with descriptive subtitle
+
+### Bug Fixes
+
+- Fixed curl compatibility in macOS GUI apps (subprocess PATH resolution)
 
 ## [0.1.0] — 2026-03-09
 
