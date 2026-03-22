@@ -1,6 +1,6 @@
 [package]
 name = "clawsquire"
-version = "0.3.4"
+version = "0.3.5"
 description = "ClawSquire — The companion app for OpenClaw"
 authors = ["Jiansen He"]
 edition = "2021"
