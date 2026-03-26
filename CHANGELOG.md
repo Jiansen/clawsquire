@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.6] — 2026-03-26
+
+### CI
+
+- Add retry logic for Apple notarization in release workflow (auto-retry after 60s on failure)
+- Add 30-minute timeout to Tauri build+notarize step
+
+## [0.3.5] — 2026-03-24
+
+### CI
+
+- Add macOS code signing and Apple notarization to release workflow
+
 ## [0.3.4] — 2026-03-13
 
 Safety Presets redesign: permissions matrix stripped from 11 phantom entries to 7 real ones, each backed by actual OpenClaw config writes.

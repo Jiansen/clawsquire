@@ -169,7 +169,68 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "actions" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build & publish (attempt 1)
+        id: tauri1
+        continue-on-error: true
+        uses: tauri-apps/tauri-action@v0
+        timeout-minutes: 30
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'ClawSquire ${{ github.ref_name }}'
+          releaseBody: |
+            ## Downloads
+
+            ### Desktop App (GUI)
+            | System | File |
+            |--------|------|
+            | macOS Apple Silicon (M1+) | `ClawSquire_*_aarch64.dmg` |
+            | macOS Intel | `ClawSquire_*_x64.dmg` |
+            | Windows 10+ | `ClawSquire_*_x64_en-US.msi` |
+            | Linux (Debian/Ubuntu) | `ClawSquire_*_amd64.deb` |
+            | Linux (portable) | `ClawSquire_*_amd64.AppImage` |
+
+            ### Headless Agent (for remote servers, no GUI needed)
+            | System | File |
+            |--------|------|
+            | Linux x86_64 | `clawsquire-serve-linux-x86_64` |
+            | Linux ARM64 | `clawsquire-serve-linux-aarch64` |
+            | macOS Apple Silicon | `clawsquire-serve-darwin-aarch64` |
+            | macOS Intel | `clawsquire-serve-darwin-x86_64` |
+            | Windows x86_64 | `clawsquire-serve-windows-x86_64.exe` |
+
+            ### Quick Start (headless agent)
+            ```sh
+            curl -fsSL "https://github.com/Jiansen/clawsquire/releases/latest/download/clawsquire-serve-linux-x86_64" -o clawsquire-serve
+            chmod +x clawsquire-serve
+            ./clawsquire-serve --init
+            ```
+
+            ---
+            [CHANGELOG.md](https://github.com/Jiansen/clawsquire/blob/main/CHANGELOG.md)
+          releaseDraft: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          updaterJsonPreferNsis: true
+          updaterJsonKeepUniversal: false
+          args: ${{ matrix.args }}
+
+      - name: Wait before retry
+        if: steps.tauri1.outcome == 'failure'
+        run: |
+          echo "::warning::Attempt 1 failed (likely notarization timeout). Retrying in 60s..."
+          sleep 60
+
+      - name: Build & publish (retry)
+        if: steps.tauri1.outcome == 'failure'
+        uses: tauri-apps/tauri-action@v0
+        timeout-minutes: 30
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
