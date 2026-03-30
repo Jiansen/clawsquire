@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
 import { useState } from 'react';
 import FeedbackButton from '../shared/FeedbackButton';
+import FlagIcon from '../shared/FlagIcon';
 import { useTheme } from '../../lib/useTheme';
 import { useOperation } from '../../context/OperationContext';
 
@@ -183,7 +184,7 @@ export default function Sidebar() {
           title={t('settings.language')}
           className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-sm"
         >
-          {currentLocale?.flag ?? '🌐'}
+          {currentLocale ? <FlagIcon flag={currentLocale.flag} flagSvg={currentLocale.flagSvg} size={18} /> : '🌐'}
         </button>
         {langOpen && (
           <div className="absolute bottom-12 left-0 bg-gray-800 rounded-lg shadow-xl py-1 min-w-[140px] z-50">
@@ -200,7 +201,7 @@ export default function Sidebar() {
                     : 'text-gray-300 hover:bg-gray-700'
                 }`}
               >
-                {locale.flag} {locale.name}
+                <FlagIcon flag={locale.flag} flagSvg={locale.flagSvg} size={14} /> {locale.name}
               </button>
             ))}
           </div>

@@ -10,14 +10,16 @@ import de from './de.json';
 import ptBR from './pt-BR.json';
 
 export const SUPPORTED_LOCALES = [
-  { code: 'en', name: 'English', flag: 'EN' },
-  { code: 'zh-CN', name: '简体中文', flag: '中' },
-  { code: 'zh-TW', name: '繁體中文', flag: '繁' },
-  { code: 'es', name: 'Español', flag: 'ES' },
-  { code: 'ja', name: '日本語', flag: 'あ' },
-  { code: 'de', name: 'Deutsch', flag: 'DE' },
-  { code: 'pt-BR', name: 'Português', flag: 'PT' },
+  { code: 'en', name: 'English', flag: '🇬🇧', flagSvg: '/flags/gb.svg' },
+  { code: 'zh-CN', name: '简体中文', flag: '🇨🇳', flagSvg: '/flags/cn.svg' },
+  { code: 'zh-TW', name: '繁體中文', flag: '🇭🇰', flagSvg: '/flags/hk.svg' },
+  { code: 'es', name: 'Español', flag: '🇪🇸', flagSvg: '/flags/es.svg' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵', flagSvg: '/flags/jp.svg' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪', flagSvg: '/flags/de.svg' },
+  { code: 'pt-BR', name: 'Português', flag: '🇧🇷', flagSvg: '/flags/br.svg' },
 ] as const;
+
+export const isWindows = typeof navigator !== 'undefined' && /Win/i.test(navigator.platform);
 
 export type LocaleCode = (typeof SUPPORTED_LOCALES)[number]['code'];
 

@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { getVersion } from '@tauri-apps/api/app';
 import { useNavigate } from 'react-router';
 import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
+import FlagIcon from '../shared/FlagIcon';
 import HelpPanel from '../shared/HelpPanel';
 import { useActiveTarget, type VpsInstance } from '../../context/ActiveTargetContext';
 
@@ -181,7 +182,7 @@ export default function TopBar() {
           onClick={() => setOpen(!open)}
           className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
         >
-          <span>{current?.flag}</span>
+          <span>{current ? <FlagIcon flag={current.flag} flagSvg={current.flagSvg} size={14} /> : null}</span>
           <span>{current?.name}</span>
           <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
             <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
@@ -203,7 +204,7 @@ export default function TopBar() {
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
-                {locale.flag} {locale.name}
+                <FlagIcon flag={locale.flag} flagSvg={locale.flagSvg} size={14} /> {locale.name}
               </button>
             ))}
           </div>
