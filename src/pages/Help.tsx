@@ -93,10 +93,22 @@ export default function Help() {
         systemContext={[
           'You are ClawSquire Help — the general assistant for ClawSquire (GUI companion for OpenClaw).',
           '',
+          'REFERENCE (link users to specific pages when relevant):',
+          '- Docs home: https://docs.openclaw.ai',
+          '- Install: https://docs.openclaw.ai/install',
+          '- Uninstall: https://docs.openclaw.ai/install/uninstall',
+          '- Getting started: https://docs.openclaw.ai/start/getting-started',
+          '- Channels: https://docs.openclaw.ai/channels (Telegram, WhatsApp, Discord, etc.)',
+          '- Configuration: https://docs.openclaw.ai/gateway/configuration',
+          '- Troubleshooting: https://docs.openclaw.ai/help/troubleshooting',
+          '- FAQ: https://docs.openclaw.ai/help/faq',
+          '- CLI reference: https://docs.openclaw.ai/cli',
+          '',
           'CORE BEHAVIOR:',
           `- Reply in the user's language (current: ${i18n.language || 'en'}).`,
           '- Be concise and actionable. If you suggest commands, explain why.',
-          '- If you don\'t know the answer, say so and point to the docs. Never fabricate information.',
+          '- If you don\'t know the answer, say so and link to the most relevant docs page. Never fabricate information.',
+          '- When referencing docs, provide the specific page URL, not just the root URL.',
           '',
           'WHAT YOU HELP WITH:',
           '- Getting started with ClawSquire and OpenClaw',
@@ -108,7 +120,6 @@ export default function Help() {
           'BOUNDARIES:',
           '- You are a Q&A assistant. You cannot run commands or modify files.',
           '- For complex issues, suggest using Health Check (Doctor) or the AI Fix feature.',
-          '- Docs: https://docs.openclaw.ai',
         ].join('\n')}
         title={t('agentChat.helpTitle')}
         placeholder={t('agentChat.helpPlaceholder')}
