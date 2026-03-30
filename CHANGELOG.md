@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.4] — 2026-03-30
+
+### Added
+- **AI auto-takeover on install failure** — When install fails, AI Agent automatically activates without requiring manual click. Users can dismiss and re-activate via button.
+- **Windows PowerShell installer** — Uses official OpenClaw PowerShell installer (`install.ps1`) as primary method on Windows, with npm as fallback.
+
+### Fixed
+- **Windows install silent failure** — `bash -c "curl|bash"` replaced with platform-specific installers (PowerShell on Windows, bash on macOS/Linux).
+- **Windows console window flash** — `run_shell_command` now uses `CREATE_NO_WINDOW` flag and `expanded_path()` on Windows.
+- **Cross-platform `which` → `where`** — All `which openclaw` calls now use `where` on Windows. Diagnostics and uninstall verification use `cmd_with_path` for expanded PATH.
+- **Website flag emojis on Windows** — Replaced emoji flags with SVG icons across the website (Next.js SSR can't detect platform, so SVG is used universally).
+- **6 Rust dead_code warnings** — Eliminated all compiler warnings.
+
 ## [1.0.3] — 2026-03-30
 
 ### Added
