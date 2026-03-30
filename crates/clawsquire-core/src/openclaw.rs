@@ -1322,12 +1322,10 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
     }
 
     // Step 2: Remove the npm package.
-    // Detect the npm prefix where openclaw binary actually lives.
-    // If it's a system prefix (e.g. /usr/lib/node_modules) the npm uninstall
-    // may fail with EACCES (requires root). In that case we skip and note it
-    // — the binary removal is best-effort; the service was already stopped by
-    // the `openclaw uninstall --service` call above.
-    let bin_path = std::process::Command::new("which")
+    // Use cmd_with_path for `which` so it searches expanded PATH (nvm, volta, etc.)
+    // — bare Command::new("which") uses the minimal Tauri GUI PATH and misses
+    //   user-installed Node managers entirely.
+    let bin_path = cmd_with_path("which")
         .arg("openclaw")
         .output()
         .ok()
@@ -1336,12 +1334,10 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
         .map(|s| s.trim().to_string());
 
     let npm_prefix: Option<String> = bin_path.as_deref().and_then(|bin| {
-        // e.g. /usr/bin/openclaw → parent /usr/bin → parent /usr
         let path = std::path::Path::new(bin);
         path.parent()?.parent().map(|p| p.to_string_lossy().to_string())
     });
 
-    // Only attempt npm uninstall if the prefix is user-writable
     let prefix_writable = npm_prefix.as_deref().map(|p| {
         std::fs::metadata(std::path::Path::new(p).join("lib"))
             .map(|m| !m.permissions().readonly())
@@ -1355,10 +1351,27 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
             npm_cmd.arg("--prefix").arg(prefix);
         }
         match npm_cmd.output() {
-            Ok(o) if o.status.success() => result.npm_uninstalled = true,
+            Ok(o) if o.status.success() => {
+                // Verify the binary is actually gone — npm may return 0
+                // even when the package wasn't in its prefix.
+                let still_exists = cmd_with_path("which")
+                    .arg("openclaw")
+                    .output()
+                    .ok()
+                    .map(|o| o.status.success())
+                    .unwrap_or(false);
+                if still_exists {
+                    result.errors.push(
+                        "npm uninstall reported success but openclaw binary still exists. \
+                         It may be installed under a different Node prefix (nvm/volta). \
+                         Try: npm uninstall -g openclaw".to_string()
+                    );
+                } else {
+                    result.npm_uninstalled = true;
+                }
+            }
             Ok(o) => {
                 let msg = String::from_utf8_lossy(&o.stderr).trim().to_string();
-                // EACCES = permission denied; treat as best-effort, not a fatal error
                 if msg.contains("EACCES") || msg.contains("permission denied") {
                     result.errors.push(format!("npm uninstall skipped (permission denied — binary installed as root): {}", msg));
                 } else {
@@ -1368,8 +1381,6 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
             Err(e) => result.errors.push(format!("npm uninstall: {}", e)),
         }
     } else {
-        // System-owned prefix — openclaw uninstall --service already handled service cleanup;
-        // the binary requires root to remove, which we cannot do without sudo.
         result.errors.push(
             "npm uninstall skipped: OpenClaw binary is in a system-owned prefix (e.g. /usr/lib/node_modules) and requires root to remove. The service has been uninstalled. To fully remove the binary: sudo npm uninstall -g openclaw".to_string()
         );
