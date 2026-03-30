@@ -91,7 +91,17 @@ export default function ApiKeySetup({ onComplete }: ApiKeySetupProps) {
   const handleContinue = async () => {
     setSaving(true);
     try {
-      await invoke('setup_provider', { provider: selectedProvider, apiKey: apiKey.trim() });
+      // Always save to localStorage first — this is what ClawSquire's AI features use
+      localStorage.setItem('clawsquire.apiKeyConfigured', 'true');
+      localStorage.setItem('clawsquire.llmProvider', selectedProvider);
+      localStorage.setItem('clawsquire.apiKey', JSON.stringify({ key: apiKey.trim() }));
+
+      // Optionally configure OpenClaw if it's installed (best-effort)
+      try {
+        await invoke('setup_provider', { provider: selectedProvider, apiKey: apiKey.trim() });
+      } catch {
+        // OpenClaw not installed yet — that's OK, key is saved for AI features
+      }
 
       if (alsoForOpenclaw) {
         try {
@@ -104,9 +114,6 @@ export default function ApiKeySetup({ onComplete }: ApiKeySetupProps) {
         }
       }
 
-      localStorage.setItem('clawsquire.apiKeyConfigured', 'true');
-      localStorage.setItem('clawsquire.llmProvider', selectedProvider);
-      localStorage.setItem('clawsquire.apiKey', JSON.stringify({ key: apiKey.trim() }));
       onComplete();
     } catch (e) {
       setTestPhase('error');
