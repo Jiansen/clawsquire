@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import SafetyPresets, { type SafetyLevel } from '../components/shared/SafetyPresets';
 import InfoTooltip from '../components/shared/InfoTooltip';
+import AgentInstaller from '../components/AgentInstaller';
 import { useActiveTarget } from '../context/ActiveTargetContext';
 
 const SAFETY_KEY = 'clawsquire.safetyLevel';
@@ -26,6 +27,7 @@ export default function Settings() {
   const [uninstallStep, setUninstallStep] = useState<'idle' | 'confirm' | 'options' | 'running' | 'done'>('idle');
   const [removeConfig, setRemoveConfig] = useState(false);
   const [uninstallResult, setUninstallResult] = useState<UninstallResult | null>(null);
+  const [showUninstallAgent, setShowUninstallAgent] = useState(false);
 
   const [env, setEnv] = useState<{ openclaw_installed: boolean; openclaw_version: string | null } | null>(null);
 
@@ -98,6 +100,7 @@ export default function Settings() {
       clearInterval(timer);
       setUninstallResult(result);
       setUninstallStep('done');
+      invoke<{ openclaw_installed: boolean; openclaw_version: string | null }>('get_environment').then(setEnv);
     } catch (e) {
       clearInterval(timer);
       setUninstallResult({
@@ -252,8 +255,28 @@ export default function Settings() {
                 ))}
               </div>
             )}
+            {!uninstallResult.npm_uninstalled && !showUninstallAgent && (
+              <button
+                onClick={() => setShowUninstallAgent(true)}
+                className="w-full rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-all"
+              >
+                🤖 {t('dashboard.install.letAgentFix', { defaultValue: 'Let AI Fix This' })}
+              </button>
+            )}
+            {showUninstallAgent && (
+              <AgentInstaller
+                errorMessage={`Uninstall failed:\n${uninstallResult.errors.join('\n')}\n\nGoal: completely remove OpenClaw (npm package "openclaw" globally installed)`}
+                onRetryInstall={() => {
+                  setShowUninstallAgent(false);
+                  setUninstallStep('idle');
+                  setUninstallResult(null);
+                  invoke<{ openclaw_installed: boolean; openclaw_version: string | null }>('get_environment').then(setEnv);
+                }}
+                onDismiss={() => setShowUninstallAgent(false)}
+              />
+            )}
             <button
-              onClick={() => { setUninstallStep('idle'); setUninstallResult(null); }}
+              onClick={() => { setUninstallStep('idle'); setUninstallResult(null); setShowUninstallAgent(false); invoke<{ openclaw_installed: boolean; openclaw_version: string | null }>('get_environment').then(setEnv); }}
               className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all"
             >
               {t('common.close')}

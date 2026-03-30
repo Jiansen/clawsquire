@@ -162,6 +162,25 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     }
   };
 
+  const [verifyResult, setVerifyResult] = useState<{ checked: boolean; installed: boolean } | null>(null);
+
+  const verifyInstallation = async () => {
+    addLog(t('agentInstaller.verifying', { defaultValue: 'Verifying installation...' }));
+    try {
+      const env = await invoke<{ openclaw_installed: boolean; openclaw_version: string | null }>('get_environment');
+      const result = { checked: true, installed: env.openclaw_installed };
+      setVerifyResult(result);
+      if (env.openclaw_installed) {
+        addLog(t('agentInstaller.verifySuccess', { defaultValue: `✓ OpenClaw installed (${env.openclaw_version})`, version: env.openclaw_version || '' }));
+      } else {
+        addLog(t('agentInstaller.verifyFailed', { defaultValue: '✗ OpenClaw still not detected' }));
+      }
+    } catch (e) {
+      addLog(`Verify error: ${String(e)}`);
+      setVerifyResult({ checked: true, installed: false });
+    }
+  };
+
   const executeAll = async () => {
     setMode('auto');
     setPhase('executing');
@@ -170,6 +189,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       if (commands[i]?.status === 'failed') break;
     }
     setPhase('done');
+    await verifyInstallation();
   };
 
   const executeCommand = async (idx: number) => {
@@ -348,7 +368,14 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
                 {mode === 'manual' && cmd.status === 'pending' && (
                   <div className="flex gap-1.5 flex-shrink-0">
                     <button
-                      onClick={() => executeCommand(idx)}
+                      onClick={async () => {
+                        await executeCommand(idx);
+                        const allDone = commands.every((c, i) => i === idx || c.status !== 'pending');
+                        if (allDone) {
+                          setPhase('done');
+                          await verifyInstallation();
+                        }
+                      }}
                       className="px-2.5 py-1 text-xs rounded bg-violet-600 text-white hover:bg-violet-700 transition-all"
                     >
                       {t('agentInstaller.run')}
@@ -367,21 +394,45 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
         </div>
       )}
 
-      {/* Done / Retry */}
+      {/* Done / Verify / Retry */}
       {phase === 'done' && (
-        <div className="flex gap-3">
-          <button
-            onClick={onRetryInstall}
-            className="flex-1 rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white hover:bg-claw-700 transition-all"
-          >
-            {t('agentInstaller.retryInstall')}
-          </button>
-          <button
-            onClick={onDismiss}
-            className="rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-all"
-          >
-            {t('agentInstaller.close')}
-          </button>
+        <div className="space-y-3">
+          {verifyResult?.checked && verifyResult.installed && (
+            <div className="rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 text-center">
+              <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                ✅ {t('agentInstaller.installConfirmed', { defaultValue: 'OpenClaw is now installed!' })}
+              </p>
+            </div>
+          )}
+          {verifyResult?.checked && !verifyResult.installed && (
+            <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-3 text-center">
+              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                ⚠️ {t('agentInstaller.installNotConfirmed', { defaultValue: 'Commands ran but OpenClaw was not detected. You may need to restart or try again.' })}
+              </p>
+            </div>
+          )}
+          {!verifyResult && (
+            <button
+              onClick={verifyInstallation}
+              className="w-full rounded-lg bg-blue-100 dark:bg-blue-900/40 px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-all"
+            >
+              {t('agentInstaller.verifyButton', { defaultValue: 'Verify Installation' })}
+            </button>
+          )}
+          <div className="flex gap-3">
+            <button
+              onClick={onRetryInstall}
+              className="flex-1 rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white hover:bg-claw-700 transition-all"
+            >
+              {t('agentInstaller.retryInstall')}
+            </button>
+            <button
+              onClick={onDismiss}
+              className="rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-all"
+            >
+              {t('agentInstaller.close')}
+            </button>
+          </div>
         </div>
       )}
 
