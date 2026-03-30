@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.2] — 2026-03-30
+
+### Fixed
+- **i18n: missing AI-Powered branding** — Traditional Chinese, Japanese, Spanish, German, and Portuguese translations were missing "AI-Powered" in welcome subtitle and website marketing copy (`pageTitle`, `hero.headline`, `hero.description`, `faq`, `footer.tagline`). All 7 languages now consistently include AI branding.
+
 ## [1.0.1] — 2026-03-30
 
 ### Fixed

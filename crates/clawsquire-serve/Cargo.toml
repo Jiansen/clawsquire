@@ -1,6 +1,6 @@
 [package]
 name = "clawsquire-serve"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 description = "ClawSquire headless agent — JSON-RPC 2.0 over WebSocket"
 
