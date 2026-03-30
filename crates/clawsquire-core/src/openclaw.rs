@@ -181,15 +181,21 @@ fn collect_install_diagnostics() -> String {
 }
 
 pub fn install_openclaw_with(runner: &dyn CliRunner) -> Result<InstallResult, String> {
-    // Use the official OpenClaw installer with --no-onboard (skips interactive wizard).
-    // The installer automatically handles npm prefix: if the system prefix (/usr/lib) is
-    // not user-writable, it switches to ~/.npm-global and updates .bashrc/.zshrc.
-    let install_cmd = "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --no-onboard 2>&1";
-    let output = std::process::Command::new("bash")
-        .arg("-c")
-        .arg(install_cmd)
-        .output()
-        .map_err(|e| format!("Failed to run installer: {}", e))?;
+    let output = if cfg!(target_os = "windows") {
+        // Windows: use npm directly (bash/curl installer not available)
+        cmd_with_path("npm")
+            .args(["install", "-g", "openclaw@latest"])
+            .output()
+            .map_err(|e| format!("Failed to run npm install: {}. Is Node.js installed?", e))?
+    } else {
+        // macOS/Linux: use the official installer script
+        let install_cmd = "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --no-onboard 2>&1";
+        std::process::Command::new("bash")
+            .arg("-c")
+            .arg(install_cmd)
+            .output()
+            .map_err(|e| format!("Failed to run installer: {}", e))?
+    };
 
     if output.status.success() {
         let version = runner.run(&["--version"]).ok()

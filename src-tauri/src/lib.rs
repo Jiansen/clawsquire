@@ -686,13 +686,20 @@ struct ShellOutput {
 async fn run_shell_command(command: String) -> Result<ShellOutput, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let output = if cfg!(target_os = "windows") {
-            std::process::Command::new("cmd")
-                .args(["/C", &command])
-                .output()
+            let mut cmd = std::process::Command::new("cmd");
+            cmd.args(["/C", &command]);
+            cmd.env("PATH", clawsquire_core::detect::expanded_path());
+            #[cfg(target_os = "windows")]
+            {
+                use std::os::windows::process::CommandExt;
+                cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+            }
+            cmd.output()
         } else {
-            std::process::Command::new("sh")
-                .args(["-c", &command])
-                .output()
+            let mut cmd = std::process::Command::new("sh");
+            cmd.args(["-c", &command]);
+            cmd.env("PATH", clawsquire_core::detect::expanded_path());
+            cmd.output()
         };
         match output {
             Ok(o) => Ok(ShellOutput {
