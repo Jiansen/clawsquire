@@ -32,6 +32,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
   const [agentLog, setAgentLog] = useState<string[]>([]);
   const [retryCount, setRetryCount] = useState(0);
   const [envInfo, setEnvInfo] = useState<string>('');
+  const failedHistory = useRef<{ round: number; command: string; output: string }[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
   const MAX_RETRIES = 3;
 
@@ -92,15 +93,29 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     }
   };
 
+  const isUninstallGoal = errorMessage.toLowerCase().includes('uninstall');
+
   const buildSystemPrompt = () => {
     const lang = i18n.language || 'en';
+    const historySection = failedHistory.current.length > 0
+      ? [
+          '',
+          'PREVIOUSLY FAILED COMMANDS (DO NOT REPEAT THESE):',
+          ...failedHistory.current.map(f => `Round ${f.round}: \`${f.command}\` → ${f.output.slice(0, 200)}`),
+          '',
+          'You MUST try a DIFFERENT approach. If npm commands keep failing, try a different package manager or manual removal.',
+        ]
+      : [];
+
     return [
       'You are ClawSquire Fix Agent — a cross-platform troubleshooter for ClawSquire and OpenClaw.',
       '',
       'REFERENCE:',
       '- OpenClaw GitHub: https://github.com/openclaw/openclaw',
-      '- OpenClaw Docs: http://docs.openclaw.ai/',
-      '- Installation: typically `npm install -g openclaw@latest` after Node.js is available',
+      '- OpenClaw Docs: https://docs.openclaw.ai/',
+      '- Install guide: https://docs.openclaw.ai/install',
+      '- Uninstall guide: https://docs.openclaw.ai/install/uninstall',
+      '- When stuck, check these docs for platform-specific methods.',
       '',
       'CORE BEHAVIOR:',
       `- Reply in the user's language (current: ${lang}). Diagnosis and reasons should be in that language.`,
@@ -109,11 +124,26 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       '- If unsure about the root cause, say so and suggest the most likely fix.',
       '- CHECK the environment info to see what is already installed and what is missing BEFORE generating commands.',
       '',
-      'APPROACH:',
-      '1. Read the environment info to understand what is available (OS, Node.js, npm, Homebrew, etc.).',
-      '2. Identify the root cause from the error + environment.',
-      '3. Generate commands that fix the REAL problem. If npm is missing, install Node.js first. If Node.js is missing, install it via the best method for the OS.',
-      '4. The LAST command should always be the original goal (e.g. `npm install -g openclaw@latest`) or a verification command.',
+      isUninstallGoal ? [
+        'THIS IS AN UNINSTALL OPERATION:',
+        '- Goal: completely remove the `openclaw` npm global package.',
+        '- Methods to try (in order of preference):',
+        '  1. `npm uninstall -g openclaw` (standard)',
+        '  2. Find the actual install path with `npm root -g` or `where openclaw` / `which openclaw`, then remove manually',
+        '  3. On Windows: check `%APPDATA%\\npm` for openclaw files',
+        '  4. On macOS/Linux: check `~/.nvm/versions/node/*/lib/node_modules/openclaw`',
+        '- If npm itself is managed by nvm/volta/fnm, ensure the right Node version is active.',
+        '- Verification: the `openclaw` command should NOT be found after uninstall.',
+        '',
+      ].join('\n') : [
+        'APPROACH:',
+        '1. Read the environment info to understand what is available (OS, Node.js, npm, Homebrew, etc.).',
+        '2. Identify the root cause from the error + environment.',
+        '3. Generate commands that fix the REAL problem. If npm is missing, install Node.js first.',
+        '4. The LAST command should always be the original goal (e.g. `npm install -g openclaw@latest`) or a verification command.',
+        '',
+      ].join('\n'),
+      ...historySection,
       '',
       'RESPOND IN JSON ONLY:',
       '{"diagnosis": "1-2 sentence root cause", "commands": [{"command": "...", "reason": "why needed", "risk": "safe|moderate|dangerous"}]}',
@@ -127,6 +157,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       '- Keep commands to 2-6. Fewer is better.',
       '- Never suggest wiping user data or unrelated system changes.',
       '- If the error suggests a network/auth issue (not fixable by commands), explain in diagnosis instead.',
+      '- CRITICAL: If a command has already failed in a previous round, you MUST try something different.',
     ].join('\n');
   };
 
@@ -235,6 +266,10 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     const failures = commands.filter((c) => c.status === 'failed');
     if (failures.length === 0) return;
     if (!resetCounter && retryCount >= MAX_RETRIES) return;
+    const currentRound = retryCount + 1;
+    failures.forEach(c => {
+      failedHistory.current.push({ round: currentRound, command: c.command, output: c.output || 'unknown error' });
+    });
     const feedback = failures
       .map((c) => `Command: ${c.command}\nError: ${c.output || 'unknown error'}`)
       .join('\n\n');
@@ -276,7 +311,11 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     }
 
     if (failedOutputs.length > 0 && retryCount < MAX_RETRIES) {
-      addLog(`--- Round ${retryCount + 1} failed. AI is re-diagnosing... ---`);
+      const currentRound = retryCount + 1;
+      addLog(`--- Round ${currentRound} failed. AI is re-diagnosing... ---`);
+      failedOutputs.forEach(f => {
+        failedHistory.current.push({ round: currentRound, command: f.command, output: f.output });
+      });
       setRetryCount((n) => n + 1);
       const feedback = failedOutputs
         .map((f) => `Command: ${f.command}\nError: ${f.output}`)
