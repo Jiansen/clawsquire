@@ -149,10 +149,11 @@ pub struct InstallResult {
 fn collect_install_diagnostics() -> String {
     let mut diags = Vec::new();
 
-    // which openclaw
-    if let Ok(o) = std::process::Command::new("which").arg("openclaw").output() {
+    // which/where openclaw
+    let which_cmd = if cfg!(target_os = "windows") { "where" } else { "which" };
+    if let Ok(o) = cmd_with_path(which_cmd).arg("openclaw").output() {
         let loc = String::from_utf8_lossy(&o.stdout).trim().to_string();
-        diags.push(format!("which openclaw: {}", if loc.is_empty() { "(not found)" } else { &loc }));
+        diags.push(format!("{} openclaw: {}", which_cmd, if loc.is_empty() { "(not found)" } else { &loc }));
     }
 
     // openclaw --version
@@ -164,7 +165,7 @@ fn collect_install_diagnostics() -> String {
     }
 
     // npm prefix
-    if let Ok(o) = std::process::Command::new("npm").arg("config").arg("get").arg("prefix").output() {
+    if let Ok(o) = cmd_with_path("npm").arg("config").arg("get").arg("prefix").output() {
         let prefix = String::from_utf8_lossy(&o.stdout).trim().to_string();
         diags.push(format!("npm prefix: {}", prefix));
     }
@@ -182,11 +183,21 @@ fn collect_install_diagnostics() -> String {
 
 pub fn install_openclaw_with(runner: &dyn CliRunner) -> Result<InstallResult, String> {
     let output = if cfg!(target_os = "windows") {
-        // Windows: use npm directly (bash/curl installer not available)
-        cmd_with_path("npm")
-            .args(["install", "-g", "openclaw@latest"])
-            .output()
-            .map_err(|e| format!("Failed to run npm install: {}. Is Node.js installed?", e))?
+        // Windows: use official PowerShell installer (https://docs.openclaw.ai/install)
+        // Falls back to npm if PowerShell script fails
+        let ps_result = hidden_cmd("powershell")
+            .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command",
+                "& ([scriptblock]::Create((iwr -useb https://openclaw.ai/install.ps1))) -NoOnboard"])
+            .output();
+        match ps_result {
+            Ok(o) if o.status.success() => o,
+            _ => {
+                cmd_with_path("npm")
+                    .args(["install", "-g", "openclaw@latest"])
+                    .output()
+                    .map_err(|e| format!("Failed to run npm install: {}. Is Node.js installed?", e))?
+            }
+        }
     } else {
         // macOS/Linux: use the official installer script
         let install_cmd = "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --no-onboard 2>&1";
@@ -1331,13 +1342,15 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
     // Use cmd_with_path for `which` so it searches expanded PATH (nvm, volta, etc.)
     // — bare Command::new("which") uses the minimal Tauri GUI PATH and misses
     //   user-installed Node managers entirely.
-    let bin_path = cmd_with_path("which")
+    let which_bin = if cfg!(target_os = "windows") { "where" } else { "which" };
+    let bin_path = cmd_with_path(which_bin)
         .arg("openclaw")
         .output()
         .ok()
         .filter(|o| o.status.success())
         .and_then(|o| String::from_utf8(o.stdout).ok())
-        .map(|s| s.trim().to_string());
+        .map(|s| s.lines().next().unwrap_or("").trim().to_string())
+        .filter(|s| !s.is_empty());
 
     let npm_prefix: Option<String> = bin_path.as_deref().and_then(|bin| {
         let path = std::path::Path::new(bin);
@@ -1360,7 +1373,7 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
             Ok(o) if o.status.success() => {
                 // Verify the binary is actually gone — npm may return 0
                 // even when the package wasn't in its prefix.
-                let still_exists = cmd_with_path("which")
+                let still_exists = cmd_with_path(which_bin)
                     .arg("openclaw")
                     .output()
                     .ok()

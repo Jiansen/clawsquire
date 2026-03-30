@@ -723,6 +723,7 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
   const [elapsed, setElapsed] = useState(0);
   const [nodeInstalled, setNodeInstalled] = useState(npmInstalled);
   const [showAgent, setShowAgent] = useState(false);
+  const [agentDismissed, setAgentDismissed] = useState(false);
 
   useEffect(() => {
     const isBusy = phase !== 'idle' || showAgent;
@@ -754,11 +755,13 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
       } else {
         setResult({ success: false, error: res.error });
         setPhase('error');
+        if (!agentDismissed) setShowAgent(true);
       }
     } catch (e) {
       clearInterval(timer);
       setResult({ success: false, error: String(e) });
       setPhase('error');
+      if (!agentDismissed) setShowAgent(true);
     }
   };
 
@@ -791,12 +794,14 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
       } else {
         setResult(res);
         setPhase('error');
+        if (!agentDismissed) setShowAgent(true);
       }
     } catch (e) {
       clearInterval(timer);
       stepTimers.forEach(clearTimeout);
       setResult({ success: false, error: String(e) });
       setPhase('error');
+      if (!agentDismissed) setShowAgent(true);
     }
   };
 
@@ -939,14 +944,14 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
             </div>
             <div className="flex items-center justify-center gap-3 mt-3">
               <button
-                onClick={() => { setPhase('idle'); setResult(null); setShowAgent(false); }}
+                onClick={() => { setPhase('idle'); setResult(null); setShowAgent(false); setAgentDismissed(false); }}
                 className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-all"
               >
                 {t('dashboard.install.tryAgain')}
               </button>
-              {!showAgent && (
+              {!showAgent && agentDismissed && (
                 <button
-                  onClick={() => setShowAgent(true)}
+                  onClick={() => { setShowAgent(true); setAgentDismissed(false); }}
                   className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-all"
                 >
                   {t('dashboard.install.letAgentFix')}
@@ -970,7 +975,7 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
                 setPhase('idle');
                 setResult(null);
               }}
-              onDismiss={() => setShowAgent(false)}
+              onDismiss={() => { setShowAgent(false); setAgentDismissed(true); }}
             />
           )}
         </div>

@@ -1,7 +1,6 @@
 use crate::bootstrap;
 use crate::detect::cmd_with_path;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SshConfig {

@@ -4,6 +4,7 @@ mod server;
 use clawsquire_core::protocol;
 use std::net::SocketAddr;
 
+#[allow(dead_code)]
 fn generate_token() -> String {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};

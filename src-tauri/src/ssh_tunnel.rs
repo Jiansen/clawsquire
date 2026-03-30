@@ -52,6 +52,7 @@ pub fn get_cached_ssh_creds() -> Option<SshCreds> {
     CACHED_SSH_CREDS.lock().ok()?.clone()
 }
 
+#[allow(dead_code)]
 pub struct TunnelParams {
     pub host: String,
     pub ssh_port: u16,
@@ -293,6 +294,7 @@ pub fn stop_dashboard() {
 }
 
 /// Check if a tunnel is currently active.
+#[allow(dead_code)]
 pub fn is_active() -> bool {
     if let Ok(mut guard) = TUNNEL.lock() {
         if let Some(ref mut child) = *guard {
