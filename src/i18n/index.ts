@@ -10,13 +10,13 @@ import de from './de.json';
 import ptBR from './pt-BR.json';
 
 export const SUPPORTED_LOCALES = [
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
-  { code: 'zh-TW', name: '繁體中文', flag: '🇭🇰' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
+  { code: 'en', name: 'English', flag: 'EN' },
+  { code: 'zh-CN', name: '简体中文', flag: '中' },
+  { code: 'zh-TW', name: '繁體中文', flag: '繁' },
+  { code: 'es', name: 'Español', flag: 'ES' },
+  { code: 'ja', name: '日本語', flag: 'あ' },
+  { code: 'de', name: 'Deutsch', flag: 'DE' },
+  { code: 'pt-BR', name: 'Português', flag: 'PT' },
 ] as const;
 
 export type LocaleCode = (typeof SUPPORTED_LOCALES)[number]['code'];
