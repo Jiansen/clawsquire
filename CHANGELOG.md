@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1] — 2026-03-30
+
+### Fixed
+- **ApiKeySetup Continue fails on fresh machines**: `setup_provider` called OpenClaw config on machines where OpenClaw isn't installed yet, blocking the entire setup flow. Now saves API key to localStorage first (always succeeds), then configures OpenClaw as best-effort.
+- **Uninstall reports success but doesn't remove**: In Tauri GUI, `which openclaw` used minimal PATH and missed nvm/volta/fnm installations. Fixed by using expanded PATH for binary detection + post-uninstall verification.
+
+### Added
+- **Post-execution verification**: AgentInstaller automatically calls `get_environment` after all commands execute to confirm OpenClaw is actually installed/removed.
+- **Uninstall AI fallback**: When `npm uninstall -g openclaw` fails, a "Let AI Fix This" button appears with the same AgentInstaller diagnostic flow.
+
 ## [1.0.0] — 2026-03-30
 
 AI-first release: when things go wrong, ClawSquire's LLM agent diagnoses and fixes the problem automatically.
