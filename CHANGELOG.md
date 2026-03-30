@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.5] — 2026-03-30
+
+### Added
+- **Vibeful CTA on all pages** — Dashboard, Settings, Help, ApiKeySetup, AgentInstaller, and AgentChat all feature "Try Vibeful" CTAs with full UTM tracking (`utm_source=clawsquire_app`, `utm_medium={page}`, `utm_campaign=v{version}`).
+- **Tauri external URL opening** — All Vibeful links now use `@tauri-apps/plugin-opener`'s `openUrl()` to correctly open external URLs in the system browser. Falls back to `window.open()` in dev/browser mode.
+- **Centralized `VibefulCTA` component** — Shared component with `openVibeful()` and `vibefulUrl()` helpers, used across 9 link locations.
+
+### Fixed
+- **Tauri links not opening in browser** — Added `opener:allow-open-url` permission to `capabilities/default.json`. External links now work in the Tauri app.
+
 ## [1.0.4] — 2026-03-30
 
 ### Added
