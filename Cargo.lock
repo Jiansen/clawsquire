@@ -473,7 +473,7 @@ dependencies = [
 
 [[package]]
 name = "clawsquire"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "clawsquire-core",
  "dirs",
@@ -493,7 +493,7 @@ dependencies = [
 
 [[package]]
 name = "clawsquire-core"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "dirs",
  "serde",
@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "clawsquire-serve"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "clawsquire-core",
  "dirs",

@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.3] — 2026-03-30
+
+### Added
+- **AI Agent auto-retry loop** — When commands fail, AI automatically re-diagnoses with error feedback and tries a different approach (up to 3 rounds). After 3 rounds: "Report Issue" + "Let AI keep trying" options.
+- **Environment-aware diagnosis** — AgentInstaller fetches `get_environment` before diagnosis, injecting system info (OS, Node.js, npm, Homebrew status) into the prompt. Prevents generating npm commands when npm isn't installed.
+- **OpenClaw resource links** — System prompt includes GitHub (`github.com/openclaw/openclaw`) and docs (`docs.openclaw.ai`) links for the AI to reference.
+- **Operation navigation guard** — OperationContext locks sidebar navigation during install/uninstall operations. Shows ⏳ indicator and grays out nav items.
+- **Settings uninstall protection** — Uninstall operations also lock sidebar navigation (same as install).
+
+### Fixed
+- **Focus/visibility refresh during operations** — Dashboard no longer auto-refreshes when regaining focus during install/AI agent operations.
+- **Windows flag emoji display** — Flag emojis (invisible on Windows) replaced with SVG flag icons via platform detection. macOS keeps emoji; Windows uses 7 SVG flags from flag-icons.
+
 ## [1.0.2] — 2026-03-30
 
 ### Fixed
