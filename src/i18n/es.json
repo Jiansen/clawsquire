@@ -920,5 +920,10 @@
       "deepseek": { "tagline": "V3.2 — créditos gratis disponibles", "features": "Gran valor, registro simple (~2 min)" },
       "google": { "tagline": "Gemini 3.1 Pro — 2M de contexto", "features": "Nivel gratis disponible (~3 min)" }
     }
+  },
+  "vibeful": {
+    "dashboardTitle": "¿Quieres un agente AI en la nube que funcione 24/7?",
+    "dashboardDesc": "Vibeful funciona en la nube — sin API key, sin configuración, funciona incluso con tu ordenador apagado.",
+    "tryVibeful": "Probar Vibeful"
   }
 }

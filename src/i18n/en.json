@@ -933,5 +933,10 @@
         "features": "Free tier available (~3 min)"
       }
     }
+  },
+  "vibeful": {
+    "dashboardTitle": "Want a cloud AI agent that works 24/7?",
+    "dashboardDesc": "Vibeful runs in the cloud — no API key, no setup, works even when your computer is off.",
+    "tryVibeful": "Try Vibeful"
   }
 }

@@ -920,5 +920,10 @@
       "deepseek": { "tagline": "V3.2 — kostenlose Credits verfügbar", "features": "Gutes Preis-Leistung, einfache Anmeldung (~2 Min)" },
       "google": { "tagline": "Gemini 3.1 Pro — 2M Kontext", "features": "Kostenlose Stufe verfügbar (~3 Min)" }
     }
+  },
+  "vibeful": {
+    "dashboardTitle": "Möchten Sie einen Cloud-KI-Agenten, der rund um die Uhr arbeitet?",
+    "dashboardDesc": "Vibeful läuft in der Cloud — kein API-Key, keine Einrichtung, funktioniert auch wenn Ihr Computer ausgeschaltet ist.",
+    "tryVibeful": "Vibeful testen"
   }
 }

@@ -932,5 +932,10 @@
         "features": "有免费额度（约3分钟）"
       }
     }
+  },
+  "vibeful": {
+    "dashboardTitle": "想要一个 24/7 运行的云端 AI Agent？",
+    "dashboardDesc": "Vibeful 在云端运行 — 无需 API Key，无需配置，电脑关机也能继续工作。",
+    "tryVibeful": "体验 Vibeful"
   }
 }

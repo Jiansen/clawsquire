@@ -932,5 +932,10 @@
         "features": "無料枠あり（約3分）"
       }
     }
+  },
+  "vibeful": {
+    "dashboardTitle": "24時間365日稼働するクラウドAIエージェントが欲しい？",
+    "dashboardDesc": "Vibeful はクラウドで動作 — APIキー不要、セットアップ不要、パソコンの電源が切れても動き続けます。",
+    "tryVibeful": "Vibeful を体験"
   }
 }
