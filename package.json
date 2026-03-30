@@ -1,8 +1,8 @@
 {
   "name": "clawsquire",
   "private": true,
-  "version": "0.3.6",
-  "description": "The companion app for OpenClaw",
+  "version": "1.0.0",
+  "description": "AI-powered companion app for OpenClaw",
   "author": "Jiansen He",
   "license": "MIT",
   "type": "module",
