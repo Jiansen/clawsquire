@@ -91,16 +91,15 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     }
   };
 
-  const startDiagnosis = async (failedFeedback?: string, envOverride?: string) => {
-    setPhase('diagnosing');
-    addLog(failedFeedback ? `Re-diagnosing (round ${retryCount + 1})...` : t('agentInstaller.diagnosing'));
-
-    const { provider, apiKey } = getStoredCredentials();
-
+  const buildSystemPrompt = () => {
     const lang = i18n.language || 'en';
-    const currentEnv = envOverride || envInfo;
-    const systemPrompt = [
+    return [
       'You are ClawSquire Fix Agent — a cross-platform troubleshooter for ClawSquire and OpenClaw.',
+      '',
+      'REFERENCE:',
+      '- OpenClaw GitHub: https://github.com/openclaw/openclaw',
+      '- OpenClaw Docs: http://docs.openclaw.ai/',
+      '- Installation: typically `npm install -g openclaw@latest` after Node.js is available',
       '',
       'CORE BEHAVIOR:',
       `- Reply in the user's language (current: ${lang}). Diagnosis and reasons should be in that language.`,
@@ -113,7 +112,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       '1. Read the environment info to understand what is available (OS, Node.js, npm, Homebrew, etc.).',
       '2. Identify the root cause from the error + environment.',
       '3. Generate commands that fix the REAL problem. If npm is missing, install Node.js first. If Node.js is missing, install it via the best method for the OS.',
-      '4. End with a verification or retry command when appropriate.',
+      '4. The LAST command should always be the original goal (e.g. `npm install -g openclaw@latest`) or a verification command.',
       '',
       'RESPOND IN JSON ONLY:',
       '{"diagnosis": "1-2 sentence root cause", "commands": [{"command": "...", "reason": "why needed", "risk": "safe|moderate|dangerous"}]}',
@@ -128,6 +127,15 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       '- Never suggest wiping user data or unrelated system changes.',
       '- If the error suggests a network/auth issue (not fixable by commands), explain in diagnosis instead.',
     ].join('\n');
+  };
+
+  const startDiagnosis = async (failedFeedback?: string, envOverride?: string): Promise<AgentCommand[]> => {
+    setPhase('diagnosing');
+    addLog(failedFeedback ? `Re-diagnosing (round ${retryCount + 1})...` : t('agentInstaller.diagnosing'));
+
+    const { provider, apiKey } = getStoredCredentials();
+    const currentEnv = envOverride || envInfo;
+    const systemPrompt = buildSystemPrompt();
 
     let userMessage: string;
     if (failedFeedback) {
@@ -140,7 +148,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
         errorMessage,
         '',
         currentEnv ? `System environment:\n${currentEnv}\n` : '',
-        'Based on these failures, provide NEW fix commands that address the actual problem.',
+        'Based on these failures, provide NEW fix commands that address the actual problem. Do NOT repeat the same commands that already failed.',
       ].join('\n');
     } else {
       userMessage = [
@@ -176,6 +184,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
             setCommands(cmds);
             addLog(t('agentInstaller.foundCommands', { count: cmds.length }));
             setPhase('ready');
+            return cmds;
           } else {
             setDiagnosis(res.reply);
             addLog(t('agentInstaller.diagnosisComplete'));
@@ -196,11 +205,12 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       setPhase('error');
       setLlmError(String(e));
     }
+    return [];
   };
 
   const [verifyResult, setVerifyResult] = useState<{ checked: boolean; installed: boolean } | null>(null);
 
-  const verifyInstallation = async () => {
+  const verifyInstallation = async (): Promise<boolean> => {
     addLog(t('agentInstaller.verifying', { defaultValue: 'Verifying installation...' }));
     try {
       const env = await invoke<{ openclaw_installed: boolean; openclaw_version: string | null }>('get_environment');
@@ -208,26 +218,24 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       setVerifyResult(result);
       if (env.openclaw_installed) {
         addLog(t('agentInstaller.verifySuccess', { defaultValue: `✓ OpenClaw installed (${env.openclaw_version})`, version: env.openclaw_version || '' }));
+        return true;
       } else {
         addLog(t('agentInstaller.verifyFailed', { defaultValue: '✗ OpenClaw still not detected' }));
+        return false;
       }
     } catch (e) {
       addLog(`Verify error: ${String(e)}`);
       setVerifyResult({ checked: true, installed: false });
+      return false;
     }
   };
 
-  const collectFailedFeedback = (cmds: AgentCommand[]): string | null => {
-    const failures = cmds.filter((c) => c.status === 'failed');
-    if (failures.length === 0) return null;
-    return failures
+  const rediagnoseWithFailures = async () => {
+    const failures = commands.filter((c) => c.status === 'failed');
+    if (failures.length === 0 || retryCount >= MAX_RETRIES) return;
+    const feedback = failures
       .map((c) => `Command: ${c.command}\nError: ${c.output || 'unknown error'}`)
       .join('\n\n');
-  };
-
-  const rediagnoseWithFailures = async () => {
-    const feedback = collectFailedFeedback(commands);
-    if (!feedback || retryCount >= MAX_RETRIES) return;
     setRetryCount((n) => n + 1);
     setCommands([]);
     setDiagnosis('');
@@ -238,33 +246,70 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
 
   const executeAll = async () => {
     setMode('auto');
-    setPhase('executing');
-    const latestCmds = [...commands];
-    for (let i = 0; i < latestCmds.length; i++) {
-      await executeCommand(i);
-    }
-    setPhase('done');
-    await verifyInstallation();
+    await executeAndRetryLoop(commands);
   };
 
-  const executeCommand = async (idx: number) => {
+  const executeAndRetryLoop = async (cmdsToRun: AgentCommand[]) => {
+    setCommands(cmdsToRun);
+    setPhase('executing');
+    const failedOutputs: { command: string; output: string }[] = [];
+    for (let i = 0; i < cmdsToRun.length; i++) {
+      const ok = await executeCommandFromList(cmdsToRun, i);
+      if (!ok) {
+        failedOutputs.push({
+          command: cmdsToRun[i].command,
+          output: cmdsToRun[i].output || 'unknown error',
+        });
+      }
+    }
+
+    const installed = await verifyInstallation();
+    if (installed) {
+      setPhase('done');
+      return;
+    }
+
+    if (failedOutputs.length > 0 && retryCount < MAX_RETRIES) {
+      addLog(`--- Round ${retryCount + 1} failed. AI is re-diagnosing... ---`);
+      setRetryCount((n) => n + 1);
+      const feedback = failedOutputs
+        .map((f) => `Command: ${f.command}\nError: ${f.output}`)
+        .join('\n\n');
+      setCommands([]);
+      setDiagnosis('');
+      setVerifyResult(null);
+      const newCmds = await startDiagnosis(feedback);
+      if (newCmds.length > 0) {
+        await executeAndRetryLoop(newCmds);
+      } else {
+        setPhase('done');
+      }
+    } else {
+      setPhase('done');
+    }
+  };
+
+  const executeCommandFromList = async (cmds: AgentCommand[], idx: number): Promise<boolean> => {
     setCurrentCmd(idx);
     setCommands((prev) => prev.map((c, i) => (i === idx ? { ...c, status: 'running' } : c)));
-    addLog(`$ ${commands[idx].command}`);
+    addLog(`$ ${cmds[idx].command}`);
 
     try {
       const res = await invoke<{ success: boolean; stdout: string; stderr: string }>(
         'run_shell_command',
-        { command: commands[idx].command },
+        { command: cmds[idx].command },
       );
 
       const output = res.stdout || res.stderr || '';
       addLog(output || '(no output)');
+      const ok = res.success;
       setCommands((prev) =>
         prev.map((c, i) =>
-          i === idx ? { ...c, status: res.success ? 'done' : 'failed', output } : c,
+          i === idx ? { ...c, status: ok ? 'done' : 'failed', output } : c,
         ),
       );
+      cmds[idx] = { ...cmds[idx], status: ok ? 'done' : 'failed', output };
+      return ok;
     } catch (e) {
       const errStr = String(e);
       addLog(`Error: ${errStr}`);
@@ -273,7 +318,13 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
           i === idx ? { ...c, status: 'failed', output: errStr } : c,
         ),
       );
+      cmds[idx] = { ...cmds[idx], status: 'failed', output: errStr };
+      return false;
     }
+  };
+
+  const executeCommand = async (idx: number): Promise<boolean> => {
+    return executeCommandFromList(commands, idx);
   };
 
   const skipCommand = (idx: number) => {
