@@ -29,7 +29,10 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
   const [commands, setCommands] = useState<AgentCommand[]>([]);
   const [, setCurrentCmd] = useState(-1);
   const [agentLog, setAgentLog] = useState<string[]>([]);
+  const [retryCount, setRetryCount] = useState(0);
+  const [envInfo, setEnvInfo] = useState<string>('');
   const logRef = useRef<HTMLDivElement>(null);
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     if (logRef.current) {
@@ -67,7 +70,16 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       if (res.success) {
         addLog(t('agentInstaller.llmReady', { model: res.model || provider }));
         setLlmReady(true);
-        startDiagnosis();
+        let envStr = '';
+        try {
+          const env = await invoke<Record<string, unknown>>('get_environment');
+          envStr = JSON.stringify(env, null, 2);
+          setEnvInfo(envStr);
+          addLog('Environment detected.');
+        } catch {
+          envStr = '(environment detection unavailable)';
+        }
+        startDiagnosis(undefined, envStr);
       } else {
         addLog(t('agentInstaller.llmFailed'));
         setLlmError(res.error || 'LLM not reachable');
@@ -79,26 +91,28 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     }
   };
 
-  const startDiagnosis = async () => {
+  const startDiagnosis = async (failedFeedback?: string, envOverride?: string) => {
     setPhase('diagnosing');
-    addLog(t('agentInstaller.diagnosing'));
+    addLog(failedFeedback ? `Re-diagnosing (round ${retryCount + 1})...` : t('agentInstaller.diagnosing'));
 
     const { provider, apiKey } = getStoredCredentials();
 
     const lang = i18n.language || 'en';
+    const currentEnv = envOverride || envInfo;
     const systemPrompt = [
       'You are ClawSquire Fix Agent — a cross-platform troubleshooter for ClawSquire and OpenClaw.',
       '',
       'CORE BEHAVIOR:',
       `- Reply in the user's language (current: ${lang}). Diagnosis and reasons should be in that language.`,
-      '- Be evidence-driven: the error message is your primary evidence. Read it carefully.',
+      '- Be evidence-driven: the error message AND environment info are your primary evidence.',
       '- Be direct: identify root cause → provide fix commands. No filler, no speculation.',
       '- If unsure about the root cause, say so and suggest the most likely fix.',
+      '- CHECK the environment info to see what is already installed and what is missing BEFORE generating commands.',
       '',
       'APPROACH:',
-      '1. Identify the OS from error context (paths, commands, error format).',
-      '2. Identify the root cause: missing dependency, permission issue, PATH problem, version conflict, network error, etc.',
-      '3. Generate ONLY the commands that fix the problem. No diagnostic-only commands.',
+      '1. Read the environment info to understand what is available (OS, Node.js, npm, Homebrew, etc.).',
+      '2. Identify the root cause from the error + environment.',
+      '3. Generate commands that fix the REAL problem. If npm is missing, install Node.js first. If Node.js is missing, install it via the best method for the OS.',
       '4. End with a verification or retry command when appropriate.',
       '',
       'RESPOND IN JSON ONLY:',
@@ -115,7 +129,29 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       '- If the error suggests a network/auth issue (not fixable by commands), explain in diagnosis instead.',
     ].join('\n');
 
-    const userMessage = `Operation failed. Here is the error output:\n\n${errorMessage}\n\nAnalyze the error and provide the fix commands.`;
+    let userMessage: string;
+    if (failedFeedback) {
+      userMessage = [
+        'Previous fix attempt FAILED. Here are the command results:',
+        '',
+        failedFeedback,
+        '',
+        'Original error:',
+        errorMessage,
+        '',
+        currentEnv ? `System environment:\n${currentEnv}\n` : '',
+        'Based on these failures, provide NEW fix commands that address the actual problem.',
+      ].join('\n');
+    } else {
+      userMessage = [
+        'Operation failed. Here is the error output:',
+        '',
+        errorMessage,
+        '',
+        currentEnv ? `System environment:\n${currentEnv}\n` : '',
+        'Analyze the error and provide the fix commands.',
+      ].join('\n');
+    }
 
     try {
       const res = await invoke<{ success: boolean; reply: string | null; error: string | null }>(
@@ -181,12 +217,31 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     }
   };
 
+  const collectFailedFeedback = (cmds: AgentCommand[]): string | null => {
+    const failures = cmds.filter((c) => c.status === 'failed');
+    if (failures.length === 0) return null;
+    return failures
+      .map((c) => `Command: ${c.command}\nError: ${c.output || 'unknown error'}`)
+      .join('\n\n');
+  };
+
+  const rediagnoseWithFailures = async () => {
+    const feedback = collectFailedFeedback(commands);
+    if (!feedback || retryCount >= MAX_RETRIES) return;
+    setRetryCount((n) => n + 1);
+    setCommands([]);
+    setDiagnosis('');
+    setMode('choose');
+    setVerifyResult(null);
+    await startDiagnosis(feedback);
+  };
+
   const executeAll = async () => {
     setMode('auto');
     setPhase('executing');
-    for (let i = 0; i < commands.length; i++) {
+    const latestCmds = [...commands];
+    for (let i = 0; i < latestCmds.length; i++) {
       await executeCommand(i);
-      if (commands[i]?.status === 'failed') break;
     }
     setPhase('done');
     await verifyInstallation();
@@ -405,10 +460,25 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
             </div>
           )}
           {verifyResult?.checked && !verifyResult.installed && (
-            <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-3 text-center">
-              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                ⚠️ {t('agentInstaller.installNotConfirmed', { defaultValue: 'Commands ran but OpenClaw was not detected. You may need to restart or try again.' })}
-              </p>
+            <div className="space-y-2">
+              <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-3 text-center">
+                <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                  ⚠️ {t('agentInstaller.installNotConfirmed', { defaultValue: 'Commands ran but OpenClaw was not detected.' })}
+                </p>
+              </div>
+              {retryCount < MAX_RETRIES && (
+                <button
+                  onClick={rediagnoseWithFailures}
+                  className="w-full rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-all"
+                >
+                  🔄 {t('agentInstaller.rediagnose', { defaultValue: `AI will analyze failures and try a different approach (${retryCount + 1}/${MAX_RETRIES})` })}
+                </button>
+              )}
+              {retryCount >= MAX_RETRIES && (
+                <p className="text-xs text-center text-gray-500">
+                  {t('agentInstaller.maxRetries', { defaultValue: 'Maximum retry attempts reached. Please report this issue for human assistance.' })}
+                </p>
+              )}
             </div>
           )}
           {!verifyResult && (
