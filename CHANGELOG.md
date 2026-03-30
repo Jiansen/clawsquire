@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.6] — 2026-03-30
+
+### Added
+- **AgentChat command execution** — Doctor, Config, and VPS AI assistants can now execute commands directly. AI responds with JSON command blocks; users see inline risk badges and "Execute" buttons. Results auto-feed back to AI for follow-up.
+- **Config auto-backup** — Before any AI-suggested configuration change, `create_backup` is called automatically.
+- **39+ docs.openclaw.ai references** — All 5 AI prompts (Help, Doctor, Config, VPS, AgentInstaller) now link to specific documentation pages (install, channels, troubleshooting, config reference, remote access, etc.).
+
+### Fixed
+- **AI uninstall repeating same commands** — Cumulative failure history (`failedHistory`) persists across retry rounds. System prompt includes "PREVIOUSLY FAILED COMMANDS" section to prevent repetition. Uninstall-specific guidance with 4 escalation methods (npm uninstall → npm root -g → where/which → manual removal).
+
 ## [1.0.5] — 2026-03-30
 
 ### Added
