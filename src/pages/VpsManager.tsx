@@ -908,13 +908,14 @@ export default function VpsManager() {
             '- Service monitoring, log inspection, performance tuning',
             '',
             'BOUNDARIES:',
-            '- You suggest commands, but cannot execute them remotely.',
+            '- You can execute LOCAL commands (ssh-keygen, ssh, scp, etc.). Remote commands should be wrapped in ssh.',
             '- Warn before destructive operations (service restart, firewall changes, data deletion).',
             '',
             selected ? `CURRENT SERVER: ${selected.name} (${selected.host}:${selected.port}, user: ${selected.username})` : 'No server selected.',
           ].filter(Boolean).join('\n')}
           title={t('agentChat.vpsTitle')}
           placeholder={t('agentChat.vpsPlaceholder')}
+          canExecute
         />
       </div>
     </div>

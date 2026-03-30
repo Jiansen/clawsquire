@@ -153,11 +153,13 @@ export default function Config() {
           '- Plugin and skill configuration',
           '',
           'BOUNDARIES:',
-          '- You suggest commands, but cannot execute them.',
           '- Warn users before changes that affect security (API keys, safety level).',
+          '- A backup is created automatically before any configuration change.',
         ].join('\n')}
         title={t('agentChat.configTitle')}
         placeholder={t('agentChat.configPlaceholder')}
+        canExecute
+        backupBeforeExecute
       />
     </div>
   );

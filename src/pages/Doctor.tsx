@@ -215,8 +215,8 @@ export default function Doctor() {
           '- Performance problems and resource issues',
           '',
           'BOUNDARIES:',
-          '- You are a Q&A assistant. You cannot execute commands — only suggest them.',
           '- If a problem is beyond OpenClaw (OS-level, hardware), say so.',
+          '- Warn before destructive operations (service restart, config reset).',
           '',
           report ? `CURRENT HEALTH REPORT: ${report.summary.failures} failures, ${report.summary.warnings} warnings out of ${report.summary.total} checks.` : '',
           report ? `Failed: ${report.checks.filter(c => c.status === 'fail').map(c => `${c.name}: ${c.message}`).join('; ')}` : '',
@@ -224,6 +224,7 @@ export default function Doctor() {
         ].filter(Boolean).join('\n')}
         title={t('agentChat.doctorTitle')}
         placeholder={t('agentChat.doctorPlaceholder')}
+        canExecute
       />
     </div>
   );
