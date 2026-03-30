@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
@@ -53,6 +53,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [backingUp, setBackingUp] = useState(false);
   const [daemonAction, setDaemonAction] = useState<'idle' | 'starting' | 'stopping'>('idle');
+  const busyRef = useRef(false);
   const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null);
   const [updateState, setUpdateState] = useState<'idle' | 'downloading' | 'ready'>('idle');
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -136,9 +137,9 @@ export default function Dashboard() {
   }, [refresh, target.mode, target.instanceId]);
 
   useEffect(() => {
-    const onFocus = () => refresh();
+    const onFocus = () => { if (!busyRef.current) refresh(); };
     const onVisible = () => {
-      if (document.visibilityState === 'visible') refresh();
+      if (document.visibilityState === 'visible' && !busyRef.current) refresh();
     };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisible);
@@ -436,7 +437,7 @@ export default function Dashboard() {
 
       {/* Not Installed → Install Card — local only */}
       {!installed && !loading && !isRemote && (
-        <InstallCard onInstalled={refresh} npmInstalled={env?.npm_installed ?? false} />
+        <InstallCard onInstalled={refresh} npmInstalled={env?.npm_installed ?? false} onBusyChange={(b) => { busyRef.current = b; }} />
       )}
 
       {/* Installed but no LLM → Setup Guidance */}
@@ -709,7 +710,7 @@ function InfoCard({
 const INSTALL_STEP_KEYS = ['connect', 'download', 'deps', 'extract', 'verify', 'done'] as const;
 const INSTALL_STEP_DELAYS = [0, 3000, 8000, 30000, 0, 0];
 
-function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; npmInstalled: boolean }) {
+function InstallCard({ onInstalled, npmInstalled, onBusyChange }: { onInstalled: () => void; npmInstalled: boolean; onBusyChange?: (busy: boolean) => void }) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<'idle' | 'installing-node' | 'installing' | 'done' | 'error'>('idle');
   const [currentStep, setCurrentStep] = useState(0);
@@ -717,6 +718,12 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
   const [elapsed, setElapsed] = useState(0);
   const [nodeInstalled, setNodeInstalled] = useState(npmInstalled);
   const [showAgent, setShowAgent] = useState(false);
+
+  useEffect(() => {
+    const isBusy = phase !== 'idle' || showAgent;
+    onBusyChange?.(isBusy);
+    return () => { onBusyChange?.(false); };
+  }, [phase, showAgent, onBusyChange]);
 
   const handleInstallNode = async () => {
     setPhase('installing-node');

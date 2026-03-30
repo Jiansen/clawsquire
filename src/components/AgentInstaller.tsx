@@ -230,13 +230,18 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     }
   };
 
-  const rediagnoseWithFailures = async () => {
+  const rediagnoseWithFailures = async (resetCounter = false) => {
     const failures = commands.filter((c) => c.status === 'failed');
-    if (failures.length === 0 || retryCount >= MAX_RETRIES) return;
+    if (failures.length === 0) return;
+    if (!resetCounter && retryCount >= MAX_RETRIES) return;
     const feedback = failures
       .map((c) => `Command: ${c.command}\nError: ${c.output || 'unknown error'}`)
       .join('\n\n');
-    setRetryCount((n) => n + 1);
+    if (resetCounter) {
+      setRetryCount(1);
+    } else {
+      setRetryCount((n) => n + 1);
+    }
     setCommands([]);
     setDiagnosis('');
     setMode('choose');
@@ -403,6 +408,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
         <div className="flex items-center gap-2 text-sm text-violet-600 dark:text-violet-400">
           <span className="animate-spin">⏳</span>
           {phase === 'checking-llm' ? t('agentInstaller.checkingLlm') : t('agentInstaller.diagnosing')}
+          {retryCount > 0 && <span className="text-xs text-violet-400">(Round {retryCount + 1})</span>}
         </div>
       )}
 
@@ -519,16 +525,34 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
               </div>
               {retryCount < MAX_RETRIES && (
                 <button
-                  onClick={rediagnoseWithFailures}
+                  onClick={() => { rediagnoseWithFailures(); }}
                   className="w-full rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-all"
                 >
                   🔄 {t('agentInstaller.rediagnose', { defaultValue: `AI will analyze failures and try a different approach (${retryCount + 1}/${MAX_RETRIES})` })}
                 </button>
               )}
               {retryCount >= MAX_RETRIES && (
-                <p className="text-xs text-center text-gray-500">
-                  {t('agentInstaller.maxRetries', { defaultValue: 'Maximum retry attempts reached. Please report this issue for human assistance.' })}
-                </p>
+                <div className="space-y-2">
+                  <p className="text-xs text-center text-gray-500">
+                    {t('agentInstaller.maxRetries', { defaultValue: `AI tried ${MAX_RETRIES} rounds. You can report this for human help or let AI keep trying.` })}
+                  </p>
+                  <div className="flex gap-2">
+                    <a
+                      href={`https://github.com/Jiansen/clawsquire/issues/new?title=${encodeURIComponent('[Agent] Auto-fix failed after retries')}&labels=bug,agent&body=${encodeURIComponent(`## Auto-fix failed after ${MAX_RETRIES} rounds\n\nOriginal error:\n\`\`\`\n${errorMessage?.slice(0, 500) || 'N/A'}\n\`\`\`\n\n_Auto-reported from ClawSquire AI Agent_`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 rounded-lg bg-amber-100 dark:bg-amber-900/40 px-4 py-2 text-sm font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-all text-center"
+                    >
+                      ⚠️ {t('feedback.reportIssue')}
+                    </a>
+                    <button
+                      onClick={() => { rediagnoseWithFailures(true); }}
+                      className="flex-1 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-all"
+                    >
+                      🔄 {t('agentInstaller.keepTrying', { defaultValue: 'Let AI keep trying' })}
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}
