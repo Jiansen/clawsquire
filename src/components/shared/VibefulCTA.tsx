@@ -1,17 +1,20 @@
 import { useTranslation } from 'react-i18next';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
+declare const __APP_VERSION__: string;
+
+export function vibefulUrl(utmMedium: string) {
+  const v = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
+  return `https://vibeful.io?utm_source=clawsquire_app&utm_medium=${utmMedium}&utm_campaign=v${v}`;
+}
+
+export function openVibeful(utmMedium: string) {
+  const url = vibefulUrl(utmMedium);
+  openUrl(url).catch(() => window.open(url, '_blank'));
+}
+
 export default function VibefulCTA({ utmMedium = 'app' }: { utmMedium?: string }) {
   const { t } = useTranslation();
-  const url = `https://vibeful.io?utm_source=clawsquire&utm_medium=${utmMedium}`;
-
-  const handleClick = async () => {
-    try {
-      await openUrl(url);
-    } catch {
-      window.open(url, '_blank');
-    }
-  };
 
   return (
     <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 p-4 flex items-center justify-between gap-3">
@@ -27,7 +30,7 @@ export default function VibefulCTA({ utmMedium = 'app' }: { utmMedium?: string }
         </div>
       </div>
       <button
-        onClick={handleClick}
+        onClick={() => openVibeful(utmMedium)}
         className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-all whitespace-nowrap flex-shrink-0 cursor-pointer"
       >
         {t('vibeful.tryVibeful', { defaultValue: 'Try Vibeful' })}

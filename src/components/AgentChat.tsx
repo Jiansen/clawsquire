@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { openUrl } from '@tauri-apps/plugin-opener';
-
-const openExternal = (url: string) => openUrl(url).catch(() => window.open(url, '_blank'));
+import { openVibeful } from './shared/VibefulCTA';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -225,7 +223,7 @@ function ChatBody({
       <div className="px-3 pb-2 flex items-center justify-between">
         <span className="text-[10px] text-gray-400">
           Powered by{' '}
-          <button onClick={() => openExternal('https://vibeful.io?utm_source=clawsquire&utm_medium=agent-chat')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
+          <button onClick={() => openVibeful('agent-chat')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
             Vibeful
           </button>
         </span>

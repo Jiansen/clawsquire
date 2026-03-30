@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { openUrl } from '@tauri-apps/plugin-opener';
-
-const openExternal = (url: string) => openUrl(url).catch(() => window.open(url, '_blank'));
+import { openVibeful } from './shared/VibefulCTA';
 
 interface AgentCommand {
   command: string;
@@ -395,7 +393,7 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-3 text-center">
             <p className="text-xs text-blue-700 dark:text-blue-400 mb-2">{t('agentInstaller.tryVibeful')}</p>
             <button
-              onClick={() => openExternal('https://vibeful.io?utm_source=clawsquire&utm_medium=agent-installer')}
+              onClick={() => openVibeful('agent-installer')}
               className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-all cursor-pointer"
             >
               Vibeful ↗
@@ -603,11 +601,11 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       <div className="pt-2 border-t border-violet-200 dark:border-violet-800 flex items-center justify-between">
         <p className="text-[10px] text-gray-400">
           Powered by{' '}
-          <button onClick={() => openExternal('https://vibeful.io?utm_source=clawsquire&utm_medium=powered-by')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
+          <button onClick={() => openVibeful('powered-by')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
             Vibeful Core Engine
           </button>
           {' · '}
-          <button onClick={() => openExternal('https://vibeful.io?utm_source=clawsquire&utm_medium=agent-cloud')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
+          <button onClick={() => openVibeful('agent-cloud')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
             {t('agentInstaller.tryVibefulCloud')}
           </button>
         </p>
