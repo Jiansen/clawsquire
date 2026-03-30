@@ -8,6 +8,7 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import InfoTooltip from '../components/shared/InfoTooltip';
 import AgentInstaller from '../components/AgentInstaller';
 import { useActiveTarget } from '../context/ActiveTargetContext';
+import { useOperation } from '../context/OperationContext';
 
 interface Environment {
   openclaw_installed: boolean;
@@ -43,6 +44,7 @@ export default function Dashboard() {
   const isRemote = target.mode === 'protocol';
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { operation } = useOperation();
   const [openingPortal, setOpeningPortal] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
 
@@ -135,6 +137,8 @@ export default function Dashboard() {
   useEffect(() => {
     refresh();
   }, [refresh, target.mode, target.instanceId]);
+
+  useEffect(() => { busyRef.current = operation.busy; }, [operation.busy]);
 
   useEffect(() => {
     const onFocus = () => { if (!busyRef.current) refresh(); };
@@ -437,7 +441,7 @@ export default function Dashboard() {
 
       {/* Not Installed → Install Card — local only */}
       {!installed && !loading && !isRemote && (
-        <InstallCard onInstalled={refresh} npmInstalled={env?.npm_installed ?? false} onBusyChange={(b) => { busyRef.current = b; }} />
+        <InstallCard onInstalled={refresh} npmInstalled={env?.npm_installed ?? false} />
       )}
 
       {/* Installed but no LLM → Setup Guidance */}
@@ -710,8 +714,9 @@ function InfoCard({
 const INSTALL_STEP_KEYS = ['connect', 'download', 'deps', 'extract', 'verify', 'done'] as const;
 const INSTALL_STEP_DELAYS = [0, 3000, 8000, 30000, 0, 0];
 
-function InstallCard({ onInstalled, npmInstalled, onBusyChange }: { onInstalled: () => void; npmInstalled: boolean; onBusyChange?: (busy: boolean) => void }) {
+function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; npmInstalled: boolean }) {
   const { t } = useTranslation();
+  const { setBusy } = useOperation();
   const [phase, setPhase] = useState<'idle' | 'installing-node' | 'installing' | 'done' | 'error'>('idle');
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState<{ success: boolean; version?: string | null; error?: string | null } | null>(null);
@@ -721,9 +726,9 @@ function InstallCard({ onInstalled, npmInstalled, onBusyChange }: { onInstalled:
 
   useEffect(() => {
     const isBusy = phase !== 'idle' || showAgent;
-    onBusyChange?.(isBusy);
-    return () => { onBusyChange?.(false); };
-  }, [phase, showAgent, onBusyChange]);
+    setBusy(isBusy, isBusy ? 'Installing OpenClaw...' : '');
+    return () => { setBusy(false); };
+  }, [phase, showAgent, setBusy]);
 
   const handleInstallNode = async () => {
     setPhase('installing-node');

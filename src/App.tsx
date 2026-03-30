@@ -23,6 +23,7 @@ import Welcome from './pages/Welcome';
 import ApiKeySetup from './pages/ApiKeySetup';
 import { useWindowTitle } from './lib/useWindowTitle';
 import { ActiveTargetProvider } from './context/ActiveTargetContext';
+import { OperationProvider } from './context/OperationContext';
 
 const LOCALE_KEY = 'clawsquire.locale';
 const API_KEY_KEY = 'clawsquire.apiKeyConfigured';
@@ -32,6 +33,7 @@ function AppShell() {
 
   return (
     <ActiveTargetProvider>
+    <OperationProvider>
     <BrowserRouter>
         <div className="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
         <Sidebar />
@@ -57,6 +59,7 @@ function AppShell() {
         </div>
       </div>
     </BrowserRouter>
+    </OperationProvider>
     </ActiveTargetProvider>
   );
 }

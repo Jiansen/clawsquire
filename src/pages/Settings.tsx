@@ -5,6 +5,7 @@ import SafetyPresets, { type SafetyLevel } from '../components/shared/SafetyPres
 import InfoTooltip from '../components/shared/InfoTooltip';
 import AgentInstaller from '../components/AgentInstaller';
 import { useActiveTarget } from '../context/ActiveTargetContext';
+import { useOperation } from '../context/OperationContext';
 
 const SAFETY_KEY = 'clawsquire.safetyLevel';
 
@@ -19,6 +20,7 @@ export default function Settings() {
   const { t } = useTranslation();
   const { target } = useActiveTarget();
   const isRemote = target.mode === 'protocol';
+  const { setBusy } = useOperation();
 
   const [safetyLevel, setSafetyLevel] = useState<SafetyLevel>(() => {
     return (localStorage.getItem(SAFETY_KEY) as SafetyLevel) || 'conservative';
@@ -28,6 +30,12 @@ export default function Settings() {
   const [removeConfig, setRemoveConfig] = useState(false);
   const [uninstallResult, setUninstallResult] = useState<UninstallResult | null>(null);
   const [showUninstallAgent, setShowUninstallAgent] = useState(false);
+
+  useEffect(() => {
+    const isBusy = uninstallStep === 'running' || showUninstallAgent;
+    setBusy(isBusy, isBusy ? 'Uninstalling OpenClaw...' : '');
+    return () => { setBusy(false); };
+  }, [uninstallStep, showUninstallAgent, setBusy]);
 
   const [env, setEnv] = useState<{ openclaw_installed: boolean; openclaw_version: string | null } | null>(null);
 

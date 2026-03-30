@@ -4,6 +4,7 @@ import { SUPPORTED_LOCALES, changeLocale } from '../../i18n';
 import { useState } from 'react';
 import FeedbackButton from '../shared/FeedbackButton';
 import { useTheme } from '../../lib/useTheme';
+import { useOperation } from '../../context/OperationContext';
 
 // Primary operational nav items (top group)
 const primaryNavItems = [
@@ -101,6 +102,7 @@ export default function Sidebar() {
   const { t, i18n } = useTranslation();
   const [langOpen, setLangOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { operation } = useOperation();
 
   const cycleTheme = () => {
     const next: Record<string, 'light' | 'dark' | 'system'> = {
@@ -115,7 +117,9 @@ export default function Sidebar() {
     `flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
       isActive
         ? 'bg-claw-600 text-white'
-        : 'text-gray-400 hover:text-white hover:bg-gray-800'
+        : operation.busy
+          ? 'text-gray-600 cursor-not-allowed'
+          : 'text-gray-400 hover:text-white hover:bg-gray-800'
     }`;
 
   return (
@@ -129,8 +133,9 @@ export default function Sidebar() {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
-            title={t(item.labelKey)}
+            title={operation.busy ? `${t(item.labelKey)} (${operation.label || 'busy'})` : t(item.labelKey)}
             className={navLinkClass}
+            onClick={(e) => { if (operation.busy) e.preventDefault(); }}
           >
             {item.icon}
           </NavLink>
@@ -140,6 +145,13 @@ export default function Sidebar() {
       {/* Divider */}
       <div className="my-3 w-8 border-t border-gray-700" />
 
+      {/* Operation indicator */}
+      {operation.busy && (
+        <div className="w-10 text-center mb-2" title={operation.label}>
+          <span className="animate-pulse text-amber-400 text-xs">⏳</span>
+        </div>
+      )}
+
       {/* Secondary nav */}
       <nav className="flex flex-col gap-1 flex-1">
         {secondaryNavItems.map((item) => (
@@ -147,8 +159,9 @@ export default function Sidebar() {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
-            title={t(item.labelKey)}
+            title={operation.busy ? `${t(item.labelKey)} (${operation.label || 'busy'})` : t(item.labelKey)}
             className={navLinkClass}
+            onClick={(e) => { if (operation.busy) e.preventDefault(); }}
           >
             {item.icon}
           </NavLink>
