@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 const PROVIDERS = [
   {
@@ -318,27 +319,23 @@ export default function ApiKeySetup({ onComplete }: ApiKeySetupProps) {
           <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
             {t('apiKeySetup.vibefulDesc')}
           </p>
-          <a
-            href="https://vibeful.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-all"
+          <button
+            onClick={() => openUrl('https://vibeful.io?utm_source=clawsquire&utm_medium=apikey-setup').catch(() => window.open('https://vibeful.io?utm_source=clawsquire&utm_medium=apikey-setup', '_blank'))}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-all cursor-pointer"
           >
             {t('apiKeySetup.tryVibeful')} ↗
-          </a>
+          </button>
         </div>
 
         {/* Powered by */}
         <p className="text-center text-xs text-gray-400">
           Powered by{' '}
-          <a
-            href="https://vibeful.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-600"
+          <button
+            onClick={() => openUrl('https://vibeful.io?utm_source=clawsquire&utm_medium=powered-by').catch(() => window.open('https://vibeful.io?utm_source=clawsquire&utm_medium=powered-by', '_blank'))}
+            className="text-blue-500 hover:text-blue-600 cursor-pointer"
           >
             Vibeful Core Engine
-          </a>
+          </button>
         </p>
       </div>
     </div>

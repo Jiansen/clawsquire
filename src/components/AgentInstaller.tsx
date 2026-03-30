@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { openUrl } from '@tauri-apps/plugin-opener';
+
+const openExternal = (url: string) => openUrl(url).catch(() => window.open(url, '_blank'));
 
 interface AgentCommand {
   command: string;
@@ -391,14 +394,12 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
           </div>
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-3 text-center">
             <p className="text-xs text-blue-700 dark:text-blue-400 mb-2">{t('agentInstaller.tryVibeful')}</p>
-            <a
-              href="https://vibeful.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-all"
+            <button
+              onClick={() => openExternal('https://vibeful.io?utm_source=clawsquire&utm_medium=agent-installer')}
+              className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-all cursor-pointer"
             >
               Vibeful ↗
-            </a>
+            </button>
           </div>
         </div>
       )}
@@ -602,13 +603,13 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       <div className="pt-2 border-t border-violet-200 dark:border-violet-800 flex items-center justify-between">
         <p className="text-[10px] text-gray-400">
           Powered by{' '}
-          <a href="https://vibeful.io" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+          <button onClick={() => openExternal('https://vibeful.io?utm_source=clawsquire&utm_medium=powered-by')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
             Vibeful Core Engine
-          </a>
+          </button>
           {' · '}
-          <a href="https://vibeful.io" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
+          <button onClick={() => openExternal('https://vibeful.io?utm_source=clawsquire&utm_medium=agent-cloud')} className="text-blue-500 hover:text-blue-600 cursor-pointer">
             {t('agentInstaller.tryVibefulCloud')}
-          </a>
+          </button>
         </p>
         <a
           href={`https://github.com/Jiansen/clawsquire/issues/new?title=${encodeURIComponent('[Agent] Fix failed')}&labels=bug,agent&body=${encodeURIComponent(`## Agent Error\n\`\`\`\n${errorMessage?.slice(0, 300) || 'N/A'}\n\`\`\`\n\n_Auto-reported from ClawSquire AI Agent_`)}`}
