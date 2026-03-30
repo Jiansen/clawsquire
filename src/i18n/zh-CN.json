@@ -887,6 +887,11 @@
     "moderate": "注意",
     "dangerous": "风险",
     "retryInstall": "重新安装",
+    "retryUninstall": "重新卸载",
+    "uninstallTitle": "AI 卸载助手",
+    "uninstallConfirmed": "OpenClaw 已成功卸载！",
+    "uninstallNotConfirmed": "命令已执行，但 OpenClaw 仍然存在。",
+    "verifyUninstallButton": "验证卸载",
     "close": "关闭",
     "dismiss": "取消",
     "viewLog": "查看日志"

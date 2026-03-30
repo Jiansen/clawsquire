@@ -887,6 +887,11 @@
     "moderate": "注意",
     "dangerous": "危険",
     "retryInstall": "再インストール",
+    "retryUninstall": "再アンインストール",
+    "uninstallTitle": "AI アンインストールエージェント",
+    "uninstallConfirmed": "OpenClaw は正常に削除されました！",
+    "uninstallNotConfirmed": "コマンドは実行されましたが、OpenClaw はまだ検出されています。",
+    "verifyUninstallButton": "アンインストールを確認",
     "close": "閉じる",
     "dismiss": "閉じる",
     "viewLog": "ログを表示"

@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.7] — 2026-03-30
+
+### Fixed
+- **Windows uninstall logic inverted** — Verification now correctly treats "OpenClaw not found" as success during uninstall (previously showed "✅ OpenClaw is now installed!" after uninstall).
+- **Uninstall UI context** — Title ("AI Uninstall Agent"), success/failure messages, and buttons ("Retry Uninstall") now context-aware for uninstall operations.
+- **EBUSY file lock** — AI Agent prompt now instructs to kill OpenClaw processes (`taskkill`) before uninstalling, preventing Windows EBUSY errors.
+- **Windows npm prefix detection** — `prefix_writable` check now uses `node_modules/` on Windows (not `lib/`), fixing false "system-owned prefix" error on user directories.
+- **Windows console encoding** — Added `encoding_rs` for GBK fallback decoding, fixing garbled `del`/`rmdir` output on Chinese Windows.
+- **Auto-retry loop** — Uninstall failures now correctly trigger the rediagnose-retry loop (was skipping due to inverted verification).
+
+### Changed
+- **i18n** — Added uninstall-specific translations for all 7 languages.
+
 ## [1.0.6] — 2026-03-30
 
 ### Added

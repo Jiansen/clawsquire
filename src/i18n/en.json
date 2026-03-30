@@ -888,6 +888,11 @@
     "moderate": "caution",
     "dangerous": "risky",
     "retryInstall": "Retry Install",
+    "retryUninstall": "Retry Uninstall",
+    "uninstallTitle": "AI Uninstall Agent",
+    "uninstallConfirmed": "OpenClaw has been removed!",
+    "uninstallNotConfirmed": "Commands ran but OpenClaw is still detected.",
+    "verifyUninstallButton": "Verify Uninstall",
     "close": "Close",
     "dismiss": "Dismiss",
     "viewLog": "View agent log"

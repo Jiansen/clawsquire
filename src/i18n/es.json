@@ -887,6 +887,11 @@
     "moderate": "precaución",
     "dangerous": "riesgoso",
     "retryInstall": "Reintentar instalación",
+    "retryUninstall": "Reintentar desinstalación",
+    "uninstallTitle": "Agente de desinstalación AI",
+    "uninstallConfirmed": "¡OpenClaw ha sido eliminado!",
+    "uninstallNotConfirmed": "Los comandos se ejecutaron pero OpenClaw aún se detecta.",
+    "verifyUninstallButton": "Verificar desinstalación",
     "close": "Cerrar",
     "dismiss": "Descartar",
     "viewLog": "Ver registro"

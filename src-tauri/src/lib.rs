@@ -682,6 +682,16 @@ struct ShellOutput {
     stderr: String,
 }
 
+fn decode_shell_output(bytes: &[u8]) -> String {
+    match std::str::from_utf8(bytes) {
+        Ok(s) => s.to_string(),
+        Err(_) => {
+            let (decoded, _, _) = encoding_rs::GBK.decode(bytes);
+            decoded.into_owned()
+        }
+    }
+}
+
 #[tauri::command]
 async fn run_shell_command(command: String) -> Result<ShellOutput, String> {
     tauri::async_runtime::spawn_blocking(move || {
@@ -705,8 +715,8 @@ async fn run_shell_command(command: String) -> Result<ShellOutput, String> {
         match output {
             Ok(o) => Ok(ShellOutput {
                 success: o.status.success(),
-                stdout: String::from_utf8_lossy(&o.stdout).to_string(),
-                stderr: String::from_utf8_lossy(&o.stderr).to_string(),
+                stdout: decode_shell_output(&o.stdout),
+                stderr: decode_shell_output(&o.stderr),
             }),
             Err(e) => Ok(ShellOutput {
                 success: false,

@@ -477,6 +477,7 @@ version = "1.0.6"
 dependencies = [
  "clawsquire-core",
  "dirs",
+ "encoding_rs",
  "futures-util",
  "keyring",
  "serde",

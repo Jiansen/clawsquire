@@ -1358,7 +1358,12 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
     });
 
     let prefix_writable = npm_prefix.as_deref().map(|p| {
-        std::fs::metadata(std::path::Path::new(p).join("lib"))
+        let check_dir = if cfg!(target_os = "windows") {
+            std::path::Path::new(p).join("node_modules")
+        } else {
+            std::path::Path::new(p).join("lib")
+        };
+        std::fs::metadata(&check_dir)
             .map(|m| !m.permissions().readonly())
             .unwrap_or(false)
     }).unwrap_or(true);
@@ -1392,7 +1397,12 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
             Ok(o) => {
                 let msg = String::from_utf8_lossy(&o.stderr).trim().to_string();
                 if msg.contains("EACCES") || msg.contains("permission denied") {
-                    result.errors.push(format!("npm uninstall skipped (permission denied — binary installed as root): {}", msg));
+                    result.errors.push(format!("npm uninstall skipped (permission denied): {}", msg));
+                } else if msg.contains("EBUSY") {
+                    result.errors.push(format!(
+                        "npm uninstall failed (EBUSY — files locked by a running process). \
+                         Stop OpenClaw first, then retry. Error: {}", msg
+                    ));
                 } else {
                     result.errors.push(format!("npm uninstall: {}", msg));
                 }
@@ -1400,9 +1410,20 @@ pub fn uninstall_openclaw_with(runner: &dyn CliRunner, remove_config: bool) -> R
             Err(e) => result.errors.push(format!("npm uninstall: {}", e)),
         }
     } else {
-        result.errors.push(
-            "npm uninstall skipped: OpenClaw binary is in a system-owned prefix (e.g. /usr/lib/node_modules) and requires root to remove. The service has been uninstalled. To fully remove the binary: sudo npm uninstall -g openclaw".to_string()
-        );
+        let hint = if cfg!(target_os = "windows") {
+            format!(
+                "npm uninstall skipped: OpenClaw binary is in a read-only prefix ({}). \
+                 Try running ClawSquire as Administrator, or manually delete the files.",
+                npm_prefix.as_deref().unwrap_or("unknown")
+            )
+        } else {
+            format!(
+                "npm uninstall skipped: OpenClaw binary is in a system-owned prefix ({}). \
+                 To remove: sudo npm uninstall -g openclaw",
+                npm_prefix.as_deref().unwrap_or("/usr/lib/node_modules")
+            )
+        };
+        result.errors.push(hint);
     }
 
     // Step 3: If remove_config was not handled by `openclaw uninstall --state`,

@@ -1,6 +1,6 @@
 [package]
 name = "clawsquire"
-version = "1.0.6"
+version = "1.0.7"
 description = "ClawSquire — The companion app for OpenClaw"
 authors = ["Jiansen He"]
 edition = "2021"
@@ -31,4 +31,5 @@ futures-util = "0.3"
 clawsquire-core = { path = "../crates/clawsquire-core" }
 tauri-plugin-updater = "2.10.0"
 tauri-plugin-process = "2.3.1"
+encoding_rs = "0.8"
 

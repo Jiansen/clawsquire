@@ -127,13 +127,18 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       isUninstallGoal ? [
         'THIS IS AN UNINSTALL OPERATION:',
         '- Goal: completely remove the `openclaw` npm global package.',
+        '- CRITICAL FIRST STEP: Kill any running OpenClaw processes BEFORE uninstalling!',
+        '  - Windows: `taskkill /f /im node.exe 2>nul` (kills all node including openclaw gateway)',
+        '  - macOS/Linux: `pkill -f openclaw` or `killall node`',
+        '  - EBUSY errors mean files are locked by a running process. Always kill first.',
         '- Methods to try (in order of preference):',
-        '  1. `npm uninstall -g openclaw` (standard)',
+        '  1. `npm uninstall -g openclaw` (standard, after killing processes)',
         '  2. Find the actual install path with `npm root -g` or `where openclaw` / `which openclaw`, then remove manually',
-        '  3. On Windows: check `%APPDATA%\\npm` for openclaw files',
+        '  3. On Windows: delete files in `%APPDATA%\\npm` (openclaw, openclaw.cmd) and `%APPDATA%\\npm\\node_modules\\openclaw`',
         '  4. On macOS/Linux: check `~/.nvm/versions/node/*/lib/node_modules/openclaw`',
         '- If npm itself is managed by nvm/volta/fnm, ensure the right Node version is active.',
         '- Verification: the `openclaw` command should NOT be found after uninstall.',
+        '- DO NOT suggest `sudo` on Windows. Use direct file deletion instead.',
         '',
       ].join('\n') : [
         'APPROACH:',
@@ -243,22 +248,32 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
   const [verifyResult, setVerifyResult] = useState<{ checked: boolean; installed: boolean } | null>(null);
 
   const verifyInstallation = async (): Promise<boolean> => {
-    addLog(t('agentInstaller.verifying', { defaultValue: 'Verifying installation...' }));
+    addLog(isUninstallGoal ? 'Verifying uninstall...' : t('agentInstaller.verifying', { defaultValue: 'Verifying installation...' }));
     try {
       const env = await invoke<{ openclaw_installed: boolean; openclaw_version: string | null }>('get_environment');
       const result = { checked: true, installed: env.openclaw_installed };
       setVerifyResult(result);
-      if (env.openclaw_installed) {
-        addLog(t('agentInstaller.verifySuccess', { defaultValue: `✓ OpenClaw installed (${env.openclaw_version})`, version: env.openclaw_version || '' }));
-        return true;
+      if (isUninstallGoal) {
+        if (!env.openclaw_installed) {
+          addLog('✓ OpenClaw has been removed successfully');
+          return true;
+        } else {
+          addLog(`✗ OpenClaw is still installed (${env.openclaw_version})`);
+          return false;
+        }
       } else {
-        addLog(t('agentInstaller.verifyFailed', { defaultValue: '✗ OpenClaw still not detected' }));
-        return false;
+        if (env.openclaw_installed) {
+          addLog(t('agentInstaller.verifySuccess', { defaultValue: `✓ OpenClaw installed (${env.openclaw_version})`, version: env.openclaw_version || '' }));
+          return true;
+        } else {
+          addLog(t('agentInstaller.verifyFailed', { defaultValue: '✗ OpenClaw still not detected' }));
+          return false;
+        }
       }
     } catch (e) {
       addLog(`Verify error: ${String(e)}`);
       setVerifyResult({ checked: true, installed: false });
-      return false;
+      return isUninstallGoal ? true : false;
     }
   };
 
@@ -411,7 +426,9 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
     <div className="mt-4 rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-violet-800 dark:text-violet-300 flex items-center gap-2">
-          <span>🤖</span> {t('agentInstaller.title')}
+          <span>🤖</span> {isUninstallGoal
+            ? t('agentInstaller.uninstallTitle', { defaultValue: 'AI Uninstall Agent' })
+            : t('agentInstaller.title')}
         </h3>
         <button onClick={onDismiss} className="text-xs text-gray-400 hover:text-gray-600">
           {t('agentInstaller.dismiss')}
@@ -547,18 +564,22 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
       {/* Done / Verify / Retry */}
       {phase === 'done' && (
         <div className="space-y-3">
-          {verifyResult?.checked && verifyResult.installed && (
+          {verifyResult?.checked && (isUninstallGoal ? !verifyResult.installed : verifyResult.installed) && (
             <div className="rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 text-center">
               <p className="text-sm font-medium text-green-700 dark:text-green-400">
-                ✅ {t('agentInstaller.installConfirmed', { defaultValue: 'OpenClaw is now installed!' })}
+                ✅ {isUninstallGoal
+                  ? t('agentInstaller.uninstallConfirmed', { defaultValue: 'OpenClaw has been removed!' })
+                  : t('agentInstaller.installConfirmed', { defaultValue: 'OpenClaw is now installed!' })}
               </p>
             </div>
           )}
-          {verifyResult?.checked && !verifyResult.installed && (
+          {verifyResult?.checked && (isUninstallGoal ? verifyResult.installed : !verifyResult.installed) && (
             <div className="space-y-2">
               <div className="rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-3 text-center">
                 <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                  ⚠️ {t('agentInstaller.installNotConfirmed', { defaultValue: 'Commands ran but OpenClaw was not detected.' })}
+                  ⚠️ {isUninstallGoal
+                    ? t('agentInstaller.uninstallNotConfirmed', { defaultValue: 'Commands ran but OpenClaw is still detected.' })
+                    : t('agentInstaller.installNotConfirmed', { defaultValue: 'Commands ran but OpenClaw was not detected.' })}
                 </p>
               </div>
               {retryCount < MAX_RETRIES && (
@@ -599,7 +620,9 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
               onClick={verifyInstallation}
               className="w-full rounded-lg bg-blue-100 dark:bg-blue-900/40 px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-all"
             >
-              {t('agentInstaller.verifyButton', { defaultValue: 'Verify Installation' })}
+              {isUninstallGoal
+                ? t('agentInstaller.verifyUninstallButton', { defaultValue: 'Verify Uninstall' })
+                : t('agentInstaller.verifyButton', { defaultValue: 'Verify Installation' })}
             </button>
           )}
           <div className="flex gap-3">
@@ -607,7 +630,9 @@ export default function AgentInstaller({ errorMessage, onRetryInstall, onDismiss
               onClick={onRetryInstall}
               className="flex-1 rounded-lg bg-claw-600 px-4 py-2 text-sm font-medium text-white hover:bg-claw-700 transition-all"
             >
-              {t('agentInstaller.retryInstall')}
+              {isUninstallGoal
+                ? t('agentInstaller.retryUninstall', { defaultValue: 'Retry Uninstall' })
+                : t('agentInstaller.retryInstall')}
             </button>
             <button
               onClick={onDismiss}
