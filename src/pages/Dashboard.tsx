@@ -6,6 +6,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { check as checkUpdate, type Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import InfoTooltip from '../components/shared/InfoTooltip';
+import AgentInstaller from '../components/AgentInstaller';
 import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface Environment {
@@ -452,6 +453,41 @@ export default function Dashboard() {
           onSetupBots={() => navigate('/onboard')}
         />
       )}
+
+      {/* Feedback banner */}
+      {!loading && (
+        <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-xl flex-shrink-0">💬</span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                {t('feedback.bannerTitle', { defaultValue: 'Help us improve ClawSquire' })}
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                {t('feedback.bannerDesc', { defaultValue: 'Found a bug? Have a suggestion? We read every report.' })}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <a
+              href="https://github.com/Jiansen/clawsquire/issues/new"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-all whitespace-nowrap"
+            >
+              {t('feedback.reportIssue', { defaultValue: 'Report Issue' })}
+            </a>
+            <a
+              href="https://github.com/Jiansen/clawsquire/discussions"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-blue-100 dark:bg-blue-900/40 px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-all whitespace-nowrap"
+            >
+              {t('feedback.discuss', { defaultValue: 'Discussions' })}
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -680,6 +716,7 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
   const [result, setResult] = useState<{ success: boolean; version?: string | null; error?: string | null } | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [nodeInstalled, setNodeInstalled] = useState(npmInstalled);
+  const [showAgent, setShowAgent] = useState(false);
 
   const handleInstallNode = async () => {
     setPhase('installing-node');
@@ -880,19 +917,50 @@ function InstallCard({ onInstalled, npmInstalled }: { onInstalled: () => void; n
       )}
 
       {phase === 'error' && (
-        <div className="text-center">
-          <div className="rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 p-4 text-sm text-red-800 dark:text-red-400">
-            <p className="font-semibold mb-2">{t('dashboard.install.failed')}</p>
-            <pre className="text-xs text-red-600 bg-red-50 dark:bg-red-950/30 rounded p-2 mt-2 overflow-auto max-h-32 text-left">
-              {result?.error}
-            </pre>
+        <div className="space-y-3">
+          <div className="text-center">
+            <div className="rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800 p-4 text-sm text-red-800 dark:text-red-400">
+              <p className="font-semibold mb-2">{t('dashboard.install.failed')}</p>
+              <pre className="text-xs text-red-600 bg-red-50 dark:bg-red-950/30 rounded p-2 mt-2 overflow-auto max-h-32 text-left">
+                {result?.error}
+              </pre>
+            </div>
+            <div className="flex items-center justify-center gap-3 mt-3">
+              <button
+                onClick={() => { setPhase('idle'); setResult(null); setShowAgent(false); }}
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-all"
+              >
+                {t('dashboard.install.tryAgain')}
+              </button>
+              {!showAgent && (
+                <button
+                  onClick={() => setShowAgent(true)}
+                  className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition-all"
+                >
+                  {t('dashboard.install.letAgentFix')}
+                </button>
+              )}
+              <a
+                href={`https://github.com/Jiansen/clawsquire/issues/new?title=${encodeURIComponent('[Bug] Installation failed')}&labels=bug&body=${encodeURIComponent(`## Installation Error\n\`\`\`\n${result?.error?.slice(0, 500) || 'Unknown error'}\n\`\`\`\n\n_Auto-reported from ClawSquire_`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg bg-amber-100 dark:bg-amber-900/30 px-4 py-2 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all"
+              >
+                {t('feedback.reportIssue', { defaultValue: 'Report Issue' })}
+              </a>
+            </div>
           </div>
-          <button
-            onClick={() => { setPhase('idle'); setResult(null); }}
-            className="mt-3 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 transition-all"
-          >
-            {t('dashboard.install.tryAgain')}
-          </button>
+          {showAgent && result?.error && (
+            <AgentInstaller
+              errorMessage={result.error}
+              onRetryInstall={() => {
+                setShowAgent(false);
+                setPhase('idle');
+                setResult(null);
+              }}
+              onDismiss={() => setShowAgent(false)}
+            />
+          )}
         </div>
       )}
     </div>

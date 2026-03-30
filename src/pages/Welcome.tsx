@@ -26,7 +26,7 @@ export default function Welcome({ onLanguageSelected }: WelcomeProps) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 px-4">
       <div className="mb-10 text-center">
-        <div className="mb-3 text-5xl">🛡️</div>
+        <img src="/logo.png" alt="ClawSquire" className="mb-3 mx-auto h-20 w-20" />
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">ClawSquire</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('app.tagline')}</p>
       </div>

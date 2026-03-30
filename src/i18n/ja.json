@@ -99,6 +99,7 @@
       "refreshing": "ダッシュボードを更新中...",
       "failed": "インストール失敗",
       "tryAgain": "再試行",
+      "letAgentFix": "AIに修正させる",
       "npmRequired": "Node.js と npm が必要です",
       "npmRequiredDesc": "OpenClaw には Node.js（v18+）と npm が必要です。自動インストールするか、手動でダウンロードできます。",
       "downloadNodejs": "Node.js をダウンロード",
@@ -606,7 +607,11 @@
     "includeGateway": "Gateway ステータスを含める",
     "includeLogs": "最近のログを含める（最後の30行）",
     "submit": "GitHub Issue を開く",
-    "opensGithub": "ブラウザで事前入力済みの GitHub Issue が開きます。"
+    "opensGithub": "ブラウザで事前入力済みの GitHub Issue が開きます。",
+    "reportIssue": "問題を報告",
+    "bannerTitle": "ClawSquire の改善にご協力ください",
+    "bannerDesc": "バグ発見？ご提案？すべてのフィードバックを確認しています。",
+    "discuss": "ディスカッション"
   },
   "common": {
     "loading": "読み込み中...",
@@ -838,6 +843,91 @@
       "custom": {
         "name": "カスタム",
         "desc": "ゼロから独自のタスクを定義"
+      }
+    }
+  },
+  "agentChat": {
+    "title": "AIアシスタント",
+    "placeholder": "ClawSquireについて何でも聞いてください...",
+    "send": "送信",
+    "empty": "質問するとAIがお手伝いします。",
+    "noResponse": "応答がありませんでした。",
+    "error": "エラー",
+    "helpTitle": "AIヘルプ",
+    "helpPlaceholder": "Telegramボットの設定方法は？",
+    "doctorTitle": "AI診断アシスタント",
+    "doctorPlaceholder": "ゲートウェイが起動しないのはなぜ？",
+    "configTitle": "AI設定アシスタント",
+    "configPlaceholder": "AIモデルの変更方法は？",
+    "vpsTitle": "AIサーバーアシスタント",
+    "vpsPlaceholder": "サーバーのSSHキーの設定を手伝ってください..."
+  },
+  "agentInstaller": {
+    "title": "AIインストールアシスタント",
+    "subtitle": "AIが問題を診断し、修正コマンドを提案します。各コマンドは実行理由付きで表示され、1つずつ確認できます。",
+    "checkingLlm": "AIの利用可能性を確認中...",
+    "llmReady": "AI準備完了 ({{model}})",
+    "llmFailed": "AIに接続できません。設定のAPI Keyを確認してください。",
+    "llmNotAvailable": "AIプロバイダーに接続できませんでした。API Keyの設定を確認してください。",
+    "tryVibeful": "ローカルAIがない？Vibefulをお試しください — セットアップ不要のクラウドAI。",
+    "tryVibefulCloud": "Vibeful 24/7クラウドAgentを試す",
+    "diagnosing": "エラーとシステム環境を分析中...",
+    "diagnosisComplete": "診断完了。",
+    "diagnosisFailed": "診断に失敗しました。",
+    "diagnosisLabel": "診断結果",
+    "foundCommands": "{{count}}個の修正コマンドが見つかりました。",
+    "modePrompt": "{{count}}個のコマンドが準備完了。どのように実行しますか？",
+    "modeAuto": "すべて自動実行",
+    "modeManual": "1つずつ確認して実行",
+    "run": "実行",
+    "skip": "スキップ",
+    "safe": "安全",
+    "moderate": "注意",
+    "dangerous": "危険",
+    "retryInstall": "再インストール",
+    "close": "閉じる",
+    "dismiss": "閉じる",
+    "viewLog": "ログを表示"
+  },
+  "apiKeySetup": {
+    "title": "AIプロバイダーの設定",
+    "subtitle": "API KeyでClawSquireとOpenClawがAIモデルを使用できます。キーはローカルにのみ保存されます。",
+    "recommendation": "最良のインストール体験にはAnthropic（Claude Opus 4.6）を推奨します。",
+    "recommendationDetail": "Claude Opus 4.6は最強のツール使用能力を持ち、複雑なインストール問題を自動で解決できます。",
+    "bestForInstall": "インストール推奨",
+    "enterKey": "{{provider}}のAPI Keyを入力",
+    "getKey": "キーを取得",
+    "show": "表示",
+    "hide": "非表示",
+    "keyLocalOnly": "ローカルにのみ保存されます。どこにもアップロードされません。",
+    "alsoForOpenclaw": "OpenClawにもこのキーを設定する（推奨）",
+    "testKey": "接続テスト",
+    "testing": "テスト中...",
+    "testSuccess": "接続成功！",
+    "testModel": "テストモデル：{{model}}",
+    "testFailed": "接続失敗",
+    "tryAgain": "再試行",
+    "saving": "保存中...",
+    "continue": "続ける →",
+    "noKey": "AIエージェントで何ができるか見てみたい？",
+    "vibefulDesc": "Vibefulを体験 — ブラウジング、リサーチ、コーディング、タスク自動化を24時間実行するクラウドAIエージェント。ブラウザですぐ始められます。",
+    "tryVibeful": "Vibefulを体験",
+    "providers": {
+      "anthropic": {
+        "tagline": "Claude Opus 4.6 — 最強のツール使用",
+        "features": "複雑なタスクに最適、有料（約3分でセットアップ）"
+      },
+      "openai": {
+        "tagline": "GPT-5.4 — フロンティア推論＆エージェント",
+        "features": "世界で最も人気、有料（約5分）"
+      },
+      "deepseek": {
+        "tagline": "V3.2 — 無料クレジットあり",
+        "features": "コスパ良好、簡単登録（約2分）"
+      },
+      "google": {
+        "tagline": "Gemini 3.1 Pro — 200万コンテキスト",
+        "features": "無料枠あり（約3分）"
       }
     }
   }

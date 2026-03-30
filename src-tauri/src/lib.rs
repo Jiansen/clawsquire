@@ -675,6 +675,42 @@ async fn run_openclaw_cli(state: tauri::State<'_, ActiveTargetState>, args: Vec<
     .map_err(|e| e.to_string())?
 }
 
+#[derive(serde::Serialize)]
+struct ShellOutput {
+    success: bool,
+    stdout: String,
+    stderr: String,
+}
+
+#[tauri::command]
+async fn run_shell_command(command: String) -> Result<ShellOutput, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let output = if cfg!(target_os = "windows") {
+            std::process::Command::new("cmd")
+                .args(["/C", &command])
+                .output()
+        } else {
+            std::process::Command::new("sh")
+                .args(["-c", &command])
+                .output()
+        };
+        match output {
+            Ok(o) => Ok(ShellOutput {
+                success: o.status.success(),
+                stdout: String::from_utf8_lossy(&o.stdout).to_string(),
+                stderr: String::from_utf8_lossy(&o.stderr).to_string(),
+            }),
+            Err(e) => Ok(ShellOutput {
+                success: false,
+                stdout: String::new(),
+                stderr: e.to_string(),
+            }),
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[tauri::command]
 async fn apply_safety_preset(state: tauri::State<'_, ActiveTargetState>, level: String) -> Result<SafetyApplyResult, String> {
     let target = state.get();
@@ -703,6 +739,15 @@ async fn agent_chat_local(message: String) -> Result<AgentChatResult, String> {
     use clawsquire_core::cli_runner::RealCliRunner;
     tauri::async_runtime::spawn_blocking(move || {
         Ok(openclaw::agent_chat_with(&RealCliRunner, &message))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn llm_chat_direct(provider: String, api_key: String, system_prompt: String, user_message: String) -> Result<openclaw::LlmChatResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(openclaw::llm_chat_direct(&provider, &api_key, &system_prompt, &user_message))
     })
     .await
     .map_err(|e| e.to_string())?
@@ -1043,7 +1088,9 @@ pub fn run() {
             copy_screenshot_to_clipboard,
             agent_chat,
             agent_chat_local,
+            llm_chat_direct,
             run_openclaw_cli,
+            run_shell_command,
             apply_safety_preset,
             search_community_issues,
             smart_search,

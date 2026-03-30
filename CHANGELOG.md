@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.0] — 2026-03-30
+
+AI-first release: when things go wrong, ClawSquire's LLM agent diagnoses and fixes the problem automatically.
+
+### Features
+
+- **AI Fix Agent** — When installation or operations fail, an LLM agent analyzes the error, identifies the root cause, and generates cross-platform shell commands with risk levels (safe/moderate/dangerous) and explanations. Works on macOS, Windows, and Linux.
+- **AI Assistants** — Context-aware AI chat integrated into Health Check (diagnostic assistant), Config (settings help), VPS Manager (server management), and Help page. Each assistant has a tailored system prompt with anti-hallucination guards.
+- **Direct LLM API (`llm_chat_direct`)** — New Rust backend function for direct API calls to LLM providers. Agent features work independently of OpenClaw installation, solving the bootstrap dependency problem.
+- **Mandatory API Key Setup** — New onboarding flow: Welcome → API Key Setup → Dashboard. Users configure their LLM provider before reaching the main app.
+- **4 Provider Grid** — Streamlined to 4 top providers with official SVG logos: Anthropic (Claude Opus 4.6), OpenAI (GPT-5.4), Google (Gemini 3.1 Pro), DeepSeek (V3.2). Each shows strongest available model.
+- **Vibeful.io Integration** — Cloud AI agent cross-promotion throughout the app. "Explore Vibeful" CTA on API key setup and "Powered by Vibeful Core Engine" branding on all AI assistant panels.
+- **Feedback Banner** — Persistent "Help us improve ClawSquire" banner on Dashboard with direct links to GitHub Issues and Discussions. Installation failure screen includes a pre-filled "Report Issue" button with error context.
+- **Sidebar Feedback Button** — Highlighted amber feedback button in sidebar for easy access to bug reporting with auto-collected diagnostics.
+
+### Bug Fixes
+
+- **Bootstrap dependency fix** — AgentInstaller and AgentChat no longer require OpenClaw to be installed. Previously, both components called `agent_chat_local` which needed a running OpenClaw instance — the exact thing they were supposed to help install.
+- **API key persistence** — `ApiKeySetup` now stores credentials in `localStorage` so AgentInstaller and AgentChat can access them for direct LLM calls.
+
+### i18n
+
+- All 7 languages updated with new keys for API key setup, AI assistants, feedback banner, and provider taglines with specific model names.
+
 ## [0.3.6] — 2026-03-26
 
 ### CI

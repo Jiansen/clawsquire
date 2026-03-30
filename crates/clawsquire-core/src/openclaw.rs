@@ -444,6 +444,149 @@ fn test_openai_compat(url: &str, model: &str, auth: &str) -> LlmTestResult {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct LlmChatResult {
+    pub success: bool,
+    pub reply: Option<String>,
+    pub error: Option<String>,
+}
+
+pub fn llm_chat_direct(provider: &str, api_key: &str, system_prompt: &str, user_message: &str) -> LlmChatResult {
+    let (url, model, auth, is_anthropic) = match provider {
+        "openai" => (
+            "https://api.openai.com/v1/chat/completions",
+            "gpt-4o-mini",
+            format!("Bearer {}", api_key),
+            false,
+        ),
+        "anthropic" => (
+            "https://api.anthropic.com/v1/messages",
+            "claude-3-haiku-20240307",
+            api_key.to_string(),
+            true,
+        ),
+        "google" | "google-gemini-cli" => {
+            return llm_chat_google(api_key, system_prompt, user_message);
+        },
+        "deepseek" => (
+            "https://api.deepseek.com/chat/completions",
+            "deepseek-chat",
+            format!("Bearer {}", api_key),
+            false,
+        ),
+        _ => (
+            "https://api.deepseek.com/chat/completions",
+            "deepseek-chat",
+            format!("Bearer {}", api_key),
+            false,
+        ),
+    };
+
+    if is_anthropic {
+        return llm_chat_anthropic(api_key, model, system_prompt, user_message);
+    }
+
+    let body = serde_json::json!({
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message}
+        ],
+        "max_tokens": 2000
+    })
+    .to_string();
+
+    let mut cmd = hidden_cmd("curl");
+    cmd.args(["-s", "--max-time", "60", "-X", "POST", url, "-H", "Content-Type: application/json"]);
+    if !auth.is_empty() {
+        cmd.args(["-H", &format!("Authorization: {}", auth)]);
+    }
+    cmd.args(["-d", &body]);
+
+    match cmd.output() {
+        Ok(o) => {
+            let stdout = String::from_utf8_lossy(&o.stdout);
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                if let Some(content) = json.pointer("/choices/0/message/content").and_then(|c| c.as_str()) {
+                    return LlmChatResult { success: true, reply: Some(content.to_string()), error: None };
+                }
+                if let Some(err) = json.pointer("/error/message").and_then(|e| e.as_str()) {
+                    return LlmChatResult { success: false, reply: None, error: Some(err.to_string()) };
+                }
+            }
+            LlmChatResult { success: false, reply: None, error: Some(format!("Unexpected response: {}", &stdout[..stdout.len().min(500)])) }
+        },
+        Err(e) => LlmChatResult { success: false, reply: None, error: Some(format!("curl failed: {}", e)) },
+    }
+}
+
+fn llm_chat_anthropic(api_key: &str, model: &str, system_prompt: &str, user_message: &str) -> LlmChatResult {
+    let body = serde_json::json!({
+        "model": model,
+        "system": system_prompt,
+        "messages": [{"role": "user", "content": user_message}],
+        "max_tokens": 2000
+    })
+    .to_string();
+
+    match hidden_cmd("curl")
+        .args([
+            "-s", "--max-time", "60", "-X", "POST",
+            "https://api.anthropic.com/v1/messages",
+            "-H", "Content-Type: application/json",
+            "-H", &format!("x-api-key: {}", api_key),
+            "-H", "anthropic-version: 2023-06-01",
+            "-d", &body,
+        ])
+        .output()
+    {
+        Ok(o) => {
+            let stdout = String::from_utf8_lossy(&o.stdout);
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                if let Some(text) = json.pointer("/content/0/text").and_then(|t| t.as_str()) {
+                    return LlmChatResult { success: true, reply: Some(text.to_string()), error: None };
+                }
+                if let Some(err) = json.pointer("/error/message").and_then(|e| e.as_str()) {
+                    return LlmChatResult { success: false, reply: None, error: Some(err.to_string()) };
+                }
+            }
+            LlmChatResult { success: false, reply: None, error: Some(format!("Unexpected: {}", &stdout[..stdout.len().min(500)])) }
+        },
+        Err(e) => LlmChatResult { success: false, reply: None, error: Some(format!("curl failed: {}", e)) },
+    }
+}
+
+fn llm_chat_google(api_key: &str, system_prompt: &str, user_message: &str) -> LlmChatResult {
+    let url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={}",
+        api_key
+    );
+    let body = serde_json::json!({
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"parts": [{"text": user_message}]}]
+    })
+    .to_string();
+
+    match hidden_cmd("curl")
+        .args(["-s", "--max-time", "60", "-X", "POST", &url, "-H", "Content-Type: application/json", "-d", &body])
+        .output()
+    {
+        Ok(o) => {
+            let stdout = String::from_utf8_lossy(&o.stdout);
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                if let Some(text) = json.pointer("/candidates/0/content/parts/0/text").and_then(|t| t.as_str()) {
+                    return LlmChatResult { success: true, reply: Some(text.to_string()), error: None };
+                }
+                if let Some(err) = json.pointer("/error/message").and_then(|e| e.as_str()) {
+                    return LlmChatResult { success: false, reply: None, error: Some(err.to_string()) };
+                }
+            }
+            LlmChatResult { success: false, reply: None, error: Some(format!("Unexpected: {}", &stdout[..stdout.len().min(500)])) }
+        },
+        Err(e) => LlmChatResult { success: false, reply: None, error: Some(format!("curl failed: {}", e)) },
+    }
+}
+
 fn test_anthropic(api_key: &str) -> LlmTestResult {
     let model = "claude-3-haiku-20240307";
     let body = serde_json::json!({

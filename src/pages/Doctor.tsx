@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import InfoTooltip from '../components/shared/InfoTooltip';
 import CommunitySearch from '../components/shared/CommunitySearch';
+import AgentChat from '../components/AgentChat';
 import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface DoctorCheck {
@@ -27,7 +28,7 @@ const STATUS_STYLES = {
 };
 
 export default function Doctor() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { target } = useActiveTarget();
   const [report, setReport] = useState<DoctorReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -184,6 +185,35 @@ export default function Doctor() {
         </div>
         <CommunitySearch initialQuery={searchQuery || undefined} key={searchQuery} />
       </section>
+
+      <AgentChat
+        systemContext={[
+          'You are ClawSquire Doctor — a diagnostic assistant for ClawSquire and OpenClaw.',
+          '',
+          'CORE BEHAVIOR:',
+          `- Reply in the user's language (current: ${i18n.language || 'en'}).`,
+          '- Be evidence-driven: base your diagnosis on the health check results and the user\'s description.',
+          '- Suggest specific fix commands when you\'re confident. Explain why each command is needed.',
+          '- If unsure, say so and suggest what to check next. Never fabricate solutions.',
+          '',
+          'WHAT YOU HELP WITH:',
+          '- Health check failures (gateway, node, config, network)',
+          '- Runtime errors and crash diagnostics',
+          '- Configuration issues and version conflicts',
+          '- Performance problems and resource issues',
+          '',
+          'BOUNDARIES:',
+          '- You are a Q&A assistant. You cannot execute commands — only suggest them.',
+          '- Point users to https://docs.openclaw.ai for detailed guides.',
+          '- If a problem is beyond OpenClaw (OS-level, hardware), say so.',
+          '',
+          report ? `CURRENT HEALTH REPORT: ${report.summary.failures} failures, ${report.summary.warnings} warnings out of ${report.summary.total} checks.` : '',
+          report ? `Failed: ${report.checks.filter(c => c.status === 'fail').map(c => `${c.name}: ${c.message}`).join('; ')}` : '',
+          report ? `Warnings: ${report.checks.filter(c => c.status === 'warn').map(c => `${c.name}: ${c.message}`).join('; ')}` : '',
+        ].filter(Boolean).join('\n')}
+        title={t('agentChat.doctorTitle')}
+        placeholder={t('agentChat.doctorPlaceholder')}
+      />
     </div>
   );
 }

@@ -102,6 +102,7 @@
       "refreshing": "Refreshing dashboard...",
       "failed": "Installation failed",
       "tryAgain": "Try Again",
+      "letAgentFix": "Let AI Fix This",
       "npmRequired": "Node.js & npm required",
       "npmRequiredDesc": "OpenClaw requires Node.js (v18+) and npm. You can auto-install it or download manually.",
       "downloadNodejs": "Download Node.js",
@@ -609,7 +610,11 @@
     "includeGateway": "Include Gateway status",
     "includeLogs": "Include recent logs (last 30 lines)",
     "submit": "Open GitHub Issue",
-    "opensGithub": "This will open a pre-filled GitHub issue in your browser."
+    "opensGithub": "This will open a pre-filled GitHub issue in your browser.",
+    "reportIssue": "Report Issue",
+    "bannerTitle": "Help us improve ClawSquire",
+    "bannerDesc": "Found a bug? Have a suggestion? We read every report.",
+    "discuss": "Discussions"
   },
   "common": {
     "loading": "Loading...",
@@ -841,6 +846,91 @@
       "custom": {
         "name": "Custom",
         "desc": "Define your own task from scratch"
+      }
+    }
+  },
+  "agentChat": {
+    "title": "AI Assistant",
+    "placeholder": "Ask anything about ClawSquire...",
+    "send": "Send",
+    "empty": "Ask a question and AI will help you.",
+    "noResponse": "No response received.",
+    "error": "Error",
+    "helpTitle": "Ask AI for Help",
+    "helpPlaceholder": "How do I set up a Telegram bot?",
+    "doctorTitle": "AI Diagnostic Assistant",
+    "doctorPlaceholder": "Why is my gateway not starting?",
+    "configTitle": "AI Config Assistant",
+    "configPlaceholder": "How do I change my LLM provider?",
+    "vpsTitle": "AI Server Assistant",
+    "vpsPlaceholder": "Help me set up SSH keys for my server..."
+  },
+  "agentInstaller": {
+    "title": "AI Install Agent",
+    "subtitle": "Your AI will diagnose the problem and suggest fix commands. Each command is shown with its purpose before execution.",
+    "checkingLlm": "Checking AI availability...",
+    "llmReady": "AI ready ({{model}})",
+    "llmFailed": "AI not reachable. Check your API key in Settings.",
+    "llmNotAvailable": "Could not reach your AI provider. Make sure your API key is configured correctly.",
+    "tryVibeful": "No local AI? Try Vibeful — cloud AI that works without setup.",
+    "tryVibefulCloud": "Try Vibeful Cloud Agent 24/7",
+    "diagnosing": "Analyzing the error and your system environment...",
+    "diagnosisComplete": "Diagnosis complete.",
+    "diagnosisFailed": "Could not complete diagnosis.",
+    "diagnosisLabel": "Diagnosis",
+    "foundCommands": "Found {{count}} fix commands.",
+    "modePrompt": "{{count}} commands ready. How would you like to proceed?",
+    "modeAuto": "Run All Automatically",
+    "modeManual": "Review Each Command",
+    "run": "Run",
+    "skip": "Skip",
+    "safe": "safe",
+    "moderate": "caution",
+    "dangerous": "risky",
+    "retryInstall": "Retry Install",
+    "close": "Close",
+    "dismiss": "Dismiss",
+    "viewLog": "View agent log"
+  },
+  "apiKeySetup": {
+    "title": "Set Up Your AI Provider",
+    "subtitle": "An API key lets ClawSquire and OpenClaw use AI models. This key stays on your device.",
+    "recommendation": "We recommend Anthropic (Claude Opus 4.6) for the best installation experience.",
+    "recommendationDetail": "Claude Opus 4.6 has the strongest tool-use capability, which means it can help resolve complex installation issues automatically.",
+    "bestForInstall": "Best for install",
+    "enterKey": "Enter your {{provider}} API Key",
+    "getKey": "Get your key",
+    "show": "Show",
+    "hide": "Hide",
+    "keyLocalOnly": "Stored locally only. Never uploaded anywhere.",
+    "alsoForOpenclaw": "Also configure this key for OpenClaw (recommended)",
+    "testKey": "Test Connection",
+    "testing": "Testing your key...",
+    "testSuccess": "Connection successful!",
+    "testModel": "Tested model: {{model}}",
+    "testFailed": "Connection failed",
+    "tryAgain": "Try again",
+    "saving": "Saving...",
+    "continue": "Continue →",
+    "noKey": "Want to see what an AI agent can do first?",
+    "vibefulDesc": "Explore Vibeful — a cloud AI agent that browses, researches, codes, and automates 24/7. No setup needed, runs entirely in your browser.",
+    "tryVibeful": "Explore Vibeful",
+    "providers": {
+      "anthropic": {
+        "tagline": "Claude Opus 4.6 — strongest tool use",
+        "features": "Best for complex tasks, requires payment (~3 min setup)"
+      },
+      "openai": {
+        "tagline": "GPT-5.4 — frontier reasoning & agents",
+        "features": "Most popular globally, requires payment (~5 min)"
+      },
+      "deepseek": {
+        "tagline": "V3.2 — free credits to start",
+        "features": "Great value, simple signup (~2 min)"
+      },
+      "google": {
+        "tagline": "Gemini 3.1 Pro — 2M context",
+        "features": "Free tier available (~3 min)"
       }
     }
   }

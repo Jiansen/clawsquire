@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
+import AgentChat from '../components/AgentChat';
 import { useActiveTarget } from '../context/ActiveTargetContext';
 
 interface VpsInstance {
@@ -212,7 +213,7 @@ function InlineSetup({
 }
 
 export default function VpsManager() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { refreshTarget, refreshInstances: ctxRefreshInstances } = useActiveTarget();
@@ -872,6 +873,34 @@ export default function VpsManager() {
             <p className="text-sm">{t('vps.emptyDesc')}</p>
           </div>
         )}
+
+        <AgentChat
+          systemContext={[
+            'You are ClawSquire Server Assistant — helps users manage remote VPS instances running OpenClaw.',
+            '',
+            'CORE BEHAVIOR:',
+            `- Reply in the user's language (current: ${i18n.language || 'en'}).`,
+            '- Show exact shell commands. Detect the server OS from context.',
+            '- For SSH issues, check key permissions (600), known_hosts, and firewall rules.',
+            '- If unsure about the server environment, ask what OS/distro it runs.',
+            '',
+            'WHAT YOU HELP WITH:',
+            '- SSH key generation and configuration',
+            '- Firewall rules (ufw, iptables, firewalld)',
+            '- OpenClaw deployment: install Node.js, npm install -g openclaw, configure gateway',
+            '- clawsquire-serve daemon: install, start, stop, update, check status',
+            '- Service monitoring, log inspection, performance tuning',
+            '',
+            'BOUNDARIES:',
+            '- You suggest commands, but cannot execute them remotely.',
+            '- Warn before destructive operations (service restart, firewall changes, data deletion).',
+            '- Docs: https://docs.openclaw.ai/deployment',
+            '',
+            selected ? `CURRENT SERVER: ${selected.name} (${selected.host}:${selected.port}, user: ${selected.username})` : 'No server selected.',
+          ].filter(Boolean).join('\n')}
+          title={t('agentChat.vpsTitle')}
+          placeholder={t('agentChat.vpsPlaceholder')}
+        />
       </div>
     </div>
   );

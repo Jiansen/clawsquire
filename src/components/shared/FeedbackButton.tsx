@@ -151,7 +151,7 @@ export default function FeedbackButton() {
         onClick={handleOpen}
         disabled={isCollecting}
         title={t('feedback.title')}
-        className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
+        className="flex items-center justify-center w-10 h-10 rounded-lg text-amber-400 hover:text-amber-200 hover:bg-amber-900/40 bg-amber-900/20 ring-1 ring-amber-700/30 transition-colors disabled:opacity-50"
       >
         {isCollecting ? (
           <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">

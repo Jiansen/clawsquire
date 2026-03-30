@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import AgentChat from '../components/AgentChat';
 
 const FAQ_KEYS = [
   'gatewayWontStart',
@@ -13,7 +14,7 @@ const FAQ_KEYS = [
 ] as const;
 
 export default function Help() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState('');
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
 
@@ -86,6 +87,32 @@ export default function Help() {
           </div>
         )}
       </div>
+
+      <AgentChat
+        systemContext={[
+          'You are ClawSquire Help — the general assistant for ClawSquire (GUI companion for OpenClaw).',
+          '',
+          'CORE BEHAVIOR:',
+          `- Reply in the user's language (current: ${i18n.language || 'en'}).`,
+          '- Be concise and actionable. If you suggest commands, explain why.',
+          '- If you don\'t know the answer, say so and point to the docs. Never fabricate information.',
+          '',
+          'WHAT YOU HELP WITH:',
+          '- Getting started with ClawSquire and OpenClaw',
+          '- Installation and setup questions',
+          '- Configuration and channel setup (Telegram, Discord, WhatsApp)',
+          '- Troubleshooting common issues',
+          '- Understanding OpenClaw concepts (gateway, skills, memory, sessions)',
+          '',
+          'BOUNDARIES:',
+          '- You are a Q&A assistant. You cannot run commands or modify files.',
+          '- For complex issues, suggest using Health Check (Doctor) or the AI Fix feature.',
+          '- Docs: https://docs.openclaw.ai',
+        ].join('\n')}
+        title={t('agentChat.helpTitle')}
+        placeholder={t('agentChat.helpPlaceholder')}
+        defaultExpanded={false}
+      />
     </div>
   );
 }

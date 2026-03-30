@@ -20,10 +20,12 @@ import Automations from './pages/Automations';
 import Sources from './pages/Sources';
 import Bootstrap from './pages/Bootstrap';
 import Welcome from './pages/Welcome';
+import ApiKeySetup from './pages/ApiKeySetup';
 import { useWindowTitle } from './lib/useWindowTitle';
 import { ActiveTargetProvider } from './context/ActiveTargetContext';
 
 const LOCALE_KEY = 'clawsquire.locale';
+const API_KEY_KEY = 'clawsquire.apiKeyConfigured';
 
 function AppShell() {
   useWindowTitle();
@@ -63,9 +65,11 @@ export default function App() {
   const [hasChosenLocale, setHasChosenLocale] = useState(
     () => localStorage.getItem(LOCALE_KEY) !== null,
   );
+  const [hasApiKey, setHasApiKey] = useState(
+    () => localStorage.getItem(API_KEY_KEY) !== null,
+  );
 
   useEffect(() => {
-    // Only call Tauri APIs if running in Tauri context
     if (window.__TAURI_INTERNALS__) {
       getCurrentWindow().show().catch(() => {});
     }
@@ -75,6 +79,14 @@ export default function App() {
     return (
       <ErrorBoundary>
         <Welcome onLanguageSelected={() => setHasChosenLocale(true)} />
+      </ErrorBoundary>
+    );
+  }
+
+  if (!hasApiKey) {
+    return (
+      <ErrorBoundary>
+        <ApiKeySetup onComplete={() => setHasApiKey(true)} />
       </ErrorBoundary>
     );
   }

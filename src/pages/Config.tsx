@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import AgentChat from '../components/AgentChat';
 import { useActiveTarget } from '../context/ActiveTargetContext';
 
 const MASK_KEYS = ['apiKey', 'token', 'secret', 'password', 'botToken'];
@@ -26,7 +27,7 @@ function maskSecrets(obj: unknown, parentKey = ''): unknown {
 
 export default function Config() {
   const { target } = useActiveTarget();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [rawJson, setRawJson] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -122,6 +123,32 @@ export default function Config() {
       <p className="text-xs text-gray-400">
         {t('config.secretsMasked')}
       </p>
+
+      <AgentChat
+        systemContext={[
+          'You are ClawSquire Config Assistant — helps users understand and modify OpenClaw configuration.',
+          '',
+          'CORE BEHAVIOR:',
+          `- Reply in the user's language (current: ${i18n.language || 'en'}).`,
+          '- Show exact config commands. Use `openclaw config set <path> <value>` for changes, `openclaw config get <path>` to read.',
+          '- Explain what each config option does and its impact before suggesting changes.',
+          '- If unsure about a config path, say so. Never guess config keys.',
+          '',
+          'WHAT YOU HELP WITH:',
+          '- LLM provider API keys and model selection',
+          '- Channel setup: Telegram, Discord, WhatsApp, WeChat',
+          '- Safety presets (conservative / standard / full)',
+          '- Gateway options: port, host, SSL, CORS',
+          '- Plugin and skill configuration',
+          '',
+          'BOUNDARIES:',
+          '- You suggest commands, but cannot execute them.',
+          '- Warn users before changes that affect security (API keys, safety level).',
+          '- Docs: https://docs.openclaw.ai/configuration',
+        ].join('\n')}
+        title={t('agentChat.configTitle')}
+        placeholder={t('agentChat.configPlaceholder')}
+      />
     </div>
   );
 }

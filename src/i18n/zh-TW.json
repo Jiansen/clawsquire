@@ -99,6 +99,7 @@
       "refreshing": "正在重新整理儀表板...",
       "failed": "安裝失敗",
       "tryAgain": "重試",
+      "letAgentFix": "讓 AI 來修復",
       "npmRequired": "需要 Node.js 和 npm",
       "npmRequiredDesc": "OpenClaw 需要 Node.js（v18+）和 npm。可以一鍵自動安裝，也可以手動下載。",
       "downloadNodejs": "下載 Node.js",
@@ -606,7 +607,11 @@
     "includeGateway": "包含 Gateway 狀態",
     "includeLogs": "包含最近日誌（最後 30 行）",
     "submit": "開啟 GitHub Issue",
-    "opensGithub": "這將在瀏覽器中開啟一個預填好的 GitHub Issue。"
+    "opensGithub": "這將在瀏覽器中開啟一個預填好的 GitHub Issue。",
+    "reportIssue": "回報問題",
+    "bannerTitle": "幫助我們改進 ClawSquire",
+    "bannerDesc": "發現 Bug？有建議？我們會認真閱讀每條回饋。",
+    "discuss": "討論區"
   },
   "common": {
     "loading": "載入中...",
@@ -838,6 +843,91 @@
       "custom": {
         "name": "自訂",
         "desc": "從零開始定義自己的任務"
+      }
+    }
+  },
+  "agentChat": {
+    "title": "AI 助手",
+    "placeholder": "問任何關於 ClawSquire 的問題...",
+    "send": "傳送",
+    "empty": "提問後 AI 會幫助你。",
+    "noResponse": "未收到回覆。",
+    "error": "錯誤",
+    "helpTitle": "AI 幫助",
+    "helpPlaceholder": "怎麼設定 Telegram 機器人？",
+    "doctorTitle": "AI 診斷助手",
+    "doctorPlaceholder": "為什麼閘道啟動不了？",
+    "configTitle": "AI 設定助手",
+    "configPlaceholder": "怎麼更換 AI 模型？",
+    "vpsTitle": "AI 伺服器助手",
+    "vpsPlaceholder": "幫我設定伺服器的 SSH 金鑰..."
+  },
+  "agentInstaller": {
+    "title": "AI 安裝助手",
+    "subtitle": "AI 將診斷問題並建議修復命令。每條命令會顯示執行原因，你可以逐條確認。",
+    "checkingLlm": "檢查 AI 可用性...",
+    "llmReady": "AI 已就緒 ({{model}})",
+    "llmFailed": "AI 無法連線。請檢查設定中的 API Key。",
+    "llmNotAvailable": "無法連線到 AI 服務商。請確認 API Key 設定正確。",
+    "tryVibeful": "沒有本機 AI？試試 Vibeful — 無需設定的雲端 AI。",
+    "tryVibefulCloud": "試試 Vibeful 24/7 雲端 Agent",
+    "diagnosing": "正在分析錯誤和系統環境...",
+    "diagnosisComplete": "診斷完成。",
+    "diagnosisFailed": "診斷失敗。",
+    "diagnosisLabel": "診斷結果",
+    "foundCommands": "找到 {{count}} 條修復命令。",
+    "modePrompt": "{{count}} 條命令就緒。你想怎麼執行？",
+    "modeAuto": "全部自動執行",
+    "modeManual": "逐條審核執行",
+    "run": "執行",
+    "skip": "跳過",
+    "safe": "安全",
+    "moderate": "注意",
+    "dangerous": "風險",
+    "retryInstall": "重新安裝",
+    "close": "關閉",
+    "dismiss": "取消",
+    "viewLog": "查看日誌"
+  },
+  "apiKeySetup": {
+    "title": "設定 AI 服務商",
+    "subtitle": "API Key 讓 ClawSquire 和 OpenClaw 使用 AI 模型。金鑰僅儲存在本機。",
+    "recommendation": "推薦 Anthropic（Claude Opus 4.6）獲得最佳安裝體驗。",
+    "recommendationDetail": "Claude Opus 4.6 具有最強的工具呼叫能力，能自動解決複雜的安裝問題。",
+    "bestForInstall": "安裝首選",
+    "enterKey": "輸入您的 {{provider}} API Key",
+    "getKey": "取得金鑰",
+    "show": "顯示",
+    "hide": "隱藏",
+    "keyLocalOnly": "僅儲存在本機，不會上傳到任何地方。",
+    "alsoForOpenclaw": "同時為 OpenClaw 設定此金鑰（推薦）",
+    "testKey": "測試連線",
+    "testing": "正在測試...",
+    "testSuccess": "連線成功！",
+    "testModel": "測試模型：{{model}}",
+    "testFailed": "連線失敗",
+    "tryAgain": "重試",
+    "saving": "儲存中...",
+    "continue": "繼續 →",
+    "noKey": "想先看看 AI Agent 能做什麼？",
+    "vibefulDesc": "探索 Vibeful — 雲端 AI Agent，可瀏覽網頁、調研、寫程式、自動化任務，全天候運行。打開瀏覽器即可開始。",
+    "tryVibeful": "探索 Vibeful",
+    "providers": {
+      "anthropic": {
+        "tagline": "Claude Opus 4.6 — 最強工具呼叫",
+        "features": "最適合複雜任務，需付費（約3分鐘設定）"
+      },
+      "openai": {
+        "tagline": "GPT-5.4 — 前沿推理與 Agent",
+        "features": "全球最流行，需付費（約5分鐘）"
+      },
+      "deepseek": {
+        "tagline": "V3.2 — 免費額度可用",
+        "features": "高性價比，註冊簡單（約2分鐘）"
+      },
+      "google": {
+        "tagline": "Gemini 3.1 Pro — 200萬上下文",
+        "features": "有免費額度（約3分鐘）"
       }
     }
   }
