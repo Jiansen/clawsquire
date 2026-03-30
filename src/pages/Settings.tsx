@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import SafetyPresets, { type SafetyLevel } from '../components/shared/SafetyPresets';
 import InfoTooltip from '../components/shared/InfoTooltip';
+import VibefulCTA from '../components/shared/VibefulCTA';
 import AgentInstaller from '../components/AgentInstaller';
 import { useActiveTarget } from '../context/ActiveTargetContext';
 import { useOperation } from '../context/OperationContext';
@@ -303,6 +304,8 @@ export default function Settings() {
           <AboutRow label="React" value={__REACT_VERSION__} />
         </div>
       </div>
+
+      <VibefulCTA utmMedium="settings" />
     </div>
   );
 }

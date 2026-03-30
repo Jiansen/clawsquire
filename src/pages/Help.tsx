@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AgentChat from '../components/AgentChat';
+import VibefulCTA from '../components/shared/VibefulCTA';
 
 const FAQ_KEYS = [
   'gatewayWontStart',
@@ -113,6 +114,8 @@ export default function Help() {
         placeholder={t('agentChat.helpPlaceholder')}
         defaultExpanded={false}
       />
+
+      <VibefulCTA utmMedium="help" />
     </div>
   );
 }
