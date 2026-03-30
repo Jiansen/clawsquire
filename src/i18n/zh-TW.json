@@ -464,7 +464,7 @@
   },
   "welcome": {
     "title": "歡迎使用 ClawSquire",
-    "subtitle": "你的 OpenClaw 伴侶應用程式",
+    "subtitle": "AI 驅動的 OpenClaw 伴侶應用",
     "chooseLanguage": "選擇你的語言",
     "openclawNotFound": "系統中未偵測到 OpenClaw。",
     "installGuide": "請先安裝 OpenClaw，然後回到這裡。",

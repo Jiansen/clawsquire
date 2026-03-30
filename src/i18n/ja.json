@@ -464,7 +464,7 @@
   },
   "welcome": {
     "title": "ClawSquire へようこそ",
-    "subtitle": "あなたの OpenClaw コンパニオンアプリ",
+    "subtitle": "AI 搭載 OpenClaw コンパニオンアプリ",
     "chooseLanguage": "言語を選択",
     "openclawNotFound": "このシステムに OpenClaw がインストールされていません。",
     "installGuide": "まず OpenClaw をインストールしてから、ここに戻ってください。",

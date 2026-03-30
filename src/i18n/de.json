@@ -464,7 +464,7 @@
   },
   "welcome": {
     "title": "Willkommen bei ClawSquire",
-    "subtitle": "Deine OpenClaw-Begleit-App",
+    "subtitle": "KI-gestützte Begleit-App für OpenClaw",
     "chooseLanguage": "Sprache wählen",
     "openclawNotFound": "OpenClaw ist auf diesem System nicht installiert.",
     "installGuide": "Installiere zuerst OpenClaw und kehre dann hierher zurück.",

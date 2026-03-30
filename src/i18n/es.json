@@ -464,7 +464,7 @@
   },
   "welcome": {
     "title": "Bienvenido a ClawSquire",
-    "subtitle": "Tu app compañera de OpenClaw",
+    "subtitle": "App con IA para OpenClaw",
     "chooseLanguage": "Elige tu idioma",
     "openclawNotFound": "OpenClaw no está instalado en este sistema.",
     "installGuide": "Instala OpenClaw primero y luego vuelve aquí.",
