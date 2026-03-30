@@ -17,7 +17,9 @@
     "bootstrap": "Bootstrap",
     "vps": "VPS",
     "sources": "Fuentes",
-    "imap": "Correo"
+    "imap": "Correo",
+    "remoteSetup": "Configuración remota",
+    "setupWizard": "Asistente de configuración"
   },
   "bootstrap": {
     "title": "Bootstrap remoto",

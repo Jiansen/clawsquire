@@ -17,7 +17,9 @@
     "bootstrap": "遠端引導",
     "vps": "VPS 管理",
     "sources": "輸入源",
-    "imap": "郵件"
+    "imap": "郵件",
+    "remoteSetup": "遠端配置",
+    "setupWizard": "設定精靈"
   },
   "bootstrap": {
     "title": "遠端引導",

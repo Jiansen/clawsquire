@@ -17,7 +17,9 @@
     "imap": "E-Mail",
     "settings": "Einstellungen",
     "help": "Hilfe",
-    "config": "Konfiguration"
+    "config": "Konfiguration",
+    "remoteSetup": "Remote-Einrichtung",
+    "setupWizard": "Einrichtungsassistent"
   },
   "bootstrap": {
     "title": "Remote-Bootstrap",

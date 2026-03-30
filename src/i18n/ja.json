@@ -17,7 +17,9 @@
     "bootstrap": "ブートストラップ",
     "vps": "VPS管理",
     "sources": "入力ソース",
-    "imap": "メール"
+    "imap": "メール",
+    "remoteSetup": "リモートセットアップ",
+    "setupWizard": "セットアップウィザード"
   },
   "bootstrap": {
     "title": "リモートブートストラップ",

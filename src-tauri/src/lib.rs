@@ -686,8 +686,9 @@ struct ShellOutput {
 async fn run_shell_command(command: String) -> Result<ShellOutput, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let output = if cfg!(target_os = "windows") {
+            let utf8_command = format!("chcp 65001 >nul && {}", command);
             let mut cmd = std::process::Command::new("cmd");
-            cmd.args(["/C", &command]);
+            cmd.args(["/C", &utf8_command]);
             cmd.env("PATH", clawsquire_core::detect::expanded_path());
             #[cfg(target_os = "windows")]
             {

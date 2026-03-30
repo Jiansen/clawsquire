@@ -17,7 +17,9 @@
     "sources": "Fontes",
     "imap": "E-mail",
     "settings": "Configurações",
-    "automations": "Automações"
+    "automations": "Automações",
+    "remoteSetup": "Configuração remota",
+    "setupWizard": "Assistente de configuração"
   },
   "bootstrap": {
     "title": "Bootstrap remoto",

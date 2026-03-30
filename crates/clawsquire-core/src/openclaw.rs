@@ -187,7 +187,7 @@ pub fn install_openclaw_with(runner: &dyn CliRunner) -> Result<InstallResult, St
         // Falls back to npm if PowerShell script fails
         let ps_result = hidden_cmd("powershell")
             .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command",
-                "& ([scriptblock]::Create((iwr -useb https://openclaw.ai/install.ps1))) -NoOnboard"])
+                "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; & ([scriptblock]::Create((iwr -useb https://openclaw.ai/install.ps1))) -NoOnboard"])
             .output();
         match ps_result {
             Ok(o) if o.status.success() => o,
